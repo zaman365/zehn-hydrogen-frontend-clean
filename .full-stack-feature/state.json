@@ -1,0 +1,13 @@
+{
+  "feature": "Implement a complete Return Management System (RMS) for the ZEHN Hydrogen e-commerce store using Shopify Admin API",
+  "status": "in_progress",
+  "stack": "Hydrogen/Remix + Shopify",
+  "api_style": "graphql",
+  "complexity": "medium",
+  "current_step": "checkpoint-1",
+  "current_phase": 1,
+  "completed_steps": [1, 2, 3],
+  "files_created": ["01-requirements.md", "02-database-design.md", "03-architecture.md"],
+  "started_at": "2026-03-15T17:36:22.804Z",
+  "last_updated": "2026-03-16T18:41:11.743Z"
+}
