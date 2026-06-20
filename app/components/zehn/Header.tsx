@@ -232,7 +232,7 @@ function CategoryMenuPanel({
                 aria-hidden="true"
               />
             </button>
-            {(
+            {
               <div
                 id={sectionId}
                 className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
@@ -265,7 +265,7 @@ function CategoryMenuPanel({
                   </div>
                 </div>
               </div>
-            )}
+            }
           </div>
         );
       })}
@@ -421,7 +421,6 @@ export function Header({
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const {count: wishlistCount} = useWishlist();
-
 
   // Get customer/auth state from root loader
   const rootData = useRouteLoaderData<RootLoader>('root');
@@ -613,9 +612,8 @@ export function Header({
 
   return (
     <>
-      <header
-        className="fixed top-[26px] sm:top-[29px] left-0 right-0 z-50 pt-[3px] font-sans bg-transparent"
-      >
+      {/* 3px breathing gap below announcement bar so navbar card visually floats */}
+      <header className="fixed top-[29px] sm:top-[32px] left-0 right-0 z-50 font-sans bg-transparent">
         <nav
           ref={headerNavRef}
           className={`relative w-[97.5%] lg:w-[95%] max-w-[1400px] mx-auto px-2 sm:px-5 lg:px-8 backdrop-blur-md rounded-lg py-0 my-0 bg-white/40 border border-white/30 transition-all duration-600 ease-out ${
@@ -984,8 +982,7 @@ function MobileMenuActivityDot({wishlistCount}: {wishlistCount: number}) {
 
 function MobileMenuCartButton({onClick}: {onClick: () => void}) {
   const data = useRouteLoaderData<RootLoader>('root');
-  const cartPromise =
-    data ? (data as any).cart : undefined;
+  const cartPromise = data ? (data as any).cart : undefined;
 
   const renderButton = (count: number) => (
     <button
@@ -1012,8 +1009,7 @@ function MobileMenuCartButton({onClick}: {onClick: () => void}) {
 
 function MobileCartButton({onClick}: {onClick: () => void}) {
   const data = useRouteLoaderData<RootLoader>('root');
-  const cartPromise =
-    data ? (data as any).cart : undefined;
+  const cartPromise = data ? (data as any).cart : undefined;
 
   return (
     <Suspense

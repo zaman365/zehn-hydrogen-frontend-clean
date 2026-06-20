@@ -311,7 +311,10 @@ export default function Homepage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Hero />
+      {/* Hero fold: aspect-ratio height (see homepage-hero.css); chips stay in ProductGrid */}
+      <section data-homepage-hero-fold>
+        <Hero />
+      </section>
       <div className="mt-0">
         <ProductGrid
           allProducts={allProducts}

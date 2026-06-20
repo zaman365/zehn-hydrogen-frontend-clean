@@ -1,0 +1,39 @@
+{
+  "project": "zehn-hydrogen-frontend",
+  "client": "ZEHN Fashion",
+  "domain": "zehnfashion.de",
+  "cycle": "C1",
+  "cycle_started": "2026-06-19",
+  "framework": "Shopify Hydrogen 2025.10.1 + React Router 7",
+  "primary_workstream": "UI polish / homepage / mobile-first",
+  "authority_matrix": {
+    "stakeholder": "Client / product owner",
+    "technical_lead": "Developer",
+    "gate_1_approver": "Stakeholder",
+    "gate_2_approver": "Stakeholder"
+  },
+  "model_versions": {
+    "orchestrator": { "tier": "medium", "last_validated": "2026-06-19" },
+    "build_agent": { "tier": "medium", "last_validated": "2026-06-19" },
+    "red_team": { "tier": "medium", "last_validated": "2026-06-19" }
+  },
+  "llm_providers": {
+    "cursor": {
+      "approved_for": ["source_code", "documentation", "non_pii"],
+      "review_date": "2026-06-19"
+    }
+  },
+  "verification_commands": {
+    "typecheck": "npm run typecheck",
+    "test": "npx vitest run",
+    "lint": "npm run lint",
+    "dev": "npm run dev"
+  },
+  "breakpoints_px": [390, 768, 1024, 1280, 1440],
+  "frozen_paths": [
+    "app/components/zehn/AnnouncementBar.tsx",
+    "app/components/zehn/Header.tsx",
+    "app/components/PageLayout.tsx",
+    "app/lib/design-tokens.ts"
+  ]
+}

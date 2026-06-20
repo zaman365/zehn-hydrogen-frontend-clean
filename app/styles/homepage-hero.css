@@ -1,0 +1,246 @@
+/**
+ * Homepage hero fold — announcement + navbar overlay + banner image.
+ *
+ * ─── Unified offset geometry (desktop ≥1024px AND mobile <1024px) ────────
+ *
+ * Both desktop (5:2, 3000×1200) and mobile (4:5, 1080×1350) banners have
+ * blank studio background at the top before the models' heads. We pull the
+ * image up by --hero-fold-img-offset-* pixels into the fixed header area.
+ * That strip is completely hidden by the fixed header, so models appear
+ * with minimal gap below the navbar with no visible seam.
+ *
+ *  img_top = headerStack - offset
+ *  img_h   = fold_h - img_top
+ *
+ * ─── Desktop geometry (≥1024px) ──────────────────────────────────────────
+ *
+ *  Banner native aspect: 5:2 (3000×1200 → height = width/2.5)
+ *  Header stack:  106px    Offset: 25px    img_top: 81px
+ *
+ *  fold_h = 100vw/2.5 + img_top
+ *         = 100vw/2.5 + 81px
+ *
+ *  This keeps the image box at exactly the banner's native 2.5:1 ratio at
+ *  every viewport width:
+ *    image_box_h = fold_h − img_top = 100vw/2.5
+ *    container   = viewport_w × (viewport_w/2.5) → ratio = 2.5 exactly
+ *  → object-fit:cover scales to height with ZERO vertical overflow
+ *  → full head-to-toe model visible at ALL desktop widths without zoom.
+ *
+ *  Previously: fold used `height: 78dvh` + `min-height: …vw` formula.
+ *  Below ~1580px 78dvh governed (grew with height); above that the
+ *  min-height formula governed (grew faster with width) — the switch point
+ *  created a perceptible "zoom" jump. Single formula eliminates that.
+ *
+ * ─── Mobile geometry (<1024px) ───────────────────────────────────────────
+ *
+ *  Banner native aspect: 4:5 (1080×1350 → height = width×1.25)
+ *  Header stack:  102px    Offset: 39px    img_top: 63px
+ *
+ *  fold_h = 100vw × 5/4 + img_top
+ *         = 100vw × 1.25 + 63px
+ *
+ *  Same logic: image box = 100vw×1.25 → container 4:5 = image ratio →
+ *  scale to height → full portrait → model head at fold y ≈ img_top+43 =
+ *  fold y 106 ≈ just below header.
+ *
+ * ─── Edge-colour blend ───────────────────────────────────────────────────
+ *
+ *  One banner has a warmer-gray left edge (#d8d9dd vs studio #e1e2e6).
+ *  A 80px gradient from --hero-fold-bg → transparent on both sides masks
+ *  the mismatch; the models are centred well inside and unaffected.
+ */
+
+:root {
+  --site-header-stack-mobile: 102px;
+  --site-header-stack-desktop: 106px;
+  /*
+   * Matches the studio background of every hero banner (#e1e2e6).
+   * The fold y=0..img_top is behind the fixed header and never visible;
+   * using the same colour ensures the frosted-glass header reads seamlessly.
+   */
+  --hero-fold-bg: #e1e2e6;
+  --hero-fold-height-mobile: 90dvh;
+  --hero-fold-height-desktop: 95dvh;
+  /*
+   * Desktop: pixels the image bleeds up into the header (hides blank studio).
+   * img_top = headerStack_d − offset_d = 106 − 25 = 81px
+   */
+  --hero-fold-img-offset: 25px;
+  /*
+   * Mobile: same concept for the portrait banner.
+   * At 390px, model head renders at y≈43px (scale 0.361); with img_top=63px
+   * head appears at fold y≈106 — just below the mobile header stack (102px).
+   * img_top = headerStack_m − offset_m = 102 − 39 = 63px
+   */
+  --hero-fold-img-offset-mobile: 39px;
+}
+
+/* ─── Fold container ─────────────────────────────────────────────────────── */
+
+[data-homepage-hero-fold] {
+  position: relative;
+  /* Cancels PageLayout main padding so fold bleeds to viewport top */
+  margin-top: calc(-1 * var(--site-header-stack-mobile));
+  width: 100%;
+  /*
+   * Mobile: fold_h = 100vw×1.25 + img_top_m = 100vw×1.25 + 63px
+   * Image box (fold_h − 63px) = 100vw×1.25 → exact 4:5 portrait ratio.
+   */
+  height: calc(
+    100vw * 5 / 4 +
+    var(--site-header-stack-mobile) -
+    var(--hero-fold-img-offset-mobile)
+  );
+  max-height: var(--hero-fold-height-mobile);
+  overflow: hidden;
+  background-color: var(--hero-fold-bg);
+}
+
+@media (min-width: 1024px) {
+  [data-homepage-hero-fold] {
+    margin-top: calc(-1 * var(--site-header-stack-desktop));
+    /*
+     * Desktop: fold_h = 100vw/2.5 + img_top_d = 100vw/2.5 + 81px
+     * Image box (fold_h − 81px) = 100vw/2.5 → exact 5:2 banner ratio.
+     * Fold grows linearly with viewport WIDTH, not HEIGHT — consistent scale
+     * at every breakpoint, no "zoom jump" at any threshold.
+     */
+    height: calc(
+      100vw / 2.5 +
+      var(--site-header-stack-desktop) -
+      var(--hero-fold-img-offset)
+    );
+    /*
+     * Safety floor: prevents collapse on just-over-1024px viewports.
+     * Safety ceiling: prevents fold from consuming the full viewport on
+     * short/wide screens (e.g., 1920×768) where the width-based formula
+     * could exceed available height. At those extremes object-fit:cover
+     * scales to width; object-position:center 0% on the image keeps heads
+     * in frame while the studio floor may be slightly cropped.
+     */
+    min-height: 480px;
+    max-height: min(var(--hero-fold-height-desktop), calc(100dvh - 100px));
+  }
+}
+
+/* ─── Hero section fills fold ────────────────────────────────────────────── */
+
+[data-homepage-hero-fold] > [data-homepage-hero] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+/*
+ * Edge-colour blend overlay.
+ * z-8 → above slide images (z auto/0), below click button (z-10) and
+ * text overlay (z-20). pointer-events:none passes events through to button.
+ * 80px covers only empty studio edges; centred models are unaffected.
+ */
+[data-homepage-hero]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+  background:
+    linear-gradient(90deg,  var(--hero-fold-bg) 0, transparent 80px),
+    linear-gradient(270deg, var(--hero-fold-bg) 0, transparent 80px);
+}
+
+[data-homepage-hero] .hero-viewport {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+[data-homepage-hero] .hero-viewport--desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  [data-homepage-hero] .hero-viewport--mobile {
+    display: none;
+  }
+
+  [data-homepage-hero] .hero-viewport--desktop {
+    display: block;
+  }
+}
+
+[data-homepage-hero] .hero-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+[data-homepage-hero] [data-hero-slide] {
+  position: absolute;
+  inset: 0;
+}
+
+/* ─── Slide images ───────────────────────────────────────────────────────── */
+
+/*
+ * Base: fills hero container. width/height attributes (3000×1200 etc.) set
+ * intrinsic aspect ratio which must be unset so object-fit:cover drives sizing.
+ */
+[data-homepage-hero] .hero-slide-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  aspect-ratio: unset;
+  object-fit: cover;
+}
+
+/*
+ * Mobile portrait framing (< 1024px):
+ *
+ *  top    = img_top_m = headerStack_m - offset_m = 63px
+ *    Image starts at fold y=63. fold y=0..63 is fold bg (behind header).
+ *    fold y=63..102 shows image blank-studio top — also behind header.
+ *    Model heads become visible at fold y ≈ 106 ≈ navbar bottom.
+ *
+ *  bottom: auto — removes inset:0 bottom constraint so height drives size.
+ *
+ *  height = fold_h − img_top_m = 100vw×1.25 → exact 4:5 portrait ratio.
+ *    object-fit:cover scales to height, no vertical overflow.
+ *
+ *  object-position: center 0%
+ *    No effect at the exact ratio (no overflow). Safety for short viewports
+ *    where max-height cap reduces fold below the formula value — at those
+ *    edge cases top-align ensures heads remain visible even if studio
+ *    floor is cropped.
+ */
+@media (max-width: 1023px) {
+  [data-homepage-hero] .hero-slide-img--mobile {
+    top: calc(var(--site-header-stack-mobile) - var(--hero-fold-img-offset-mobile));
+    bottom: auto;
+    height: calc(100% - var(--site-header-stack-mobile) + var(--hero-fold-img-offset-mobile));
+  }
+}
+
+/*
+ * Desktop landscape framing (≥ 1024px):
+ *
+ *  top    = img_top_d = headerStack_d - offset_d = 81px
+ *  height = fold_h − img_top_d = 100vw/2.5 → exact 5:2 banner ratio.
+ *
+ *  object-position: center 0%
+ *    No effect at exact ratio (no overflow). Safety for extreme wide/short
+ *    viewports where max-height cap applies — top-align keeps heads visible.
+ */
+@media (min-width: 1024px) {
+  [data-homepage-hero] .hero-slide-img--desktop {
+    top: calc(var(--site-header-stack-desktop) - var(--hero-fold-img-offset));
+    bottom: auto;
+    height: calc(100% - var(--site-header-stack-desktop) + var(--hero-fold-img-offset));
+  }
+}

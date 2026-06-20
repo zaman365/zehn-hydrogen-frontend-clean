@@ -91,7 +91,6 @@ export function ProductGrid({
   const scrollToSelectionAndProducts = useCallback(() => {
     if (!menuRef.current) return;
 
-    // Always land at the same absolute viewport position (no incremental drift)
     const fixedHeader = document.querySelector(
       'header.fixed',
     ) as HTMLElement | null;
@@ -414,52 +413,56 @@ export function ProductGrid({
         </div>
         */}
 
-        {/* Row 1: Main Categories - same design as shop all collection page */}
-        <div ref={menuRef} className="mb-4 sm:mb-6 space-y-3">
-          <div className="flex flex-wrap justify-center gap-2">
-            {Array.from(mainCategories.keys()).map((category) => {
-              const isActive = activeMainCategory === category;
+        <div ref={menuRef} className="mb-2 sm:mb-3 space-y-2">
+            <div className="flex flex-wrap justify-center gap-2">
+              {Array.from(mainCategories.keys()).map((category) => {
+                const isActive = activeMainCategory === category;
 
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => handleCategoryChange(category)}
-                  className={`px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                      : 'bg-card text-foreground hover:bg-card/80 shadow-md hover:scale-105'
-                  }`}
-                >
-                  {category.toUpperCase()}
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => handleCategoryChange(category)}
+                    className={`px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                        : 'bg-card text-foreground hover:bg-card/80 shadow-md hover:scale-105'
+                    }`}
+                  >
+                    {category.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
 
-          {/* Row 2: Subcategories - same design as shop all collection page */}
-          <div className="flex flex-wrap justify-center gap-1 min-h-[1.5rem]">
-            {currentSubcategories &&
-              Array.from(currentSubcategories).length > 0 && (
-                <>
-                  {Array.from(currentSubcategories).map((subcategory) => (
-                    <button
-                      key={subcategory}
-                      type="button"
-                      onClick={() => handleSubcategoryChange(subcategory)}
-                      className={`px-2 sm:px-3 py-[3px] rounded-full text-xs font-medium transition-all duration-300 ${
-                        selectedCategory === subcategory
-                          ? 'bg-primary text-primary-foreground shadow-md scale-105'
-                          : 'bg-card/50 text-foreground/70 hover:bg-card/70 hover:text-foreground shadow-sm hover:scale-105'
-                      }`}
-                    >
-                      {getCategoryLabel(subcategory)}
-                    </button>
-                  ))}
-                </>
-              )}
+            <div
+              className={`flex flex-wrap justify-center gap-1 ${
+                currentSubcategories && currentSubcategories.size > 0
+                  ? 'min-h-[1.5rem]'
+                  : ''
+              }`}
+            >
+              {currentSubcategories &&
+                Array.from(currentSubcategories).length > 0 && (
+                  <>
+                    {Array.from(currentSubcategories).map((subcategory) => (
+                      <button
+                        key={subcategory}
+                        type="button"
+                        onClick={() => handleSubcategoryChange(subcategory)}
+                        className={`px-2 sm:px-3 py-[3px] rounded-full text-xs font-medium transition-all duration-300 ${
+                          selectedCategory === subcategory
+                            ? 'bg-primary text-primary-foreground shadow-md scale-105'
+                            : 'bg-card/50 text-foreground/70 hover:bg-card/70 hover:text-foreground shadow-sm hover:scale-105'
+                        }`}
+                      >
+                        {getCategoryLabel(subcategory)}
+                      </button>
+                    ))}
+                  </>
+                )}
+            </div>
           </div>
-        </div>
 
         {showControls && (
           <div className="mb-4 sm:mb-6 space-y-3">

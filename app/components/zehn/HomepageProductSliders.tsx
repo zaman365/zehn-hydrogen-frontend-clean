@@ -43,7 +43,7 @@ function HomepageProductSlider({
   };
 
   return (
-    <section className="border-t border-border/20 pt-5 sm:pt-6">
+    <section className="border-t border-border/20 pt-3 sm:pt-4">
       <div className="mb-4 flex items-center justify-between gap-4">
         <h2 className="font-sans text-xl sm:text-2xl font-bold text-foreground">
           {section.title}

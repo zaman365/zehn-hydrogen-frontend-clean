@@ -48,7 +48,9 @@ export function AnnouncementBar() {
   const handlePrev = () => {
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + announcements.length) % announcements.length);
+      setCurrentIndex(
+        (prev) => (prev - 1 + announcements.length) % announcements.length,
+      );
       setIsTransitioning(false);
     }, 500);
   };
@@ -57,8 +59,11 @@ export function AnnouncementBar() {
 
   return (
     <div
+      data-announcement-bar
       className={`fixed top-0 left-0 right-0 z-[60] h-[26px] sm:h-[29px] text-white transition-all duration-500 ease-out ${
-        hasAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full'
+        hasAnimated
+          ? 'opacity-100 translate-y-0'
+          : 'opacity-0 -translate-y-full'
       } ${currentAnnouncement.bgColor}`}
     >
       <div className="w-full h-full mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,7 +82,11 @@ export function AnnouncementBar() {
               stroke="currentColor"
               className="w-4 h-4"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 19.5L8.25 12l7.5-7.5"
+              />
             </svg>
           </button>
 
@@ -106,7 +115,11 @@ export function AnnouncementBar() {
               stroke="currentColor"
               className="w-4 h-4"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.25 4.5l7.5 7.5-7.5 7.5"
+              />
             </svg>
           </button>
         </div>
