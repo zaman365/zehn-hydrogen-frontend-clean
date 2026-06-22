@@ -1,18 +1,21 @@
 # Agile V Playbook — ZEHN Hydrogen Frontend
 
-<!-- Cycle: C1 | Version: 1.0 | Updated: 2026-06-19 -->
+<!-- Cycle: C1 | Version: 1.1 | Updated: 2026-06-22 | Status: ACTIVATED -->
 
 ## Purpose
 
-This playbook defines how every chat session on **zehn-hydrogen-frontend** follows the **Agile V Infinity Loop**: Specify → Constrain → Orchestrate → Prove → Evolve → Verify — with full REQ traceability.
+Every chat session on **zehn-hydrogen-frontend** follows the **Agile V Infinity Loop**: Specify → Constrain → Orchestrate → Prove → Evolve → Verify — with full REQ traceability.
+
+**Activation:** `config.json` → `agile_v.status` = `ACTIVATED`. Load `agile-v-core` first.
 
 ## Session start (mandatory)
 
-1. Read [`.agile-v/STATE.md`](STATE.md) — current cycle, stage, blockers
-2. Read [`.agile-v/CHECKPOINTS.md`](CHECKPOINTS.md) — resume any `PENDING` Human Gate
-3. Read [`.agile-v/REQUIREMENTS.md`](REQUIREMENTS.md) — map user request → `REQ-XXXX`
-4. Read [`.agile-v/BACKLOG.md`](BACKLOG.md) — pick or create `BL-XXXX`
-5. Honor [`.agile-v/POLICY.yaml`](POLICY.yaml) — frozen paths, halt conditions
+1. [`CLAUDE.md`](../CLAUDE.md) — session resume
+2. [`.agile-v/STATE.md`](STATE.md) — cycle, stage, blockers, git
+3. [`.agile-v/CHECKPOINTS.md`](CHECKPOINTS.md) — resume any `PENDING` Human Gate
+4. [`.agile-v/REQUIREMENTS.md`](REQUIREMENTS.md) — map request → `REQ-XXXX`
+5. [`.agile-v/BACKLOG.md`](BACKLOG.md) — pick `BL-XXXX`
+6. [`.agile-v/POLICY.yaml`](POLICY.yaml) — frozen paths, halt conditions
 
 ## Infinity Loop (per prompt)
 
@@ -40,15 +43,15 @@ User instruction
 
 | Field | Value |
 |---|---|
-| **Stage** | 4 — Verification (UI polish) |
-| **Active REQ** | REQ-0003 (deferred) |
-| **Next work** | Per stakeholder instruction; resume REQ-0003 when approved |
+| **Stage** | 4 — Verification |
+| **Active REQ** | REQ-0003 (VERIFY — code on `development` @ `ea7cdff`) |
+| **Next work** | TC-0005 visual sign-off → BL-0005 mobile audit |
 
 ## Agent skills (load on demand)
 
 | Skill | When |
 |---|---|
-| `agile-v-core` | Every session (values, traceability, SCOPE-V) |
+| `agile-v-core` | **Every session** (values, traceability, SCOPE-V) |
 | `agile-v-pipeline` | Multi-stage orchestration, handoffs |
 | `agile-v-lifecycle` | CRs, cycle boundaries, archival |
 | `agile-v-compliance` | Gates, risk, CAPA, approvals |
@@ -60,14 +63,29 @@ User instruction
 | `test-designer` | TEST_SPEC updates |
 | `red-team-verifier` | Independent verification |
 | `compliance-auditor` | ATM, gate records |
+| `discovery-analyst` | Scope / domain research |
+| `ux-spec-author` | UI acceptance criteria |
+| `threat-modeler` | Security-sensitive changes |
+| `observability-planner` | Logging / monitoring |
+| `release-manager` | Deploy / Oxygen promotion |
 
 ## UI bug fix workflow (this project)
 
 1. Map issue → `REQ-XXXX` in REQUIREMENTS.md
 2. Edit minimal files under `app/components/zehn/` or route TSX
-3. Do **not** change frozen header stack (REQ-0004) or brand tokens (REQ-0001) without approval
-4. Verify: 390px, 1280px, 1440px + `npm run typecheck`
-5. Log: DECISION_LOG.md + BUILD_MANIFEST.md + STATE.md
+3. Header stack changes: update **all** sync points (see `config.json` → `header_stack_sync_points`)
+4. Do **not** change brand tokens (REQ-0001) without approval
+5. Verify: 390 / 1280 / 1440 / 1920px + `npm run typecheck`
+6. Log: DECISION_LOG + BUILD_MANIFEST + STATE
+7. Commit/push: `git push origin development`
+
+## Git workflow
+
+| Item | Value |
+|---|---|
+| Remote | `zaman365/zehn-hydrogen-frontend-clean` |
+| Branch | `development` |
+| Local | `~/Projects/Shopify-Hydrogen/zehn-frontend` |
 
 ## Evidence summary (end of session)
 

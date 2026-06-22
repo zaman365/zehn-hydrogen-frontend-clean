@@ -6,6 +6,9 @@ import {SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
 import {urlWithTrackingParams} from '~/lib/search';
 import {CompactProductCard} from '~/components/CompactProductCard';
+import {useScrollLock} from '~/hooks/useScrollLock';
+import {ZEHN_SCROLL_EDGE} from '~/lib/zehn-scrollbar-styles';
+import {cn} from '~/lib/utils';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -18,6 +21,8 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
+
+  useScrollLock(isOpen);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -35,12 +40,10 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
 
@@ -143,7 +146,7 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
           </div>
 
           {/* Search Results */}
-          <div className="flex-1 overflow-y-auto">
+          <div className={cn('flex-1 overflow-y-auto', ZEHN_SCROLL_EDGE)}>
             <SearchResultsPredictive>
               {({items, total, closeSearch, term}) => {
                 const hasResults = total > 0;

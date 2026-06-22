@@ -63,7 +63,67 @@ function uniqueSorted(values: string[]) {
   );
 }
 
-export function getProductOptionValues(product: ProductLike, kind: FilterKind) {
+function isWaistOptionName(name: string | null | undefined) {
+  const normalizedName = normalizeFilterValue(name);
+  return ['waist', 'bund', 'bundweite', 'taillenweite'].includes(normalizedName);
+}
+
+function isLengthOptionName(name: string | null | undefined) {
+  const normalizedName = normalizeFilterValue(name);
+  return [
+    'length',
+    'inseam',
+    'laenge',
+    'beinlaenge',
+    'beinlänge',
+    'länge',
+  ].includes(normalizedName);
+}
+
+/** Pants display label — e.g. 28 + 30 → "28W / 30L". */
+export function formatPantSizeLabel(waist: string, length: string) {
+  const waistDigits = waist.replace(/\D/g, '');
+  const lengthDigits = length.replace(/\D/g, '');
+  const waistPart = /\d+W/i.test(waist)
+    ? waist.trim().toUpperCase().replace(/\s+/g, '')
+    : `${waistDigits}W`;
+  const lengthPart = /\d+L/i.test(length)
+    ? length.trim().toUpperCase().replace(/\s+/g, '')
+    : `${lengthDigits}L`;
+  return `${waistPart} / ${lengthPart}`;
+}
+
+function getCompositeSizesFromVariants(product: ProductLike) {
+  const values: string[] = [];
+
+  product.variants?.nodes?.forEach((variant) => {
+    let waist: string | undefined;
+    let length: string | undefined;
+    let singleSize: string | undefined;
+
+    variant?.selectedOptions?.forEach((option) => {
+      if (!option?.value || option.value === 'Default Title') return;
+
+      if (isOptionKind(option.name, 'size')) {
+        singleSize = option.value;
+      } else if (isWaistOptionName(option.name)) {
+        waist = option.value;
+      } else if (isLengthOptionName(option.name)) {
+        length = option.value;
+      }
+    });
+
+    if (waist && length) {
+      values.push(formatPantSizeLabel(waist, length));
+    } else if (singleSize) {
+      values.push(singleSize);
+    }
+  });
+
+  return values;
+}
+
+function collectOptionValues(product: ProductLike, kind: FilterKind) {
   const values: string[] = [];
 
   product.options?.forEach((option) => {
@@ -76,6 +136,12 @@ export function getProductOptionValues(product: ProductLike, kind: FilterKind) {
     });
   });
 
+  return values;
+}
+
+function collectVariantOptionValues(product: ProductLike, kind: FilterKind) {
+  const values: string[] = [];
+
   product.variants?.nodes?.forEach((variant) => {
     variant?.selectedOptions?.forEach((option) => {
       if (isOptionKind(option?.name, kind) && option?.value && option.value !== 'Default Title') {
@@ -84,7 +150,30 @@ export function getProductOptionValues(product: ProductLike, kind: FilterKind) {
     });
   });
 
-  return uniqueSorted(values);
+  return values;
+}
+
+export function getProductOptionValues(product: ProductLike, kind: FilterKind) {
+  const fromOptions = collectOptionValues(product, kind);
+
+  if (kind === 'size') {
+    if (fromOptions.length > 0) {
+      return uniqueSorted(fromOptions);
+    }
+
+    const compositeSizes = getCompositeSizesFromVariants(product);
+    if (compositeSizes.length > 0) {
+      return uniqueSorted(compositeSizes);
+    }
+
+    return uniqueSorted(collectVariantOptionValues(product, kind));
+  }
+
+  if (fromOptions.length > 0) {
+    return uniqueSorted(fromOptions);
+  }
+
+  return uniqueSorted(collectVariantOptionValues(product, kind));
 }
 
 export function getAvailableProductFilterValues(products: ProductLike[], kind: FilterKind) {
@@ -143,6 +232,27 @@ function variantMatchesOption(
   selectedValue: string | undefined,
 ) {
   if (!selectedValue) return true;
+
+  if (kind === 'size') {
+    let waist: string | undefined;
+    let length: string | undefined;
+
+    for (const option of variant?.selectedOptions ?? []) {
+      if (!option?.value) continue;
+
+      if (isOptionKind(option.name, 'size') && valuesMatch(option.value, selectedValue)) {
+        return true;
+      }
+      if (isWaistOptionName(option.name)) waist = option.value;
+      if (isLengthOptionName(option.name)) length = option.value;
+    }
+
+    if (waist && length) {
+      return valuesMatch(formatPantSizeLabel(waist, length), selectedValue);
+    }
+
+    return false;
+  }
 
   return Boolean(
     variant?.selectedOptions?.some(

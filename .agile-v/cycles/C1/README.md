@@ -1,10 +1,19 @@
 # Cycle C1 — Active (not archived)
 
-<!-- Living cycle — do not freeze until Gate 2 acceptance -->
+<!-- Living cycle — Agile V ACTIVATED 2026-06-22 -->
 
 **Started:** 2026-06-19  
-**Status:** ACTIVE  
+**Activated:** 2026-06-22  
+**Status:** ACTIVE — Stage 4 Verification  
 **Archive trigger:** Gate 2 PASS → snapshot to this directory (frozen)
+
+## Delivery
+
+| Field | Value |
+|---|---|
+| Git remote | `zaman365/zehn-hydrogen-frontend-clean` |
+| Branch | `development` |
+| Latest commit | `ea7cdff` |
 
 ## Snapshot contents (on close)
 
@@ -15,4 +24,4 @@
 
 ## Current note
 
-Cycle in progress at Stage 4. Hero REQ-0003 deferred.
+REQ-0003 implementation complete; TC-0005 stakeholder sign-off pending. Next: BL-0005 mobile audit.

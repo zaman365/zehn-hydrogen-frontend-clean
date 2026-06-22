@@ -4,6 +4,20 @@
 
 ---
 
+## CR-0004 | 2026-06-22 | Agile V C1 activation sync
+
+| Field | Value |
+|---|---|
+| **Cycle** | C1 |
+| **Affected REQ** | ALL (traceability index) |
+| **Change** | Agile V Infinity Loop ACTIVATED; artifacts synced to git + hero work state |
+| **Rationale** | Stakeholder `/agile-v-core` bootstrap; resume from `ea7cdff` on `development` |
+| **Impact** | Every future prompt follows PLAYBOOK + SCOPE-V; no code change |
+| **Requested by** | Stakeholder |
+| **Approved** | Implicit — activation request |
+
+---
+
 ## CR-0003 | 2026-06-20 | Hero fold + navbar floating gap
 
 | Field | Value |

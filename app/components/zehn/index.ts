@@ -6,6 +6,24 @@ export type {
 } from './Header';
 export { normalizeZehnMenuItems } from './Header';
 export { Hero } from './Hero';
+export { CtaShineButton } from './CtaShineButton';
+export type { CtaShineButtonProps } from './CtaShineButton';
+export { RippleButton } from './RippleButton';
+export type { RippleButtonComponentProps } from './RippleButton';
+export {
+  HeaderNavIcon,
+  HeaderNavIconButton,
+  HeaderNavLink,
+  HeaderNavMobileAction,
+  HeaderNavMobileRow,
+} from './HeaderNavItem';
+export type { HeaderNavIconButtonProps, HeaderNavLinkProps } from './HeaderNavItem';
+export {HeaderNavAccordionRow} from './HeaderNavAccordionRow';
+export type {HeaderNavAccordionRowProps} from './HeaderNavAccordionRow';
+export {ZehnGlassPanel} from './ZehnGlassPanel';
+export type {ZehnGlassPanelProps, ZehnGlassPanelMotion} from './ZehnGlassPanel';
+export {ZehnNavStaggerItem} from './ZehnNavStaggerItem';
+export type {ZehnNavStaggerItemProps} from './ZehnNavStaggerItem';
 export { TrustBadges } from './TrustBadges';
 export { ProductGrid } from './ProductGrid';
 export { FeatureSection } from './FeatureSection';
@@ -20,3 +38,8 @@ export { CartDrawer, CartCount, useCartCount } from './CartDrawer';
 export { CartProvider, useCart } from './cart-context';
 export type { CartItem } from './cart-context';
 export { SearchModal } from './SearchModal';
+export {DesktopProductFilterRow} from './DesktopProductFilterRow';
+export type {DesktopProductFilterRowProps} from './DesktopProductFilterRow';
+export {MobileProductFilterDrawer} from './MobileProductFilterDrawer';
+export type {MobileProductFilterDrawerProps} from './MobileProductFilterDrawer';
+export {FilterClearButton} from './FilterClearButton';

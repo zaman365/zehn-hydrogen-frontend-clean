@@ -33,6 +33,7 @@ import {
   X,
 } from 'lucide-react';
 import {useWishlist} from '~/components/zehn/wishlist-context';
+import {useScrollLock} from '~/hooks/useScrollLock';
 import {ProductItem} from '~/components/ProductItem';
 import {
   fireDirectInitiateCheckout,
@@ -1049,6 +1050,8 @@ function WishlistIconOverlay({product, selectedVariant}: {product: any; selected
 function SizeGuideModal({isOpen, onClose, product, selectedVariant}: {isOpen: boolean; onClose: () => void; product: any; selectedVariant: any}) {
   const [unit, setUnit] = useState<'cm' | 'inch'>('cm');
 
+  useScrollLock(isOpen);
+
   // Get product options dynamically
   const productOptions = getProductOptions({
     ...product,
@@ -1138,17 +1141,6 @@ function SizeGuideModal({isOpen, onClose, product, selectedVariant}: {isOpen: bo
           {size: 'XL', chest: '42-44', waist: '36-38', sleeve: '37-38'},
           {size: 'XXL', chest: '44-46', waist: '38-40', sleeve: '38-39'},
         ];
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -1347,16 +1339,7 @@ function ProductDescriptionModal({
 }) {
   const modalImageSliderRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+  useScrollLock(isOpen);
 
   if (!isOpen) return null;
 

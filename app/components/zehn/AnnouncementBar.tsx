@@ -1,19 +1,11 @@
 import {useState, useEffect} from 'react';
-
-const announcements = [
-  {
-    text: 'Kostenloser Versand & Rücksendung',
-    bgColor: 'bg-[#FF6B35]', // Zehn orange
-  },
-  {
-    text: 'Kauf auf Rechnung',
-    bgColor: 'bg-[#0F1426]', // Dark blue
-  },
-  {
-    text: 'Neue Kollektion verfügbar | Entdecke jetzt!',
-    bgColor: 'bg-[#FF6B35]', // Zehn orange
-  },
-];
+import {ChevronLeft, ChevronRight} from 'lucide-react';
+import {
+  ANNOUNCEMENT_ICON,
+  ANNOUNCEMENT_LABEL_ROW,
+  ANNOUNCEMENT_SLIDES,
+} from '~/lib/announcement-bar-content';
+import {cn} from '~/lib/utils';
 
 export function AnnouncementBar() {
   const [hasAnimated, setHasAnimated] = useState(false);
@@ -21,7 +13,6 @@ export function AnnouncementBar() {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
-    // Initial animation
     const timer = setTimeout(() => {
       setHasAnimated(true);
     }, 10);
@@ -40,7 +31,7 @@ export function AnnouncementBar() {
   const handleNext = () => {
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % announcements.length);
+      setCurrentIndex((prev) => (prev + 1) % ANNOUNCEMENT_SLIDES.length);
       setIsTransitioning(false);
     }, 500);
   };
@@ -49,13 +40,15 @@ export function AnnouncementBar() {
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentIndex(
-        (prev) => (prev - 1 + announcements.length) % announcements.length,
+        (prev) =>
+          (prev - 1 + ANNOUNCEMENT_SLIDES.length) % ANNOUNCEMENT_SLIDES.length,
       );
       setIsTransitioning(false);
     }, 500);
   };
 
-  const currentAnnouncement = announcements[currentIndex];
+  const currentAnnouncement = ANNOUNCEMENT_SLIDES[currentIndex];
+  const SlideIcon = currentAnnouncement.icon;
 
   return (
     <div
@@ -68,59 +61,38 @@ export function AnnouncementBar() {
     >
       <div className="w-full h-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-full items-center justify-center overflow-hidden relative max-w-[1400px] mx-auto">
-          {/* Left Arrow */}
           <button
             onClick={handlePrev}
             className="absolute left-2 sm:left-4 p-1 hover:bg-white/10 rounded-full transition-colors"
             aria-label="Previous announcement"
+            type="button"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 19.5L8.25 12l7.5-7.5"
-              />
-            </svg>
+            <ChevronLeft className="w-4 h-4" strokeWidth={2} aria-hidden />
           </button>
 
-          {/* Announcement Text with smooth left-to-right transition */}
-          <p
-            className={`text-[11px] sm:text-xs font-medium tracking-wide text-center transition-all duration-500 ${
+          <div
+            className={cn(
+              ANNOUNCEMENT_LABEL_ROW,
+              'transition-all duration-500',
               isTransitioning
                 ? 'opacity-0 -translate-x-8'
-                : 'opacity-100 translate-x-0'
-            }`}
+                : 'opacity-100 translate-x-0',
+            )}
+            aria-live="polite"
           >
-            {currentAnnouncement.text}
-          </p>
+            <SlideIcon className={ANNOUNCEMENT_ICON} aria-hidden />
+            <span className="text-[11px] sm:text-xs font-medium tracking-wide">
+              {currentAnnouncement.text}
+            </span>
+          </div>
 
-          {/* Right Arrow */}
           <button
             onClick={handleNext}
             className="absolute right-2 sm:right-4 p-1 hover:bg-white/10 rounded-full transition-colors"
             aria-label="Next announcement"
+            type="button"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8.25 4.5l7.5 7.5-7.5 7.5"
-              />
-            </svg>
+            <ChevronRight className="w-4 h-4" strokeWidth={2} aria-hidden />
           </button>
         </div>
       </div>

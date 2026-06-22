@@ -5,6 +5,9 @@ import {
   fireMetaAddToCart,
   type MetaProductEvent,
 } from '~/components/zehn/MetaPixelEvents';
+import {useScrollLock} from '~/hooks/useScrollLock';
+import {ZEHN_SCROLL_EDGE} from '~/lib/zehn-scrollbar-styles';
+import {cn} from '~/lib/utils';
 
 /**
  * QuickAddModal – bottom-sheet / modal overlay for quickly adding products
@@ -257,15 +260,7 @@ export function QuickAddModal({isOpen, onClose, product}: QuickAddModalProps) {
     }
   }, [isOpen]);
 
-  // Lock body scroll
-  useEffect(() => {
-    if (!isOpen) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isOpen]);
+  useScrollLock(isOpen);
 
   // Escape key
   useEffect(() => {
@@ -483,7 +478,7 @@ export function QuickAddModal({isOpen, onClose, product}: QuickAddModalProps) {
         </button>
 
         {/* Content */}
-        <div className="p-6 pt-4 sm:pt-6 max-h-[85vh] overflow-y-auto">
+        <div className={cn('p-6 pt-4 sm:pt-6 max-h-[85vh] overflow-y-auto', ZEHN_SCROLL_EDGE)}>
           {/* Product header */}
           <div className="flex items-start gap-4 mb-6">
             <div className="w-20 h-20 flex-shrink-0 rounded-xl bg-white overflow-hidden">

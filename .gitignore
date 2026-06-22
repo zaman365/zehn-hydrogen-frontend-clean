@@ -14,3 +14,8 @@ node_modules
 ga4.txt
 tsconfig.tsbuildinfo
 
+.playwright-mcp
+.agile-v
+CLAUDE.md
+AGENTS.md
+

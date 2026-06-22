@@ -4,6 +4,26 @@
   "domain": "zehnfashion.de",
   "cycle": "C1",
   "cycle_started": "2026-06-19",
+  "agile_v": {
+    "status": "ACTIVATED",
+    "version": "1.4",
+    "activated_at": "2026-06-22",
+    "infinity_loop": "enabled",
+    "skills_load_order": [
+      "agile-v-core",
+      "agile-v-pipeline",
+      "agile-v-lifecycle",
+      "agile-v-compliance",
+      "agile-v-quality-gates",
+      "agile-v-product-owner"
+    ]
+  },
+  "git": {
+    "remote": "https://github.com/zaman365/zehn-hydrogen-frontend-clean.git",
+    "default_branch": "development",
+    "local_path": "~/Projects/Shopify-Hydrogen/zehn-frontend",
+    "latest_commit": "ea7cdff"
+  },
   "framework": "Shopify Hydrogen 2025.10.1 + React Router 7",
   "primary_workstream": "UI polish / homepage / mobile-first",
   "authority_matrix": {
@@ -13,14 +33,14 @@
     "gate_2_approver": "Stakeholder"
   },
   "model_versions": {
-    "orchestrator": { "tier": "medium", "last_validated": "2026-06-19" },
-    "build_agent": { "tier": "medium", "last_validated": "2026-06-19" },
-    "red_team": { "tier": "medium", "last_validated": "2026-06-19" }
+    "orchestrator": { "tier": "medium", "last_validated": "2026-06-22" },
+    "build_agent": { "tier": "medium", "last_validated": "2026-06-22" },
+    "red_team": { "tier": "medium", "last_validated": "2026-06-22" }
   },
   "llm_providers": {
     "cursor": {
       "approved_for": ["source_code", "documentation", "non_pii"],
-      "review_date": "2026-06-19"
+      "review_date": "2026-06-22"
     }
   },
   "verification_commands": {
@@ -29,11 +49,20 @@
     "lint": "npm run lint",
     "dev": "npm run dev"
   },
-  "breakpoints_px": [390, 768, 1024, 1280, 1440],
+  "breakpoints_px": [390, 768, 1024, 1280, 1440, 1920],
   "frozen_paths": [
     "app/components/zehn/AnnouncementBar.tsx",
     "app/components/zehn/Header.tsx",
     "app/components/PageLayout.tsx",
+    "app/lib/site-header-stack.ts",
+    "app/styles/homepage-hero.css",
     "app/lib/design-tokens.ts"
+  ],
+  "header_stack_sync_points": [
+    "app/components/zehn/AnnouncementBar.tsx",
+    "app/components/zehn/Header.tsx",
+    "app/components/PageLayout.tsx",
+    "app/lib/site-header-stack.ts",
+    "app/styles/homepage-hero.css"
   ]
 }

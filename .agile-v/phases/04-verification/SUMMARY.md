@@ -1,18 +1,19 @@
 # Phase 04 — Verification | SUMMARY
 
-**Cycle:** C1 | **Status:** IN PROGRESS | **Updated:** 2026-06-20
+**Cycle:** C1 | **Status:** IN PROGRESS | **Updated:** 2026-06-22
 
 | Check | Result |
 |---|---|
 | typecheck | PASS |
-| REQ-0003 hero implementation | DONE — pending stakeholder visual sign-off |
-| REQ-0004 navbar floating gap | PASS — stakeholder confirmed |
+| REQ-0003 implementation | DONE @ `ea7cdff` on `development` |
+| REQ-0003 visual TC-0005 | PENDING stakeholder sign-off |
+| REQ-0004 navbar floating gap | PASS |
 | REQ-0007 homepage structure | PASS |
+| Agile V activation | ACTIVATED |
 
-## Session 2026-06-20
+## Next
 
-- Hero fold: `homepage-hero.css` width-based geometry, offsets, edge gradient
-- Header stack: 102/106px synced
-- Next: TC-0005 visual at 390 / 1280 / 1440 / 1920; optional banner JPG padding (client)
+1. TC-0005 visual at 390 / 1280 / 1440 / 1920
+2. Close BL-0003 → BL-0005 mobile audit
 
-See VALIDATION_SUMMARY.md, CLAUDE.md, STATE.md.
+See VALIDATION_SUMMARY.md, STATE.md, CLAUDE.md.

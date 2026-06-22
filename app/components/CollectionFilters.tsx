@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import {X, SlidersHorizontal} from 'lucide-react';
+import {useScrollLock} from '~/hooks/useScrollLock';
 
 interface FilterCategory {
   label: string;
@@ -14,7 +15,7 @@ interface CollectionFiltersProps {
 
 /**
  * Desktop Category Filter Pills
- * 
+ *
  * Rounded-full buttons with smooth transitions matching Boty's natural aesthetic
  * Features:
  * - Active state: bg-primary text-primary-foreground
@@ -33,10 +34,10 @@ export function CategoryFilterPills({
         <SlidersHorizontal className="w-4 h-4" />
         <span className="text-sm font-medium">Filter:</span>
       </div>
-      
+
       {categories.map((category) => {
         const isActive = activeCategory === category.value;
-        
+
         return (
           <button
             key={category.value}
@@ -63,7 +64,7 @@ export function CategoryFilterPills({
 
 /**
  * Mobile Filter Button
- * 
+ *
  * Compact button to trigger the mobile filter drawer
  * Positioned for easy thumb access on mobile devices
  */
@@ -81,7 +82,7 @@ export function MobileFilterButton({onClick}: {onClick: () => void}) {
 
 /**
  * Mobile Filter Drawer
- * 
+ *
  * Full-screen overlay drawer for mobile filter selection
  * Features:
  * - Fixed full-screen overlay with backdrop
@@ -100,18 +101,7 @@ export function MobileFilterDrawer({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  // Prevent body scroll when drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  useScrollLock(isOpen);
 
   // Handle escape key
   useEffect(() => {
@@ -142,7 +132,7 @@ export function MobileFilterDrawer({
         >
           Filter
         </h2>
-        
+
         <button
           onClick={onClose}
           className="w-10 h-10 rounded-full bg-card boty-shadow flex items-center justify-center boty-transition hover:bg-card/80 active:scale-95"
@@ -157,10 +147,10 @@ export function MobileFilterDrawer({
         <h3 className="font-sans text-xs uppercase tracking-wider text-foreground/60 mb-4 font-medium">
           Kategorien
         </h3>
-        
+
         {categories.map((category) => {
           const isActive = activeCategory === category.value;
-          
+
           return (
             <button
               key={category.value}
@@ -191,7 +181,7 @@ export function MobileFilterDrawer({
 
 /**
  * Complete Filter System Component
- * 
+ *
  * Combines desktop pills and mobile drawer with unified state management
  * Automatically shows appropriate UI based on screen size
  */

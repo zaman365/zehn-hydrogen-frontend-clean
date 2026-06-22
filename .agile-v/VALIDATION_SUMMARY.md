@@ -6,7 +6,7 @@
 |---|---|
 | **Cycle** | C1 |
 | **Stage** | 4 — Verification |
-| **Last updated** | 2026-06-20 |
+| **Last updated** | 2026-06-22 |
 | **EvalGate** | PENDING — see EVAL_RESULTS.md |
 
 ## Summary
@@ -19,7 +19,7 @@
 | REQ-0004 | Header stack + navbar gap | PASS | 102/106 synced; stakeholder confirmed gap |
 | REQ-0005 | Mobile layout | PENDING | TC-0007 |
 | REQ-0007 | Homepage structure | PASS | TC-0008; fold layout in place |
-| REQ-0008 | Nav UX | PASS | Baseline production parity |
+| REQ-0008 | Nav UX | PASS | BL-0007 navbar ripple + accent hover/active |
 
 ## Findings
 

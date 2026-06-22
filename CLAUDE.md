@@ -1,82 +1,57 @@
 # CLAUDE.md — ZEHN Hydrogen Frontend (session resume)
 
-<!-- Read this + `.agile-v/STATE.md` at the start of every Claude session -->
+<!-- Read `.agile-v/STATE.md` at session start -->
 
 ## Quick start
 
-1. [`.agile-v/STATE.md`](.agile-v/STATE.md) — current stage, blockers, resume checklist
-2. [`.agile-v/PLAYBOOK.md`](.agile-v/PLAYBOOK.md) + [`.agile-v/POLICY.yaml`](.agile-v/POLICY.yaml)
-3. [`.agile-v/REQUIREMENTS.md`](.agile-v/REQUIREMENTS.md) → map work to `REQ-XXXX`
-4. [`.agile-v/BACKLOG.md`](.agile-v/BACKLOG.md) → pick `BL-XXXX`
-5. [`AGENTS.md`](AGENTS.md) — Cursor agent load order (same project rules)
+1. `.agile-v/STATE.md` → stage / blockers
+2. `.agile-v/REQUIREMENTS.md` → `REQ-XXXX` | `.agile-v/BACKLOG.md` → `BL-XXXX`
+3. `AGENTS.md` — agent load order
 
-## Last session — 2026-06-20
+## Last session — 2026-06-22
 
-**Focus:** REQ-0003 homepage hero framing + REQ-0004 navbar floating gap.
+**Focus:** REQ-0003 hero CTA + copy | REQ-0004 nav | REQ-0008 filters
 
-### Done today
-
-| Area | What changed |
+| Area | Summary |
 |---|---|
-| **Hero fold geometry** | `app/styles/homepage-hero.css` — unified width-based fold height (desktop `100vw/2.5 + img_top`, mobile `100vw×1.25 + img_top`); no zoom jump at ~1580px |
-| **Model framing** | `--hero-fold-img-offset` (25px desktop) / `--hero-fold-img-offset-mobile` (39px); `object-position: center 0%` safety |
-| **Color seam** | `--hero-fold-bg: #e1e2e6` + 80px edge gradient on `[data-homepage-hero]::after` |
-| **Short viewport cap** | `max-height: min(95dvh, 100dvh - 100px)` — keeps Sommerseite visible; shoes may clip only on atypical short/wide windows |
-| **Navbar floating gap** | 3px breathing room below announcement bar — `Header.tsx` `top-[29px] sm:top-[32px]` |
-| **Header stack sync** | `SITE_HEADER_STACK` mobile **102** / desktop **106** (was 99/103) across `site-header-stack.ts`, `homepage-hero.css`, `PageLayout.tsx` |
-| **Hero component** | `Hero.tsx` — CSS-driven positioning only; comments synced to 81px/63px img_top |
-| **Verification** | `npm run typecheck` PASS; stakeholder confirmed floating navbar fix |
+| **Hero CTA** | `CtaShineButton` single-layer `.cta-shine-host`; `zehn-cta-styles.ts` (nav colors); white shine sweep, orange hover glow, ripple |
+| **Hero text** | `hero-content.ts` phrases; `useTextCycle`; responsive wrap; `.hero-text-overlay*` in `app.css` |
+| **Nav** | `header-nav-styles.ts`, `HeaderNavItem`, stagger motion, active state, glass panels |
+| **Filters** | `MobileProductFilterDrawer`, `DesktopProductFilterRow`, `product-filter-ui.ts`, size label fix |
+| **Tests** | `header-nav-active`, `scroll-lock`, `product-filters`, `nav-menu-phase`, `nav-stagger-motion` |
 
-### Decisions (no further code unless stakeholder asks)
-
-- **Short browser height:** Leave as-is — fold tracks width; `dvh` cap handles dock; dynamic height refit would reintroduce zoom issues.
-- **Shoe clip edge case:** Prefer **banner asset padding** (extend JPG studio floor below shoes ~100–150px) over more CSS — client discussion pending.
-
-### Key files (hero + header)
+### Key files
 
 ```
-app/styles/homepage-hero.css      ← fold geometry, CSS vars, edge gradient
-app/components/zehn/Hero.tsx      ← slider, object-position
-app/lib/site-header-stack.ts     ← frozen stack constants (102/106)
-app/components/zehn/Header.tsx    ← fixed top 29/32px
-app/components/PageLayout.tsx     ← main pt-[102px] sm:pt-[106px]
-app/components/zehn/AnnouncementBar.tsx  ← unchanged heights 26/29px
-app/routes/_index.tsx             ← data-homepage-hero-fold wrapper
+app/lib/hero-content.ts          ← subtitle phrases
+app/lib/zehn-cta-styles.ts       ← CTA nav color tokens
+app/components/zehn/CtaShineButton.tsx
+app/components/zehn/Hero.tsx
+app/styles/app.css               ← cta-shine-host, hero-text-overlay
+app/lib/header-nav-styles.ts
+app/components/zehn/MobileProductFilterDrawer.tsx
 ```
 
-### Header stack math (current)
+### Header stack (frozen REQ-0004)
 
-| Layer | Mobile | Desktop |
-|---|---|---|
-| Announcement bar | 26px | 29px |
-| Floating gap | 3px | 3px |
-| Navbar card | 73px | 74px |
-| **Total** | **102px** | **106px** |
+Mobile **102px** / desktop **106px** — sync: `site-header-stack.ts`, `AnnouncementBar`, `Header` top, `PageLayout` pt, `homepage-hero.css`
 
-`img_top = headerStack − offset` → mobile 63px, desktop 81px.
+## Next
 
-## Where to start tomorrow
+1. Visual sign-off: hero CTA + nav + filters @ 390 / 1280 / 1440 / 1920
+2. Push `development` after commit
+3. Optional: banner JPG padding below shoes (short viewport clip)
 
-1. **Stakeholder visual sign-off** — REQ-0003 / BL-0003 at **390**, **1280×800**, **1440×900**, **1920×1080**; all 3 slider slides; check heads, shoes, Sommerseite row, no seam.
-2. **Commit** — if not committed: hero CSS, Hero.tsx, Header.tsx, PageLayout, site-header-stack.ts.
-3. **Client asset task** — extend desktop/mobile banner JPGs with studio padding below shoes (optional long-term fix for short-viewport clip).
-4. **Close REQ-0003** — if visual passes: update VALIDATION_SUMMARY, mark BL-0003 done, Gate 2 prep.
-5. **Next backlog** — BL-0005 mobile responsiveness audit if hero accepted.
+## Frozen
 
-## Frozen / do not break
+- REQ-0001 tokens — no change without approval
+- REQ-0004 header stack — update all four sync points if heights change
+- React Router 7 only (not Remix / not `react-router-dom`)
 
-- REQ-0001 design tokens — no change without approval
-- REQ-0004 header stack — any height change must update **all four** sync points (AnnouncementBar heights, Header top, PageLayout pt, `site-header-stack.ts` + `homepage-hero.css` vars)
-- React Router 7 imports only — see `.cursor/rules/hydrogen-react-router.mdc`
-
-## Verify before done
+## Verify
 
 ```bash
-npm run typecheck
-npx vitest run
-npm run dev   # http://localhost:3000 — visual at 390 / 1280 / 1440 / 1920
+npm run typecheck && npx vitest run
 ```
 
-## Log protocol
-
-On code changes: append `.agile-v/DECISION_LOG.md`, bump `.agile-v/BUILD_MANIFEST.md`, update `.agile-v/STATE.md`.
+Log changes: `.agile-v/DECISION_LOG.md`, `.agile-v/BUILD_MANIFEST.md`

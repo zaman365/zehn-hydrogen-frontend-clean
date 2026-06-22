@@ -5,6 +5,30 @@ import { Suspense, useEffect } from "react"
 import type { RootLoader } from "~/root"
 import { fireInitiateCheckout } from "~/components/zehn/MetaPixelEvents"
 import type { CartApiQueryFragment } from "storefrontapi.generated"
+import {useScrollLock} from '~/hooks/useScrollLock'
+import {useOverlayCloseAnimation} from '~/hooks/useOverlayCloseAnimation'
+import {RippleButton} from '~/components/zehn/RippleButton'
+import {cnHeaderNavIconHost, HEADER_NAV_COLOR, HEADER_NAV_TEXT_HOST} from '~/lib/header-nav-styles'
+import {ZEHN_SCROLL_EDGE} from '~/lib/zehn-scrollbar-styles'
+import {cn} from '~/lib/utils'
+
+/** Full-width pill CTA — ripple clip boundary matches nav hosts (REQ-0008). */
+const CART_CTA_PRIMARY =
+  'block w-full bg-primary text-primary-foreground py-4 rounded-full font-medium ' +
+  'hover:bg-primary/90 transition-colors mb-3 text-center font-sans tracking-wide';
+
+const CART_CTA_SECONDARY =
+  'w-full border border-foreground/20 text-foreground py-4 rounded-full font-medium ' +
+  'hover:bg-foreground/5 transition-colors font-sans';
+
+/** Empty-cart link — nav pill host + orange hover, no underline (REQ-0008). */
+const CART_EMPTY_LINK = cn(
+  HEADER_NAV_TEXT_HOST,
+  HEADER_NAV_COLOR,
+  'mt-4 text-body font-sans font-medium tracking-normal normal-case',
+);
+
+const CART_DRAWER_ANIMATION_MS = 300;
 
 export interface CartDrawerProps {
   isOpen: boolean
@@ -26,13 +50,25 @@ export interface CartDrawerProps {
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const data = useRouteLoaderData<RootLoader>('root')
   const cartPromise = data ? (data as any).cart : undefined
+  const {mounted, closing} = useOverlayCloseAnimation(
+    isOpen,
+    CART_DRAWER_ANIMATION_MS,
+  )
 
-  if (!isOpen) return null
+  useScrollLock(mounted)
+
+  if (!mounted) return null
 
   return (
-    <Suspense fallback={<CartDrawerSkeleton isOpen={isOpen} onClose={onClose} />}>
+    <Suspense fallback={<CartDrawerSkeleton isOpen={mounted} closing={closing} onClose={onClose} />}>
       <Await resolve={cartPromise}>
-        {(cart) => <CartDrawerContent cart={cart ?? null} isOpen={isOpen} onClose={onClose} />}
+        {(cart) => (
+          <CartDrawerContent
+            cart={cart ?? null}
+            closing={closing}
+            onClose={onClose}
+          />
+        )}
       </Await>
     </Suspense>
   )
@@ -40,11 +76,11 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
 function CartDrawerContent({ 
   cart: originalCart, 
-  isOpen, 
+  closing,
   onClose 
 }: { 
   cart: CartApiQueryFragment | null
-  isOpen: boolean
+  closing: boolean
   onClose: () => void
 }) {
   // useOptimisticCart provides optimistic updates for immediate UI feedback
@@ -61,30 +97,28 @@ function CartDrawerContent({
       }
     }
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-      // Prevent body scroll when drawer is open
-      document.body.style.overflow = 'hidden'
-    }
-
+    document.addEventListener('keydown', handleEscape)
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = ''
     }
-  }, [isOpen, onClose])
+  }, [onClose])
 
   return (
     <>
       {/* Backdrop Overlay with blur */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] animate-fade-in"
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] ${
+          closing ? 'animate-fade-out' : 'animate-fade-in'
+        }`}
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Drawer - Slide in from right */}
+      {/* Drawer - slide in from right, slide out on close */}
       <div
-        className="fixed right-0 top-0 h-screen w-full max-w-md bg-card shadow-2xl z-[200] flex flex-col animate-slide-in-right"
+        className={`fixed right-0 top-0 h-screen w-full max-w-md bg-card shadow-2xl z-[200] flex flex-col ${
+          closing ? 'animate-slide-out-right' : 'animate-slide-in-right'
+        }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
@@ -98,31 +132,31 @@ function CartDrawerContent({
                 {itemCount} {itemCount === 1 ? 'Artikel' : 'Artikel'}
               </p>
             </div>
-            <button
+            <RippleButton
               type="button"
               onClick={onClose}
-              className="text-foreground/70 hover:text-foreground transition-colors p-2 hover:bg-foreground/5 rounded-full"
+              className={cnHeaderNavIconHost()}
               aria-label="Warenkorb schließen"
               autoFocus
             >
               <X className="w-6 h-6" />
-            </button>
+            </RippleButton>
           </div>
         </div>
 
         {/* Cart Items */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className={cn('flex-1 overflow-y-auto p-6', ZEHN_SCROLL_EDGE)}>
           {!hasItems ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <ShoppingBag className="w-12 h-12 text-foreground/30 mb-4" />
               <p className="text-foreground/60 font-sans text-body">Ihr Warenkorb ist leer</p>
-              <button
+              <RippleButton
                 type="button"
                 onClick={onClose}
-                className="mt-4 text-accent hover:underline text-body font-sans font-medium"
+                className={CART_EMPTY_LINK}
               >
                 Weiter einkaufen
-              </button>
+              </RippleButton>
             </div>
           ) : (
             <div className="space-y-6">
@@ -307,22 +341,23 @@ function CartDrawerContent({
 
             {/* Checkout Button */}
             {cart.checkoutUrl && (
-              <a
+              <RippleButton
+                as="anchor"
                 href={cart.checkoutUrl}
                 onClick={() => fireInitiateCheckout(cart as any)}
-                className="block w-full bg-primary text-primary-foreground py-4 rounded-full font-medium hover:bg-primary/90 transition-colors mb-3 text-center font-sans tracking-wide"
+                className={CART_CTA_PRIMARY}
               >
                 Zur Kasse
-              </a>
+              </RippleButton>
             )}
 
-            <button
+            <RippleButton
               type="button"
               onClick={onClose}
-              className="w-full border border-foreground/20 text-foreground py-4 rounded-full font-medium hover:bg-foreground/5 transition-colors font-sans"
+              className={CART_CTA_SECONDARY}
             >
               Weiter einkaufen
-            </button>
+            </RippleButton>
           </div>
         )}
       </div>
@@ -333,10 +368,11 @@ function CartDrawerContent({
 /**
  * CartDrawer loading skeleton
  */
-function CartDrawerSkeleton({ isOpen, onClose }: CartDrawerProps) {
-  if (!isOpen) return null
-  
-  // ESC key handler for skeleton too
+function CartDrawerSkeleton({
+  isOpen,
+  closing = false,
+  onClose,
+}: CartDrawerProps & {closing?: boolean}) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -346,24 +382,28 @@ function CartDrawerSkeleton({ isOpen, onClose }: CartDrawerProps) {
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = ''
     }
   }, [isOpen, onClose])
+
+  if (!isOpen) return null
   
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] animate-fade-in"
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] ${
+          closing ? 'animate-fade-out' : 'animate-fade-in'
+        }`}
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className="fixed right-0 top-0 h-screen w-full max-w-md bg-card shadow-2xl z-[200] flex flex-col animate-slide-in-right"
+        className={`fixed right-0 top-0 h-screen w-full max-w-md bg-card shadow-2xl z-[200] flex flex-col ${
+          closing ? 'animate-slide-out-right' : 'animate-slide-in-right'
+        }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-skeleton-title"
@@ -374,14 +414,14 @@ function CartDrawerSkeleton({ isOpen, onClose }: CartDrawerProps) {
               <h2 id="cart-drawer-skeleton-title" className="font-sans text-2xl font-semibold text-foreground tracking-tight-2">Warenkorb</h2>
               <p className="text-sm text-foreground/60 font-sans">Laden...</p>
             </div>
-            <button
+            <RippleButton
               type="button"
               onClick={onClose}
-              className="text-foreground/70 hover:text-foreground transition-colors p-2 hover:bg-foreground/5 rounded-full"
+              className={cnHeaderNavIconHost()}
               aria-label="Warenkorb schließen"
             >
               <X className="w-6 h-6" />
-            </button>
+            </RippleButton>
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center">

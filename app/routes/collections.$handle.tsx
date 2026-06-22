@@ -14,8 +14,11 @@ import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ProductItem} from '~/components/ProductItem';
 import type {ProductItemFragment} from 'storefrontapi.generated';
 import {useState, useMemo, useEffect} from 'react';
-import {X, SlidersHorizontal, ChevronDown, ShoppingBag} from 'lucide-react';
+import {SlidersHorizontal, ChevronDown, ShoppingBag} from 'lucide-react';
 import {CustomSelect} from '~/components/CustomSelect';
+import {DesktopProductFilterRow} from '~/components/zehn/DesktopProductFilterRow';
+import {MobileProductFilterDrawer} from '~/components/zehn/MobileProductFilterDrawer';
+import {FILTER_BAR_SHELL} from '~/lib/product-filter-ui';
 import {
   MAIN_CATEGORY_MAP,
   getCategoryLabel,
@@ -582,7 +585,7 @@ export default function Collection() {
 
         {/* Filter Bar */}
         <div className="mb-4">
-          <div className="flex items-center justify-between pb-3 border-b border-border/50">
+          <div className={FILTER_BAR_SHELL}>
             <button
               type="button"
               onClick={() => setShowFilters(!showFilters)}
@@ -593,66 +596,21 @@ export default function Collection() {
             </button>
 
             {/* Desktop Filters */}
-            <div className="hidden lg:flex items-center gap-4">
-              <span className="text-sm text-foreground/60">Filter:</span>
-
-              {/* Price Filter */}
-              <CustomSelect
-                value={selectedPriceRange}
-                onChange={setSelectedPriceRange}
-                options={[
-                  {value: '0-50', label: '€0 - €50'},
-                  {value: '50-100', label: '€50 - €100'},
-                  {value: '100-150', label: '€100 - €150'},
-                  {value: '150+', label: '€150+'},
-                ]}
-                placeholder="Preis"
-                className="w-auto min-w-[140px]"
-              />
-
-              {/* Size Filter */}
-              {availableSizes.length > 0 && (
-                <CustomSelect
-                  value={selectedSize}
-                  onChange={setSelectedSize}
-                  options={availableSizes.map((size) => ({
-                    value: size,
-                    label: size,
-                  }))}
-                  placeholder="Größe"
-                  className="w-auto min-w-[120px]"
-                />
-              )}
-
-              {/* Color Filter */}
-              {availableColors.length > 0 && (
-                <CustomSelect
-                  value={selectedColor}
-                  onChange={setSelectedColor}
-                  options={availableColors.map((color) => ({
-                    value: color,
-                    label: color,
-                  }))}
-                  placeholder="Farbe"
-                  className="w-auto min-w-[140px]"
-                />
-              )}
-
-              {/* Clear Filters Button */}
-              {(selectedSize || selectedColor || selectedPriceRange) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedSize('');
-                    setSelectedColor('');
-                    setSelectedPriceRange('');
-                  }}
-                  className="px-4 py-2 rounded-full text-xs bg-card text-foreground border border-border/50 hover:bg-card/80 transition-colors"
-                >
-                  Filter zurücksetzen
-                </button>
-              )}
-            </div>
+            <DesktopProductFilterRow
+              selectedPriceRange={selectedPriceRange}
+              selectedSize={selectedSize}
+              selectedColor={selectedColor}
+              availableSizes={availableSizes}
+              availableColors={availableColors}
+              onPriceChange={setSelectedPriceRange}
+              onSizeChange={setSelectedSize}
+              onColorChange={setSelectedColor}
+              onClear={() => {
+                setSelectedSize('');
+                setSelectedColor('');
+                setSelectedPriceRange('');
+              }}
+            />
           </div>
 
           {/* Product Count + Sort - separate line */}
@@ -675,84 +633,23 @@ export default function Collection() {
           </div>
         </div>
 
-        {/* Mobile Filter Drawer */}
-        {showFilters && (
-          <div className="lg:hidden fixed inset-0 z-50 bg-background">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="font-sans text-h2 text-foreground">Filter</h2>
-                <button
-                  type="button"
-                  onClick={() => setShowFilters(false)}
-                  className="p-2 text-foreground/70 hover:text-foreground"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="space-y-3">
-                <CustomSelect
-                  value={selectedPriceRange}
-                  onChange={setSelectedPriceRange}
-                  options={[
-                    {value: '0-50', label: '€0 - €50'},
-                    {value: '50-100', label: '€50 - €100'},
-                    {value: '100-150', label: '€100 - €150'},
-                    {value: '150+', label: '€150+'},
-                  ]}
-                  placeholder="Preis"
-                  className="w-full"
-                />
-
-                {availableSizes.length > 0 && (
-                  <CustomSelect
-                    value={selectedSize}
-                    onChange={setSelectedSize}
-                    options={availableSizes.map((size) => ({
-                      value: size,
-                      label: size,
-                    }))}
-                    placeholder="Größe"
-                    className="w-full"
-                  />
-                )}
-
-                {availableColors.length > 0 && (
-                  <CustomSelect
-                    value={selectedColor}
-                    onChange={setSelectedColor}
-                    options={availableColors.map((color) => ({
-                      value: color,
-                      label: color,
-                    }))}
-                    placeholder="Farbe"
-                    className="w-full"
-                  />
-                )}
-
-                <div className="grid grid-cols-2 gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedSize('');
-                      setSelectedColor('');
-                      setSelectedPriceRange('');
-                    }}
-                    className="w-full px-4 py-3 rounded-3xl text-sm bg-card text-foreground border border-border/50 hover:bg-card/80 transition-colors"
-                  >
-                    Filter zurücksetzen
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowFilters(false)}
-                    className="w-full px-4 py-3 rounded-3xl text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <MobileProductFilterDrawer
+          isOpen={showFilters}
+          onClose={() => setShowFilters(false)}
+          selectedPriceRange={selectedPriceRange}
+          selectedSize={selectedSize}
+          selectedColor={selectedColor}
+          availableSizes={availableSizes}
+          availableColors={availableColors}
+          onPriceChange={setSelectedPriceRange}
+          onSizeChange={setSelectedSize}
+          onColorChange={setSelectedColor}
+          onClear={() => {
+            setSelectedSize('');
+            setSelectedColor('');
+            setSelectedPriceRange('');
+          }}
+        />
 
         {/* Product Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">

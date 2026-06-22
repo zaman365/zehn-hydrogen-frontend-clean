@@ -18,9 +18,17 @@
  * object-position: center 0% (top-align) on both:
  *  At the exact aspect ratio there is no overflow → Y has no effect.
  *  Safety for rare max-height-capped viewports where scale-to-width occurs.
+ *
+ * Text overlay:
+ *  Stagger entrance via CSS hero-reveal keyframes; re-triggered on each slide
+ *  change via key={activeSlide} on the overlay wrapper (React unmount/remount).
+ *  Subtitle cycles through brand phrases using useTextCycle — smooth CSS crossfade (client-only).
  */
 import {useEffect, useState} from 'react';
-import {Link} from 'react-router';
+import {Sparkles} from 'lucide-react';
+import {CtaShineButton} from '~/components/zehn/CtaShineButton';
+import {HERO_SUBTITLE_PHRASES} from '~/lib/hero-content';
+import {useTextCycle} from '~/lib/hero-text-shuffle';
 
 type HeroSlide = {
   id: string;
@@ -67,6 +75,77 @@ const SLIDE_DURATION_MS = 10000;
 /** Both mobile and desktop: top-align so head is never cropped on capped viewports */
 const HERO_OBJECT_POSITION_MOBILE = 'center 0%';
 const HERO_OBJECT_POSITION_DESKTOP = 'center 0%';
+
+/**
+ * HeroTextOverlay — stagger-animated title + scramble subtitle + glass CTA.
+ * Wrapped with key={activeSlide} in parent → remounts on each slide → re-triggers CSS animations.
+ */
+function HeroTextOverlay({to, isMobile}: {to: string; isMobile: boolean}) {
+  const {displayed: subtitle, fading} = useTextCycle(
+    HERO_SUBTITLE_PHRASES,
+    4500,
+  );
+
+  if (isMobile) {
+    return (
+      <div className="hero-text-overlay hero-text-overlay--mobile">
+        {/* Title: stagger step 1 — scales down on narrow viewports; wraps if needed */}
+        <p className="hero-reveal hero-title-glow font-display mb-1.5 max-w-full text-balance text-[clamp(11px,3.4vw,13px)] font-black uppercase leading-tight tracking-[0.1em]">
+          SOMMERKOLLEKTION
+        </p>
+        {/*
+         * Subtitle: stagger step 2.
+         * subtitle is null until client mounts (prevents SSR/hydration mismatch).
+         * fading class triggers CSS ease-out; removal triggers ease-in via transition.
+         */}
+        {subtitle !== null && (
+          <p
+            className={`hero-reveal hero-reveal-delay-1 hero-subtitle-mobile mb-3${fading ? ' hero-subtitle-fading' : ''}`}
+          >
+            {subtitle}
+          </p>
+        )}
+        {/* CTA: stagger step 3 */}
+        <div className="hero-reveal hero-reveal-delay-2">
+          <CtaShineButton
+            to={to}
+            className="px-5 py-2 text-[9px] tracking-[0.22em]"
+          >
+            <Sparkles size={12} aria-hidden="true" className="shrink-0" />
+            ENTDECKEN
+          </CtaShineButton>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="hero-text-overlay hero-text-overlay--desktop">
+      {/* Title: fluid size — wraps on narrow desktop/tablet widths */}
+      <p className="hero-reveal hero-title-glow font-display mb-3 max-w-full text-balance text-[clamp(26px,5vw,39px)] font-black uppercase leading-tight tracking-[0.18em] xl:text-[clamp(34px,3.5vw,47px)]">
+        SOMMERKOLLEKTION
+      </p>
+      {/* Subtitle: stagger step 2 — client-only, null guard prevents hydration mismatch */}
+      {subtitle !== null && (
+        <p
+          className={`hero-reveal hero-reveal-delay-1 hero-subtitle-desktop mb-6${fading ? ' hero-subtitle-fading' : ''}`}
+        >
+          {subtitle}
+        </p>
+      )}
+      {/* CTA: stagger step 3 */}
+      <div className="hero-reveal hero-reveal-delay-2">
+        <CtaShineButton
+          to={to}
+          className="px-10 py-3.5 text-[13px] tracking-[0.28em]"
+        >
+          <Sparkles size={17} aria-hidden="true" className="shrink-0" />
+          ENTDECKEN
+        </CtaShineButton>
+      </div>
+    </div>
+  );
+}
 
 function HeroSliderImage({
   className,
@@ -156,17 +235,13 @@ export function Hero() {
             onClick={handleBannerClick}
             aria-label="Zur Produktauswahl"
           />
+          {/*
+           * key={activeSlide} → React unmounts/remounts this subtree on each slide change
+           * → CSS hero-reveal animations re-trigger automatically. No JS animation lib needed.
+           */}
           <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-end pb-10">
-            <div className="pointer-events-auto text-center">
-              <p className="font-display mb-3 text-[13px] font-black uppercase leading-none tracking-[0.1em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
-                SOMMERKOLLEKTION
-              </p>
-              <Link
-                to="/collections/neuheiten"
-                className="font-display inline-block bg-white/90 px-5 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#0F1426] shadow-md transition-all duration-300 hover:scale-105 hover:bg-white"
-              >
-                ENTDECKEN
-              </Link>
+            <div key={`mobile-text-${activeSlide}`}>
+              <HeroTextOverlay to="/collections/neuheiten" isMobile />
             </div>
           </div>
         </div>
@@ -204,16 +279,8 @@ export function Hero() {
             aria-label="Zur Produktauswahl"
           />
           <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-end pb-10">
-            <div className="pointer-events-auto text-center">
-              <p className="font-display mb-5 text-[39px] font-black uppercase leading-none tracking-[0.18em] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] xl:text-[47px]">
-                SOMMERKOLLEKTION
-              </p>
-              <Link
-                to="/collections/neuheiten"
-                className="font-display inline-block bg-white/90 px-10 py-3 text-sm font-bold uppercase tracking-[0.25em] text-[#0F1426] shadow-lg transition-all duration-300 hover:scale-105 hover:bg-white"
-              >
-                ENTDECKEN
-              </Link>
+            <div key={`desktop-text-${activeSlide}`}>
+              <HeroTextOverlay to="/collections/neuheiten" isMobile={false} />
             </div>
           </div>
         </div>

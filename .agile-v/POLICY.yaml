@@ -39,6 +39,8 @@ frozen_constraints:
       - app/components/zehn/AnnouncementBar.tsx
       - app/components/zehn/Header.tsx
       - app/components/PageLayout.tsx
+      - app/lib/site-header-stack.ts
+      - app/styles/homepage-hero.css
   - id: brand_tokens
     req: REQ-0001
     paths:
@@ -47,7 +49,7 @@ frozen_constraints:
 verification:
   min_before_commit:
     - npm run typecheck
-  visual_breakpoints: [390, 1280, 1440]
+  visual_breakpoints: [390, 1280, 1440, 1920]
 
 scope:
   in_scope:

@@ -19,6 +19,14 @@ import {
 } from 'lucide-react';
 import {CartDrawer} from './CartDrawer';
 import {SearchModal} from './SearchModal';
+import {HeaderNavAccordionRow} from './HeaderNavAccordionRow';
+import {
+  HeaderNavIcon,
+  HeaderNavIconButton,
+  HeaderNavLink,
+  HeaderNavMobileAction,
+  HeaderNavMobileRow,
+} from './HeaderNavItem';
 import {useWishlist} from '~/components/zehn/wishlist-context';
 import type {RootLoader} from '~/root';
 import {
@@ -26,6 +34,37 @@ import {
   getCollectionRootSlug,
   MAIN_CATEGORY_MAP,
 } from '~/lib/category-map';
+import {
+  HEADER_NAV_ICON_STROKE,
+  DESKTOP_SHOP_ALL_NAV_LABEL,
+  HEADER_NAV_MOBILE_SUBMENU_INDENT,
+  HEADER_NAV_DROPDOWN_SUBLIST,
+  HEADER_NAV_MOBILE_MENU_MAX_H,
+  cnHeaderNavDropdownLink,
+  cnHeaderNavDropdownSection,
+} from '~/lib/header-nav-styles';
+import {
+  ZEHN_DROPDOWN_POSITIONER_OPEN,
+  ZEHN_NAV_SURFACE,
+  ZEHN_SURFACE_GLOW,
+  ZEHN_SURFACE_GLOW_BLEED,
+} from '~/lib/zehn-surface-styles';
+import {ZehnGlassPanel} from './ZehnGlassPanel';
+import {ZehnNavStaggerItem} from './ZehnNavStaggerItem';
+import {cn} from '~/lib/utils';
+import {
+  isNavCollectionRootActive,
+  isNavLinkActive,
+  resolveMobileNavOpenState,
+} from '~/lib/header-nav-active';
+import {
+  isMenuAriaExpanded,
+  isMenuShellMounted,
+  menuPhaseToStagger,
+  shouldFreezeMobileAccordion,
+  type NavMenuPhase,
+} from '~/lib/nav-menu-phase';
+import {useScrollLock} from '~/hooks/useScrollLock';
 
 const FALLBACK_HEADER_MENU: NonNullable<HeaderQuery['menu']> = {
   id: 'gid://shopify/Menu/199655587896',
@@ -111,7 +150,7 @@ const DESIRED_URL_ORDER = [
 ];
 
 const TITLE_OVERRIDES: Record<string, string> = {
-  '/collections/all': 'Shop All',
+  '/collections/all': DESKTOP_SHOP_ALL_NAV_LABEL,
   '/collections/neuheiten': 'NEUHEITEN',
   '/collections/new-arrival': 'NEUHEITEN',
 };
@@ -170,68 +209,86 @@ function CategoryMenuPanel({
   id,
   className,
   onNavigate,
-  showHeading = false,
-  headingTitle = 'Shop All',
-  shopAllUrl = '/collections/all',
   rootSourceUrl,
   idPrefix = 'category-section',
+  interactionMode = 'toggleRow',
+  initialOpenSection = null,
+  staggerPhase = 'idle',
 }: {
   id?: string;
   className: string;
   onNavigate?: () => void;
-  showHeading?: boolean;
-  headingTitle?: string;
-  shopAllUrl?: string;
   rootSourceUrl?: string;
   idPrefix?: string;
+  /** toggleRow: desktop hover dropdown; splitRow: mobile link + chevron */
+  interactionMode?: 'toggleRow' | 'splitRow';
+  /** Mobile drawer auto-expand: open section matching current route on mount */
+  initialOpenSection?: string | null;
+  /** Desktop dropdown row stagger — synced to categoryMenuPhase */
+  staggerPhase?: ReturnType<typeof menuPhaseToStagger>;
 }) {
-  const [openSection, setOpenSection] = useState<string | null>(null);
+  const [openSection, setOpenSection] = useState<string | null>(
+    initialOpenSection ?? null,
+  );
   const {pathname} = useLocation();
   const rootSlug = getCollectionRootSlug(rootSourceUrl ?? pathname);
 
   return (
     <nav id={id} className={className} aria-label="Kategorien">
-      {showHeading && (
-        <Link
-          to={shopAllUrl}
-          prefetch="intent"
-          onClick={onNavigate}
-          className="mb-4 flex min-h-[36px] items-center text-[12px] font-semibold uppercase tracking-[0.3em] text-accent underline decoration-1 underline-offset-4 transition-opacity hover:opacity-70"
-        >
-          {headingTitle}
-        </Link>
-      )}
-      {CATEGORY_MENU_SECTIONS.map((section) => {
+      {CATEGORY_MENU_SECTIONS.map((section, sectionIndex) => {
         const sectionId = `${idPrefix}-${section.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')}`;
         const isOpen = openSection === section.title;
+        const alleSectionUrl = `/collections/${rootSlug}/alle-${section.handle}`;
 
         return (
-          <div key={section.title} className="py-[5px] first:pt-0 last:pb-0">
-            <button
-              type="button"
-              onClick={() =>
-                setOpenSection((current) =>
-                  current === section.title ? null : section.title,
-                )
-              }
-              className={`flex min-h-[36px] w-full items-center justify-between gap-3 text-left text-[12px] font-semibold uppercase tracking-[0.28em] transition-colors hover:text-accent ${
-                isOpen
-                  ? 'text-accent underline decoration-1 underline-offset-4'
-                  : 'text-foreground'
-              }`}
-              aria-expanded={isOpen}
-              aria-controls={sectionId}
-            >
-              <span>{section.title}</span>
-              <ChevronDown
-                className={`h-4 w-4 shrink-0 transition-transform duration-300 ${
-                  isOpen ? 'rotate-180' : ''
-                }`}
-                aria-hidden="true"
+          <ZehnNavStaggerItem
+            key={section.title}
+            index={sectionIndex}
+            total={CATEGORY_MENU_SECTIONS.length}
+            phase={staggerPhase}
+            className="py-[5px] first:pt-0 last:pb-0"
+          >
+            {interactionMode === 'splitRow' ? (
+              <HeaderNavAccordionRow
+                to={alleSectionUrl}
+                label={section.title}
+                isOpen={isOpen}
+                isRouteActive={isNavLinkActive(
+                  pathname,
+                  alleSectionUrl,
+                  'descendant',
+                )}
+                onToggle={() =>
+                  setOpenSection((current) =>
+                    current === section.title ? null : section.title,
+                  )
+                }
+                onNavigate={onNavigate}
+                ariaControls={sectionId}
               />
-            </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenSection((current) =>
+                    current === section.title ? null : section.title,
+                  )
+                }
+                className={cnHeaderNavDropdownSection({active: isOpen})}
+                aria-expanded={isOpen}
+                aria-controls={sectionId}
+              >
+                <span>{section.title}</span>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ${
+                    isOpen ? 'rotate-180' : ''
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
+            )}
             {
               <div
                 id={sectionId}
@@ -242,31 +299,46 @@ function CategoryMenuPanel({
                 }`}
               >
                 <div className="min-h-0 overflow-hidden">
-                  <div className="mt-2 flex flex-col gap-1.5 border-l border-foreground/10 pl-3">
+                  <div className={HEADER_NAV_DROPDOWN_SUBLIST}>
                     <Link
-                      to={`/collections/${rootSlug}/alle-${section.handle}`}
+                      to={alleSectionUrl}
                       prefetch="intent"
                       onClick={onNavigate}
-                      className="block text-[12px] font-medium uppercase tracking-[0.18em] text-foreground/80 transition-colors hover:text-foreground"
+                      className={cnHeaderNavDropdownLink({
+                        active: isNavLinkActive(
+                          pathname,
+                          alleSectionUrl,
+                          'exact',
+                        ),
+                      })}
                     >
                       Alle {section.title}
                     </Link>
-                    {section.items.map((item) => (
-                      <Link
-                        key={`${section.title}-${item.title}`}
-                        to={`/collections/${rootSlug}/alle-${section.handle}/${item.handle}`}
-                        prefetch="intent"
-                        onClick={onNavigate}
-                        className="block text-[12px] font-medium uppercase tracking-[0.18em] text-foreground/60 transition-colors hover:text-foreground"
-                      >
-                        {item.title}
-                      </Link>
-                    ))}
+                    {section.items.map((item) => {
+                      const itemUrl = `/collections/${rootSlug}/alle-${section.handle}/${item.handle}`;
+                      return (
+                        <Link
+                          key={`${section.title}-${item.title}`}
+                          to={itemUrl}
+                          prefetch="intent"
+                          onClick={onNavigate}
+                          className={cnHeaderNavDropdownLink({
+                            active: isNavLinkActive(
+                              pathname,
+                              itemUrl,
+                              'exact',
+                            ),
+                          })}
+                        >
+                          {item.title}
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             }
-          </div>
+          </ZehnNavStaggerItem>
         );
       })}
     </nav>
@@ -276,18 +348,24 @@ function CategoryMenuPanel({
 function MobileCollectionMenuSection({
   item,
   isOpen,
+  freezeContent = false,
   onToggle,
   onNavigate,
   primaryDomainUrl,
   publicStoreDomain,
+  initialOpenSection = null,
 }: {
   item: MenuEntry;
   isOpen: boolean;
+  /** Keep submenu mounted/expanded during drawer close animation */
+  freezeContent?: boolean;
   onToggle: () => void;
   onNavigate: () => void;
   primaryDomainUrl?: string;
   publicStoreDomain?: string;
+  initialOpenSection?: string | null;
 }) {
+  const {pathname} = useLocation();
   const url = normalizeMenuUrl({
     url: 'url' in item ? item.url : '',
     primaryDomainUrl,
@@ -301,38 +379,35 @@ function MobileCollectionMenuSection({
     .replace(/[^a-z0-9]+/gi, '-')
     .toLowerCase();
   const sectionId = `zehn-mobile-${sectionKey || 'collection'}-categories`;
+  const showSubmenu = isOpen || freezeContent;
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex min-h-[44px] w-full items-center justify-between gap-3 text-left text-xs uppercase tracking-[0.3em] text-foreground/70 transition-all duration-[400ms] ease-out hover:text-foreground"
-        aria-expanded={isOpen}
-        aria-controls={sectionId}
-      >
-        <span>{item.title}</span>
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-transform duration-300 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-          aria-hidden="true"
-        />
-      </button>
+      <HeaderNavAccordionRow
+        to={url}
+        label={item.title}
+        isOpen={isOpen}
+        isRouteActive={isNavCollectionRootActive(pathname, url)}
+        onToggle={onToggle}
+        onNavigate={onNavigate}
+        ariaControls={sectionId}
+      />
       <div
         id={sectionId}
         className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
-          isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          showSubmenu ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
         }`}
       >
         <div className="min-h-0 overflow-hidden">
-          {isOpen && (
+          {showSubmenu && (
             <CategoryMenuPanel
               key={`${sectionKey}-category-menu`}
               onNavigate={onNavigate}
               rootSourceUrl={url}
               idPrefix={`mobile-${sectionKey}-category-section`}
-              className="mt-2 flex flex-col gap-1 pl-0"
+              interactionMode="splitRow"
+              initialOpenSection={initialOpenSection}
+              className={cn(HEADER_NAV_MOBILE_SUBMENU_INDENT, 'flex flex-col gap-1')}
             />
           )}
         </div>
@@ -392,13 +467,26 @@ export const normalizeZehnMenuItems = ({
 }): ZehnHeaderNormalizedLink[] =>
   buildNormalizedMenu({items, primaryDomainUrl, publicStoreDomain});
 
+/** Matches mobile drawer `transition-all duration-[400ms]` collapse. */
+const MOBILE_SHELL_COLLAPSE_MS = 400;
+/** Faster shell collapse after in-menu navigation — page is already swapping. */
+const MOBILE_NAVIGATE_SHELL_COLLAPSE_MS = 200;
+
+export type MobileMenuCloseIntent = 'navigate' | 'dismiss';
+
 export function Header({
   menu,
   primaryDomainUrl,
   publicStoreDomain,
 }: ZehnHeaderMenuProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [mobileMenuPhase, setMobileMenuPhase] = useState<NavMenuPhase>('idle');
+  const [isMobileMenuShellExpanded, setIsMobileMenuShellExpanded] =
+    useState(false);
+  const [mobileShellTransitionMs, setMobileShellTransitionMs] = useState(
+    MOBILE_SHELL_COLLAPSE_MS,
+  );
+  const [categoryMenuPhase, setCategoryMenuPhase] =
+    useState<NavMenuPhase>('idle');
   const [desktopCollection, setDesktopCollection] = useState<{
     title: string;
     url: string;
@@ -409,18 +497,28 @@ export function Header({
   const [openMobileCollection, setOpenMobileCollection] = useState<
     string | null
   >(null);
+  const [openMobileSection, setOpenMobileSection] = useState<string | null>(
+    null,
+  );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const categoryMenuRef = useRef<HTMLDivElement>(null);
-  const categoryMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const desktopNavTriggersRef = useRef<HTMLDivElement>(null);
   const headerNavRef = useRef<HTMLElement>(null);
   const categoryMenuCloseTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  const categoryMenuCloseFinishedRef = useRef(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileMenuCloseCollapseTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const mobileMenuCloseFinishedRef = useRef(false);
+  const wasMenuOpenRef = useRef(false);
   const {count: wishlistCount} = useWishlist();
+  const {pathname} = useLocation();
 
   // Get customer/auth state from root loader
   const rootData = useRouteLoaderData<RootLoader>('root');
@@ -489,6 +587,36 @@ export function Header({
     );
   }, [shopAllMenuItem, primaryDomainUrl, publicStoreDomain]);
 
+  const mobileNavMenuEntries = useMemo(() => {
+    const entries = [shopAllMenuItem, ...primaryMenuItems].filter(Boolean);
+    return entries
+      .map((item) => {
+        const url = normalizeMenuUrl({
+          url: 'url' in item ? item.url : '',
+          primaryDomainUrl,
+          publicStoreDomain,
+        });
+        return url ? {url} : null;
+      })
+      .filter((entry): entry is {url: string} => entry !== null);
+  }, [shopAllMenuItem, primaryMenuItems, primaryDomainUrl, publicStoreDomain]);
+
+  const mobileStaggerTotal = mobileNavMenuEntries.length + 2;
+
+  const mobileMenuStaggerPhase = menuPhaseToStagger(mobileMenuPhase, 'mobile');
+  const desktopStaggerPhase = menuPhaseToStagger(categoryMenuPhase, 'desktop');
+  const mobileMenuAriaExpanded = isMenuAriaExpanded(mobileMenuPhase);
+  const mobileMenuAccordionFrozen = shouldFreezeMobileAccordion(mobileMenuPhase);
+
+  useScrollLock(isMenuShellMounted(mobileMenuPhase));
+
+  const cancelMobileMenuCloseTimers = useCallback(() => {
+    if (mobileMenuCloseCollapseTimerRef.current) {
+      clearTimeout(mobileMenuCloseCollapseTimerRef.current);
+      mobileMenuCloseCollapseTimerRef.current = null;
+    }
+  }, []);
+
   const cancelCategoryMenuClose = useCallback(() => {
     if (categoryMenuCloseTimerRef.current) {
       clearTimeout(categoryMenuCloseTimerRef.current);
@@ -496,17 +624,36 @@ export function Header({
     }
   }, []);
 
-  const closeCategoryMenu = useCallback(() => {
+  const finishCloseCategoryMenu = useCallback(() => {
+    if (categoryMenuCloseFinishedRef.current) return;
+    categoryMenuCloseFinishedRef.current = true;
     cancelCategoryMenuClose();
-    setIsCategoryMenuOpen(false);
+    setCategoryMenuPhase('idle');
     setDesktopCollection(null);
     setDropdownCenterOffset(null);
   }, [cancelCategoryMenuClose]);
 
+  const beginCloseCategoryMenu = useCallback(() => {
+    setCategoryMenuPhase((phase) => {
+      if (phase === 'open') {
+        categoryMenuCloseFinishedRef.current = false;
+        return 'closing';
+      }
+      return phase;
+    });
+  }, []);
+
+  const closeCategoryMenu = useCallback(() => {
+    beginCloseCategoryMenu();
+  }, [beginCloseCategoryMenu]);
+
   const scheduleCategoryMenuClose = useCallback(() => {
     cancelCategoryMenuClose();
-    categoryMenuCloseTimerRef.current = setTimeout(closeCategoryMenu, 150);
-  }, [cancelCategoryMenuClose, closeCategoryMenu]);
+    categoryMenuCloseTimerRef.current = setTimeout(
+      beginCloseCategoryMenu,
+      150,
+    );
+  }, [cancelCategoryMenuClose, beginCloseCategoryMenu]);
 
   const openDesktopCollectionMenu = useCallback(
     (item: MenuEntry, triggerEl?: HTMLElement) => {
@@ -519,8 +666,9 @@ export function Header({
       if (!url) return;
 
       cancelCategoryMenuClose();
+      categoryMenuCloseFinishedRef.current = false;
       setDesktopCollection({title: item.title, url});
-      setIsCategoryMenuOpen(true);
+      setCategoryMenuPhase('open');
 
       if (triggerEl && headerNavRef.current) {
         const navRect = headerNavRef.current.getBoundingClientRect();
@@ -532,6 +680,52 @@ export function Header({
     },
     [cancelCategoryMenuClose, primaryDomainUrl, publicStoreDomain],
   );
+
+  const openMobileMenu = useCallback(() => {
+    cancelMobileMenuCloseTimers();
+    mobileMenuCloseFinishedRef.current = false;
+    setMobileShellTransitionMs(MOBILE_SHELL_COLLAPSE_MS);
+    setIsMobileMenuShellExpanded(true);
+    setMobileMenuPhase('open');
+  }, [cancelMobileMenuCloseTimers]);
+
+  const finishCloseMobileMenu = useCallback(() => {
+    if (mobileMenuCloseFinishedRef.current) return;
+    mobileMenuCloseFinishedRef.current = true;
+    cancelMobileMenuCloseTimers();
+    setMobileMenuPhase('idle');
+    setIsMobileMenuShellExpanded(false);
+    setOpenMobileCollection(null);
+    setOpenMobileSection(null);
+  }, [cancelMobileMenuCloseTimers]);
+
+  const beginCloseMobileMenu = useCallback(
+    (intent: MobileMenuCloseIntent = 'dismiss') => {
+      setMobileMenuPhase((phase) => {
+        if (phase !== 'open') return phase;
+
+        mobileMenuCloseFinishedRef.current = false;
+        cancelMobileMenuCloseTimers();
+        const collapseMs =
+          intent === 'navigate'
+            ? MOBILE_NAVIGATE_SHELL_COLLAPSE_MS
+            : MOBILE_SHELL_COLLAPSE_MS;
+        setMobileShellTransitionMs(collapseMs);
+        setIsMobileMenuShellExpanded(false);
+        mobileMenuCloseCollapseTimerRef.current = setTimeout(() => {
+          finishCloseMobileMenu();
+          mobileMenuCloseCollapseTimerRef.current = null;
+        }, collapseMs);
+
+        return 'closing';
+      });
+    },
+    [cancelMobileMenuCloseTimers, finishCloseMobileMenu],
+  );
+
+  const closeMobileMenuOnNavigate = useCallback(() => {
+    beginCloseMobileMenu('navigate');
+  }, [beginCloseMobileMenu]);
 
   // Ensure animation only runs once per page load
   useEffect(() => {
@@ -546,23 +740,24 @@ export function Header({
   useEffect(
     () => () => {
       cancelCategoryMenuClose();
+      cancelMobileMenuCloseTimers();
     },
-    [cancelCategoryMenuClose],
+    [cancelCategoryMenuClose, cancelMobileMenuCloseTimers],
   );
 
   useEffect(() => {
-    if (!isCategoryMenuOpen) return;
+    if (categoryMenuPhase !== 'open') return;
 
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node | null;
-      if (target && categoryMenuButtonRef.current?.contains(target)) return;
+      if (target && desktopNavTriggersRef.current?.contains(target)) return;
       if (target && categoryMenuRef.current?.contains(target)) return;
-      closeCategoryMenu();
+      beginCloseCategoryMenu();
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        closeCategoryMenu();
+        beginCloseCategoryMenu();
       }
     };
 
@@ -575,27 +770,46 @@ export function Header({
       document.removeEventListener('touchstart', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [closeCategoryMenu, isCategoryMenuOpen]);
+  }, [beginCloseCategoryMenu, categoryMenuPhase]);
 
   useEffect(() => {
-    if (!isMenuOpen) {
-      setOpenMobileCollection(null);
+    if (categoryMenuPhase !== 'closing') return;
+    const timer = setTimeout(finishCloseCategoryMenu, 380);
+    return () => clearTimeout(timer);
+  }, [categoryMenuPhase, finishCloseCategoryMenu]);
+
+  useEffect(() => {
+    if (!isMenuShellMounted(mobileMenuPhase)) {
+      wasMenuOpenRef.current = false;
+      return;
     }
-  }, [isMenuOpen]);
+
+    if (shouldFreezeMobileAccordion(mobileMenuPhase)) return;
+
+    if (!wasMenuOpenRef.current) {
+      const resolved = resolveMobileNavOpenState(pathname, mobileNavMenuEntries);
+      if (resolved.collectionMenuUrl) {
+        setOpenMobileCollection(resolved.collectionMenuUrl);
+      }
+      setOpenMobileSection(resolved.sectionTitle);
+    }
+
+    wasMenuOpenRef.current = true;
+  }, [mobileMenuPhase, pathname, mobileNavMenuEntries]);
 
   useEffect(() => {
-    if (!isMenuOpen) return;
+    if (!isMenuShellMounted(mobileMenuPhase)) return;
 
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node | null;
       if (target && mobileMenuButtonRef.current?.contains(target)) return;
       if (target && mobileMenuRef.current?.contains(target)) return;
-      setIsMenuOpen(false);
+      beginCloseMobileMenu();
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsMenuOpen(false);
+        beginCloseMobileMenu();
       }
     };
 
@@ -608,7 +822,7 @@ export function Header({
       document.removeEventListener('touchstart', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isMenuOpen]);
+  }, [mobileMenuPhase, beginCloseMobileMenu]);
 
   return (
     <>
@@ -616,130 +830,128 @@ export function Header({
       <header className="fixed top-[29px] sm:top-[32px] left-0 right-0 z-50 font-sans bg-transparent">
         <nav
           ref={headerNavRef}
-          className={`relative w-[97.5%] lg:w-[95%] max-w-[1400px] mx-auto px-2 sm:px-5 lg:px-8 backdrop-blur-md rounded-lg py-0 my-0 bg-white/40 border border-white/30 transition-all duration-600 ease-out ${
+          className={cn(
+            'relative w-[97.5%] lg:w-[95%] max-w-[1400px] mx-auto px-2 sm:px-5 lg:px-8 py-0 my-0 transition-all duration-600 ease-out',
+            ZEHN_NAV_SURFACE,
+            ZEHN_SURFACE_GLOW,
             hasAnimated
               ? 'opacity-100 scale-100 translate-y-0'
-              : 'opacity-0 scale-95 -translate-y-2'
-          }`}
-          style={{boxShadow: 'rgba(15, 20, 38, 0.12) 0px 10px 50px'}}
+              : 'opacity-0 scale-95 -translate-y-2',
+          )}
           aria-label="Main"
         >
           <div className="flex items-center h-[68px]">
             {/* Mobile: Hamburger menu button */}
-            <button
-              ref={mobileMenuButtonRef}
-              type="button"
-              className="relative lg:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground/80 hover:text-foreground transition-all duration-[400ms] ease-out"
-              onClick={() => setIsMenuOpen((open) => !open)}
-              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={isMenuOpen}
-              aria-controls="zehn-mobile-menu"
+            <HeaderNavIconButton
+              buttonRef={mobileMenuButtonRef}
+              className="lg:hidden"
+              active={mobileMenuAriaExpanded}
+              ariaLabel={mobileMenuAriaExpanded ? 'Close menu' : 'Open menu'}
+              ariaExpanded={mobileMenuAriaExpanded}
+              ariaControls="zehn-mobile-menu"
+              onClick={() => {
+                if (mobileMenuAriaExpanded) {
+                  beginCloseMobileMenu();
+                } else {
+                  openMobileMenu();
+                }
+              }}
             >
-              {isMenuOpen ? (
-                <X className="w-5 h-5" />
+              {mobileMenuAriaExpanded ? (
+                <HeaderNavIcon icon={X} active={mobileMenuAriaExpanded} />
               ) : (
-                <Menu className="w-5 h-5" />
+                <>
+                  <HeaderNavIcon icon={Menu} active={mobileMenuAriaExpanded} />
+                  {!mobileMenuAriaExpanded && (
+                    <MobileMenuActivityDot wishlistCount={wishlistCount} />
+                  )}
+                </>
               )}
-              {!isMenuOpen && (
-                <MobileMenuActivityDot wishlistCount={wishlistCount} />
-              )}
-            </button>
+            </HeaderNavIconButton>
 
             {/* Mobile: Search icon next to menu for balanced spacing */}
-            <button
-              type="button"
+            <HeaderNavIconButton
+              className="lg:hidden"
+              active={isSearchOpen}
+              ariaLabel="Suche"
               onClick={() => setIsSearchOpen(true)}
-              className="lg:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out"
-              aria-label="Suche"
             >
-              <Search className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
-            </button>
+              <HeaderNavIcon icon={Search} active={isSearchOpen} />
+            </HeaderNavIconButton>
 
-            {/* Desktop: Navigation Links (Left) */}
-            <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-              {/* Hamburger — outside hover zone so moving onto it collapses the nav-link dropdown */}
-              <button
-                ref={categoryMenuButtonRef}
-                type="button"
-                onClick={() => {
-                  if (isCategoryMenuOpen && !desktopCollection) {
-                    closeCategoryMenu();
-                    return;
+            {/* Desktop: Alle Produkte + collection nav pills (hover opens category dropdown) */}
+            <div
+              ref={desktopNavTriggersRef}
+              className="hidden lg:flex items-center gap-6 xl:gap-8"
+              onMouseEnter={cancelCategoryMenuClose}
+              onMouseLeave={scheduleCategoryMenuClose}
+            >
+              {shopAllMenuItem && (
+                <HeaderNavLink
+                  to={shopAllMenuUrl}
+                  prefetch="intent"
+                  active={
+                    isNavCollectionRootActive(pathname, shopAllMenuUrl) ||
+                    (categoryMenuPhase === 'open' &&
+                      desktopCollection?.url === shopAllMenuUrl)
                   }
-                  cancelCategoryMenuClose();
-                  setDesktopCollection(null);
-                  setDropdownCenterOffset(null);
-                  setIsCategoryMenuOpen(true);
-                }}
-                onMouseEnter={scheduleCategoryMenuClose}
-                className="flex h-11 w-11 items-center justify-center text-foreground/70 transition-all duration-[400ms] ease-out hover:text-foreground"
-                aria-label={
-                  isCategoryMenuOpen && !desktopCollection
-                    ? 'Kategorie-Menü schließen'
-                    : 'Kategorie-Menü öffnen'
-                }
-                aria-expanded={isCategoryMenuOpen && !desktopCollection}
-                aria-controls="zehn-desktop-category-menu"
-              >
-                {isCategoryMenuOpen && !desktopCollection ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
-              </button>
-
-              {/* Nav links — hover zone: enter cancels close, leave schedules close */}
-              <div
-                className="flex items-center gap-6 xl:gap-8"
-                onMouseEnter={cancelCategoryMenuClose}
-                onMouseLeave={scheduleCategoryMenuClose}
-              >
-                {primaryMenuItems.map((item) => {
-                  const url = normalizeMenuUrl({
-                    url: 'url' in item ? item.url : '',
-                    primaryDomainUrl,
-                    publicStoreDomain,
-                  });
-
-                  if (!url) return null;
-
-                  const linkClassName =
-                    'text-xs tracking-[0.3em] uppercase text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out';
-                  const sharedProps = {
-                    className: linkClassName,
-                    onMouseEnter: (e: React.MouseEvent<HTMLElement>) =>
-                      openDesktopCollectionMenu(item, e.currentTarget),
-                    onFocus: (e: React.FocusEvent<HTMLElement>) =>
-                      openDesktopCollectionMenu(item, e.currentTarget),
-                    onClick: closeCategoryMenu,
-                  };
-
-                  if (isExternalUrl(url)) {
-                    return (
-                      <a
-                        key={item.title}
-                        href={url}
-                        {...sharedProps}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {item.title}
-                      </a>
-                    );
+                  onMouseEnter={(e) =>
+                    openDesktopCollectionMenu(shopAllMenuItem, e.currentTarget)
                   }
+                  onFocus={(e) =>
+                    openDesktopCollectionMenu(shopAllMenuItem, e.currentTarget)
+                  }
+                  onClick={closeCategoryMenu}
+                >
+                  {DESKTOP_SHOP_ALL_NAV_LABEL}
+                </HeaderNavLink>
+              )}
 
+              {primaryMenuItems.map((item) => {
+                const url = normalizeMenuUrl({
+                  url: 'url' in item ? item.url : '',
+                  primaryDomainUrl,
+                  publicStoreDomain,
+                });
+
+                if (!url) return null;
+
+                const isLinkActive = isNavCollectionRootActive(pathname, url);
+                const sharedProps = {
+                  active: isLinkActive,
+                  onMouseEnter: (e: React.MouseEvent<HTMLElement>) =>
+                    openDesktopCollectionMenu(item, e.currentTarget),
+                  onFocus: (e: React.FocusEvent<HTMLElement>) =>
+                    openDesktopCollectionMenu(item, e.currentTarget),
+                  onClick: closeCategoryMenu,
+                };
+
+                if (isExternalUrl(url)) {
                   return (
-                    <Link
+                    <HeaderNavLink
                       key={item.title}
-                      to={url}
+                      external
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       {...sharedProps}
-                      prefetch="intent"
                     >
                       {item.title}
-                    </Link>
+                    </HeaderNavLink>
                   );
-                })}
-              </div>
+                }
+
+                return (
+                  <HeaderNavLink
+                    key={item.title}
+                    to={url}
+                    prefetch="intent"
+                    {...sharedProps}
+                  >
+                    {item.title}
+                  </HeaderNavLink>
+                );
+              })}
             </div>
 
             {/* Desktop: Centered Logo (absolute) */}
@@ -775,26 +987,30 @@ export function Header({
             {/* Right: Action Icons */}
             <div className="flex items-center gap-0.5 sm:gap-1 lg:gap-4 ml-0 lg:ml-0">
               {/* Search Icon */}
-              <button
-                type="button"
+              <HeaderNavIconButton
+                className="hidden lg:flex"
+                active={isSearchOpen}
+                ariaLabel="Suche"
                 onClick={() => setIsSearchOpen(true)}
-                className="hidden lg:flex p-2 min-w-[44px] min-h-[44px] items-center justify-center text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out"
-                aria-label="Suche"
               >
-                <Search className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
-              </button>
+                <HeaderNavIcon icon={Search} active={isSearchOpen} />
+              </HeaderNavIconButton>
 
               {/* Account Icon */}
               <Suspense
                 fallback={
-                  <Link
+                  <HeaderNavIconButton
+                    as="link"
                     to="/account/login"
-                    className="flex p-2 min-w-[44px] min-h-[44px] items-center justify-center text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out relative"
-                    aria-label="Anmelden"
+                    active={pathname.startsWith('/account')}
+                    ariaLabel="Anmelden"
                     title="Anmelden"
                   >
-                    <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
-                  </Link>
+                    <HeaderNavIcon
+                      icon={User}
+                      active={pathname.startsWith('/account')}
+                    />
+                  </HeaderNavIconButton>
                 }
               >
                 <Await resolve={isLoggedInPromise}>
@@ -802,22 +1018,23 @@ export function Header({
                     const accountUrl = isLoggedIn
                       ? '/account'
                       : '/account/login';
+                    const isAccountActive = pathname.startsWith('/account');
                     return (
-                      <Link
+                      <HeaderNavIconButton
+                        as="link"
                         to={accountUrl}
-                        className="flex p-2 min-w-[44px] min-h-[44px] items-center justify-center text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out relative"
-                        aria-label={isLoggedIn ? 'Mein Konto' : 'Anmelden'}
+                        active={isAccountActive}
+                        ariaLabel={isLoggedIn ? 'Mein Konto' : 'Anmelden'}
                         title={isLoggedIn ? 'Mein Konto' : 'Anmelden'}
                       >
-                        <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
-                        {/* Optional: Show indicator when logged in */}
+                        <HeaderNavIcon icon={User} active={isAccountActive} />
                         {isLoggedIn && (
                           <span
                             className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"
                             aria-hidden="true"
                           />
                         )}
-                      </Link>
+                      </HeaderNavIconButton>
                     );
                   }}
                 </Await>
@@ -825,22 +1042,27 @@ export function Header({
 
               {/* Wishlist Icon - Desktop only, mobile in sidebar */}
               <span className="hidden lg:block">
-                <WishlistHeaderIcon />
+                <WishlistHeaderIcon pathname={pathname} />
               </span>
 
               {/* Cart Icon - Always on desktop, conditional on mobile (only when items in cart) */}
-              <MobileCartButton onClick={() => setIsCartOpen(true)} />
+              <MobileCartButton
+                active={isCartOpen}
+                onClick={() => setIsCartOpen(true)}
+              />
             </div>
           </div>
 
           {/* Desktop Navigation */}
+          {categoryMenuPhase !== 'idle' && (
           <div
             id="zehn-desktop-category-menu"
-            className={`absolute top-full hidden w-fit max-w-[calc(100%_-_2rem)] transition-all duration-[400ms] ease-out lg:block ${
-              isCategoryMenuOpen
-                ? 'mt-3 max-h-[75vh] overflow-y-auto opacity-100'
-                : 'pointer-events-none mt-0 max-h-0 overflow-hidden opacity-0'
-            }`}
+            ref={categoryMenuRef}
+            className={cn(
+              'absolute top-full hidden w-fit max-w-[calc(100%_-_2rem)] lg:block',
+              ZEHN_DROPDOWN_POSITIONER_OPEN,
+              ZEHN_SURFACE_GLOW_BLEED,
+            )}
             style={{
               left:
                 dropdownCenterOffset !== null
@@ -849,42 +1071,61 @@ export function Header({
               transform:
                 dropdownCenterOffset !== null ? 'translateX(-50%)' : 'none',
             }}
-            aria-hidden={!isCategoryMenuOpen}
-            {...({inert: !isCategoryMenuOpen || undefined} as object)}
+            aria-hidden={categoryMenuPhase === 'closing'}
+            {...({
+              inert: categoryMenuPhase === 'closing' ? true : undefined,
+            } as object)}
             onMouseEnter={cancelCategoryMenuClose}
             onMouseLeave={scheduleCategoryMenuClose}
           >
-            <div
-              ref={categoryMenuRef}
-              className="w-max max-w-full rounded-2xl bg-white/95 p-8"
+            <ZehnGlassPanel
+              scrollable
+              className="w-max max-w-full"
+              motion={categoryMenuPhase === 'closing' ? 'exit' : 'enter'}
+              onMotionEnd={
+                categoryMenuPhase === 'closing'
+                  ? finishCloseCategoryMenu
+                  : undefined
+              }
             >
               <CategoryMenuPanel
                 key={desktopCollection?.url ?? 'shop-all'}
                 onNavigate={closeCategoryMenu}
-                showHeading
-                headingTitle={desktopCollection?.title ?? 'Shop All'}
-                shopAllUrl={desktopCollection?.url ?? shopAllMenuUrl}
                 rootSourceUrl={desktopCollection?.url ?? shopAllMenuUrl}
                 idPrefix="desktop-category-section"
                 className="flex w-max max-w-full flex-col gap-1"
+                staggerPhase={desktopStaggerPhase}
               />
-            </div>
+            </ZehnGlassPanel>
           </div>
+          )}
 
           {/* Mobile Navigation */}
           <div
             id="zehn-mobile-menu"
-            className={`lg:hidden overflow-hidden transition-all duration-[400ms] ease-out ${
-              isMenuOpen ? 'max-h-[75vh] overflow-y-auto pb-4' : 'max-h-0'
-            }`}
+            className={cn(
+              'lg:hidden overflow-hidden transition-all ease-out',
+              isMobileMenuShellExpanded && isMenuShellMounted(mobileMenuPhase)
+                ? cn(
+                    HEADER_NAV_MOBILE_MENU_MAX_H,
+                    'flex min-h-0 flex-col overflow-hidden pb-4',
+                  )
+                : 'max-h-0',
+            )}
+            style={{transitionDuration: `${mobileShellTransitionMs}ms`}}
           >
             <div
               ref={mobileMenuRef}
-              className="flex flex-col gap-4 pt-4 border-t border-foreground/10 bg-white/95 px-4 pb-4 rounded-2xl"
+              className={cn(
+                'flex min-h-0 flex-col gap-4 border-t border-foreground/10 bg-white/95 px-4 pb-4 pt-4 rounded-2xl',
+                isMobileMenuShellExpanded &&
+                  isMenuShellMounted(mobileMenuPhase) &&
+                  'flex-1 overflow-y-auto overscroll-contain',
+              )}
             >
               {[shopAllMenuItem, ...primaryMenuItems]
                 .filter(Boolean)
-                .map((rawItem) => {
+                .map((rawItem, itemIndex) => {
                   const item = rawItem as MenuEntry;
                   const itemUrl =
                     normalizeMenuUrl({
@@ -894,44 +1135,73 @@ export function Header({
                     }) ?? item.title;
 
                   return (
-                    <MobileCollectionMenuSection
+                    <ZehnNavStaggerItem
                       key={item.title}
-                      item={item}
-                      isOpen={openMobileCollection === itemUrl}
-                      onToggle={() =>
-                        setOpenMobileCollection((current) =>
-                          current === itemUrl ? null : itemUrl,
-                        )
-                      }
-                      onNavigate={() => setIsMenuOpen(false)}
-                      primaryDomainUrl={primaryDomainUrl}
-                      publicStoreDomain={publicStoreDomain}
-                    />
+                      index={itemIndex}
+                      total={mobileStaggerTotal}
+                      phase={mobileMenuStaggerPhase}
+                    >
+                      <MobileCollectionMenuSection
+                        item={item}
+                        isOpen={openMobileCollection === itemUrl}
+                        freezeContent={
+                          mobileMenuAccordionFrozen &&
+                          openMobileCollection === itemUrl
+                        }
+                        initialOpenSection={
+                          openMobileCollection === itemUrl
+                            ? openMobileSection
+                            : null
+                        }
+                        onToggle={() =>
+                          setOpenMobileCollection((current) =>
+                            current === itemUrl ? null : itemUrl,
+                          )
+                        }
+                        onNavigate={closeMobileMenuOnNavigate}
+                        primaryDomainUrl={primaryDomainUrl}
+                        publicStoreDomain={publicStoreDomain}
+                      />
+                    </ZehnNavStaggerItem>
                   );
                 })}
               {/* Mobile-only: Wishlist link */}
-              <Link
-                to="/wishlist"
-                className="text-xs tracking-[0.3em] uppercase text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out py-2 min-h-[44px] flex items-center gap-2"
-                onClick={() => setIsMenuOpen(false)}
+              <ZehnNavStaggerItem
+                index={mobileNavMenuEntries.length}
+                total={mobileStaggerTotal}
+                phase={mobileMenuStaggerPhase}
               >
-                <span className="relative mr-3">
-                  <Heart
-                    className={`w-4 h-4 ${
-                      wishlistCount > 0 ? 'fill-accent text-accent' : ''
-                    }`}
-                  />
-                  {wishlistCount > 0 && <CountBadge count={wishlistCount} />}
-                </span>
-                Wunschliste
-              </Link>
+                <HeaderNavMobileRow
+                  to="/wishlist"
+                  active={pathname === '/wishlist'}
+                  onClick={closeMobileMenuOnNavigate}
+                >
+                  <span className="relative mr-3">
+                    <Heart
+                      className={`w-4 h-4 ${
+                        wishlistCount > 0 ? 'fill-accent text-accent' : ''
+                      }`}
+                      strokeWidth={HEADER_NAV_ICON_STROKE}
+                    />
+                    {wishlistCount > 0 && <CountBadge count={wishlistCount} />}
+                  </span>
+                  Wunschliste
+                </HeaderNavMobileRow>
+              </ZehnNavStaggerItem>
               {/* Mobile-only: Cart link */}
-              <MobileMenuCartButton
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  setIsCartOpen(true);
-                }}
-              />
+              <ZehnNavStaggerItem
+                index={mobileNavMenuEntries.length + 1}
+                total={mobileStaggerTotal}
+                phase={mobileMenuStaggerPhase}
+              >
+                <MobileMenuCartButton
+                  active={isCartOpen}
+                  onClick={() => {
+                    beginCloseMobileMenu();
+                    setIsCartOpen(true);
+                  }}
+                />
+              </ZehnNavStaggerItem>
             </div>
           </div>
         </nav>
@@ -980,22 +1250,31 @@ function MobileMenuActivityDot({wishlistCount}: {wishlistCount: number}) {
   );
 }
 
-function MobileMenuCartButton({onClick}: {onClick: () => void}) {
+function MobileMenuCartButton({
+  active,
+  onClick,
+}: {
+  active?: boolean;
+  onClick: () => void;
+}) {
   const data = useRouteLoaderData<RootLoader>('root');
   const cartPromise = data ? (data as any).cart : undefined;
 
   const renderButton = (count: number) => (
-    <button
-      type="button"
-      className="text-xs tracking-[0.3em] uppercase text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out py-2 min-h-[44px] flex items-center gap-2 text-left"
+    <HeaderNavMobileAction
+      active={active}
       onClick={onClick}
+      ariaLabel="Warenkorb"
     >
       <span className="relative mr-3">
-        <ShoppingBag className={`w-4 h-4 ${count > 0 ? 'text-accent' : ''}`} />
+        <ShoppingBag
+          className={`w-4 h-4 ${count > 0 ? 'text-accent' : ''}`}
+          strokeWidth={HEADER_NAV_ICON_STROKE}
+        />
         {count > 0 && <CountBadge count={count} />}
       </span>
       Warenkorb
-    </button>
+    </HeaderNavMobileAction>
   );
 
   return (
@@ -1007,40 +1286,47 @@ function MobileMenuCartButton({onClick}: {onClick: () => void}) {
   );
 }
 
-function MobileCartButton({onClick}: {onClick: () => void}) {
+function MobileCartButton({
+  active,
+  onClick,
+}: {
+  active?: boolean;
+  onClick: () => void;
+}) {
   const data = useRouteLoaderData<RootLoader>('root');
   const cartPromise = data ? (data as any).cart : undefined;
 
   return (
     <Suspense
       fallback={
-        <button
-          type="button"
+        <HeaderNavIconButton
+          active={active}
+          ariaLabel="Warenkorb"
           onClick={onClick}
-          className="relative flex p-1.5 sm:p-2 min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] items-center justify-center text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out"
-          aria-label="Warenkorb"
         >
-          <ShoppingBag className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
-        </button>
+          <HeaderNavIcon icon={ShoppingBag} active={active} />
+        </HeaderNavIconButton>
       }
     >
       <Await resolve={cartPromise}>
         {(cart) => {
           const count = cart?.totalQuantity ?? 0;
+          const isCartActive = active || count > 0;
           return (
-            <button
-              type="button"
+            <HeaderNavIconButton
+              active={isCartActive}
+              ariaLabel="Warenkorb"
               onClick={onClick}
-              className="relative flex p-1.5 sm:p-2 min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] items-center justify-center text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out"
-              aria-label="Warenkorb"
             >
               <span className="relative flex items-center justify-center">
                 <ShoppingBag
-                  className={`w-[18px] h-[18px] sm:w-5 sm:h-5 ${count > 0 ? 'text-accent' : ''}`}
+                  className={`w-5 h-5 ${count > 0 ? 'text-accent' : ''}`}
+                  strokeWidth={HEADER_NAV_ICON_STROKE}
+                  aria-hidden
                 />
                 {count > 0 && <CountBadge count={count} />}
               </span>
-            </button>
+            </HeaderNavIconButton>
           );
         }}
       </Await>
@@ -1048,21 +1334,25 @@ function MobileCartButton({onClick}: {onClick: () => void}) {
   );
 }
 
-function WishlistHeaderIcon() {
+function WishlistHeaderIcon({pathname}: {pathname: string}) {
   const {count} = useWishlist();
+  const isWishlistActive = pathname === '/wishlist' || count > 0;
   return (
-    <Link
+    <HeaderNavIconButton
+      as="link"
       to="/wishlist"
-      className="relative p-1.5 sm:p-2 min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center text-foreground/70 hover:text-foreground transition-all duration-[400ms] ease-out"
-      aria-label="Wunschliste"
+      active={isWishlistActive}
+      ariaLabel="Wunschliste"
       title="Wunschliste"
     >
       <span className="relative flex items-center justify-center">
         <Heart
-          className={`w-[18px] h-[18px] sm:w-5 sm:h-5 ${count > 0 ? 'fill-accent text-accent' : ''}`}
+          className={`w-5 h-5 ${count > 0 ? 'fill-accent text-accent' : ''}`}
+          strokeWidth={HEADER_NAV_ICON_STROKE}
+          aria-hidden
         />
         {count > 0 && <CountBadge count={count} />}
       </span>
-    </Link>
+    </HeaderNavIconButton>
   );
 }

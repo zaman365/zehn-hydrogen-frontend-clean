@@ -2,6 +2,9 @@ import {useState, useEffect, useMemo, useRef, useCallback} from 'react';
 import {Link} from 'react-router';
 import {ProductItem} from '~/components/ProductItem';
 import {CustomSelect} from '~/components/CustomSelect';
+import {DesktopProductFilterRow} from '~/components/zehn/DesktopProductFilterRow';
+import {MobileProductFilterDrawer} from '~/components/zehn/MobileProductFilterDrawer';
+import {FILTER_BAR_SHELL} from '~/lib/product-filter-ui';
 import {
   HomepageProductSliders,
   type HomepageProductSliderSection,
@@ -11,7 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
-  X,
 } from 'lucide-react';
 import {
   MAIN_CATEGORY_MAP,
@@ -19,6 +21,10 @@ import {
   getCategoryUrl,
 } from '~/lib/category-map';
 import {productMatchesCategory} from '~/lib/category-match';
+import {
+  getAvailableFilteredProductValues,
+  productMatchesSelectedFilters,
+} from '~/lib/product-filters';
 
 type Category = string;
 
@@ -162,102 +168,32 @@ export function ProductGrid({
     topsProducts,
   ]);
 
-  const availableSizes = useMemo(() => {
-    const sizeSet = new Set<string>();
+  const availableSizes = useMemo(
+    () =>
+      getAvailableFilteredProductValues(categoryProducts, 'size', {
+        color: selectedColor,
+        priceRange: selectedPriceRange,
+      }),
+    [categoryProducts, selectedColor, selectedPriceRange],
+  );
 
-    categoryProducts.forEach((product: any) => {
-      product.options?.forEach((option: any) => {
-        const optionName = option.name?.toLowerCase();
-        if (optionName === 'size' || optionName === 'größe') {
-          option.optionValues?.forEach((value: any) => {
-            if (value.name && value.name !== 'Default Title') {
-              sizeSet.add(value.name);
-            }
-          });
-        }
-      });
-    });
-
-    return Array.from(sizeSet).sort();
-  }, [categoryProducts]);
-
-  const availableColors = useMemo(() => {
-    const colorSet = new Set<string>();
-
-    categoryProducts.forEach((product: any) => {
-      product.options?.forEach((option: any) => {
-        const optionName = option.name?.toLowerCase();
-        if (
-          optionName === 'color' ||
-          optionName === 'farbe' ||
-          optionName === 'colour'
-        ) {
-          option.optionValues?.forEach((value: any) => {
-            if (value.name && value.name !== 'Default Title') {
-              colorSet.add(value.name);
-            }
-          });
-        }
-      });
-    });
-
-    return Array.from(colorSet).sort();
-  }, [categoryProducts]);
+  const availableColors = useMemo(
+    () =>
+      getAvailableFilteredProductValues(categoryProducts, 'color', {
+        size: selectedSize,
+        priceRange: selectedPriceRange,
+      }),
+    [categoryProducts, selectedSize, selectedPriceRange],
+  );
 
   const displayProducts = useMemo(() => {
-    let filtered = [...categoryProducts];
-
-    if (selectedSize) {
-      filtered = filtered.filter((product: any) => {
-        return product.options?.some((option: any) => {
-          const optionName = option.name?.toLowerCase();
-          if (optionName === 'size' || optionName === 'größe') {
-            return option.optionValues?.some(
-              (value: any) => value.name === selectedSize,
-            );
-          }
-          return false;
-        });
-      });
-    }
-
-    if (selectedColor) {
-      filtered = filtered.filter((product: any) => {
-        return product.options?.some((option: any) => {
-          const optionName = option.name?.toLowerCase();
-          if (
-            optionName === 'color' ||
-            optionName === 'farbe' ||
-            optionName === 'colour'
-          ) {
-            return option.optionValues?.some(
-              (value: any) => value.name === selectedColor,
-            );
-          }
-          return false;
-        });
-      });
-    }
-
-    if (selectedPriceRange) {
-      filtered = filtered.filter((product: any) => {
-        const price = parseFloat(
-          product.priceRange?.minVariantPrice?.amount || '0',
-        );
-        switch (selectedPriceRange) {
-          case '0-50':
-            return price >= 0 && price <= 50;
-          case '50-100':
-            return price > 50 && price <= 100;
-          case '100-150':
-            return price > 100 && price <= 150;
-          case '150+':
-            return price > 150;
-          default:
-            return true;
-        }
-      });
-    }
+    const filtered = categoryProducts.filter((product: any) =>
+      productMatchesSelectedFilters(product, {
+        size: selectedSize,
+        color: selectedColor,
+        priceRange: selectedPriceRange,
+      }),
+    );
 
     switch (sortBy) {
       case 'price-asc':
@@ -466,8 +402,8 @@ export function ProductGrid({
 
         {showControls && (
           <div className="mb-4 sm:mb-6 space-y-3">
-            <div className="pb-3 border-b border-border/50">
-              <div className="flex items-center justify-between">
+            <div className={FILTER_BAR_SHELL}>
+              <div className="flex items-center justify-between w-full lg:contents">
                 <button
                   type="button"
                   onClick={() => setShowFilters(!showFilters)}
@@ -477,62 +413,21 @@ export function ProductGrid({
                   Filter
                 </button>
 
-                <div className="hidden lg:flex items-center gap-4">
-                  <span className="text-sm text-foreground/60">Filter:</span>
-
-                  <CustomSelect
-                    value={selectedPriceRange}
-                    onChange={setSelectedPriceRange}
-                    options={[
-                      {value: '0-50', label: '€0 - €50'},
-                      {value: '50-100', label: '€50 - €100'},
-                      {value: '100-150', label: '€100 - €150'},
-                      {value: '150+', label: '€150+'},
-                    ]}
-                    placeholder="Preis"
-                    className="w-auto min-w-[140px]"
-                  />
-
-                  {availableSizes.length > 0 && (
-                    <CustomSelect
-                      value={selectedSize}
-                      onChange={setSelectedSize}
-                      options={availableSizes.map((size) => ({
-                        value: size,
-                        label: size,
-                      }))}
-                      placeholder="Größe"
-                      className="w-auto min-w-[120px]"
-                    />
-                  )}
-
-                  {availableColors.length > 0 && (
-                    <CustomSelect
-                      value={selectedColor}
-                      onChange={setSelectedColor}
-                      options={availableColors.map((color) => ({
-                        value: color,
-                        label: color,
-                      }))}
-                      placeholder="Farbe"
-                      className="w-auto min-w-[140px]"
-                    />
-                  )}
-
-                  {(selectedSize || selectedColor || selectedPriceRange) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedSize('');
-                        setSelectedColor('');
-                        setSelectedPriceRange('');
-                      }}
-                      className="px-4 py-2 rounded-full text-xs bg-card text-foreground border border-border/50 hover:bg-card/80 transition-colors"
-                    >
-                      Filter zurücksetzen
-                    </button>
-                  )}
-                </div>
+                <DesktopProductFilterRow
+                  selectedPriceRange={selectedPriceRange}
+                  selectedSize={selectedSize}
+                  selectedColor={selectedColor}
+                  availableSizes={availableSizes}
+                  availableColors={availableColors}
+                  onPriceChange={setSelectedPriceRange}
+                  onSizeChange={setSelectedSize}
+                  onColorChange={setSelectedColor}
+                  onClear={() => {
+                    setSelectedSize('');
+                    setSelectedColor('');
+                    setSelectedPriceRange('');
+                  }}
+                />
               </div>
             </div>
 
@@ -554,95 +449,37 @@ export function ProductGrid({
               />
             </div>
 
-            {showFilters && (
-              <div className="lg:hidden fixed inset-0 z-50 bg-background">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-8">
-                    <h2 className="font-sans text-h2 text-foreground">
-                      Filter
-                    </h2>
-                    <button
-                      type="button"
-                      onClick={() => setShowFilters(false)}
-                      className="p-2 text-foreground/70 hover:text-foreground"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <CustomSelect
-                      value={selectedPriceRange}
-                      onChange={setSelectedPriceRange}
-                      options={[
-                        {value: '0-50', label: '€0 - €50'},
-                        {value: '50-100', label: '€50 - €100'},
-                        {value: '100-150', label: '€100 - €150'},
-                        {value: '150+', label: '€150+'},
-                      ]}
-                      placeholder="Preis"
-                    />
-
-                    {availableSizes.length > 0 && (
-                      <CustomSelect
-                        value={selectedSize}
-                        onChange={setSelectedSize}
-                        options={availableSizes.map((size) => ({
-                          value: size,
-                          label: size,
-                        }))}
-                        placeholder="Größe"
-                      />
-                    )}
-
-                    {availableColors.length > 0 && (
-                      <CustomSelect
-                        value={selectedColor}
-                        onChange={setSelectedColor}
-                        options={availableColors.map((color) => ({
-                          value: color,
-                          label: color,
-                        }))}
-                        placeholder="Farbe"
-                      />
-                    )}
-
-                    <CustomSelect
-                      value={sortBy}
-                      onChange={setSortBy}
-                      options={[
-                        {value: 'default', label: 'Empfohlen'},
-                        {value: 'price-asc', label: 'Preis: Niedrig → Hoch'},
-                        {value: 'price-desc', label: 'Preis: Hoch → Niedrig'},
-                        {value: 'newest', label: 'Neueste'},
-                      ]}
-                      placeholder="Sortieren"
-                    />
-
-                    <div className="grid grid-cols-2 gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedSize('');
-                          setSelectedColor('');
-                          setSelectedPriceRange('');
-                        }}
-                        className="w-full px-4 py-3 rounded-3xl text-sm bg-card text-foreground border border-border/50 hover:bg-card/80 transition-colors"
-                      >
-                        Filter zurücksetzen
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowFilters(false)}
-                        className="w-full px-4 py-3 rounded-3xl text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            <MobileProductFilterDrawer
+              isOpen={showFilters}
+              onClose={() => setShowFilters(false)}
+              selectedPriceRange={selectedPriceRange}
+              selectedSize={selectedSize}
+              selectedColor={selectedColor}
+              availableSizes={availableSizes}
+              availableColors={availableColors}
+              onPriceChange={setSelectedPriceRange}
+              onSizeChange={setSelectedSize}
+              onColorChange={setSelectedColor}
+              onClear={() => {
+                setSelectedSize('');
+                setSelectedColor('');
+                setSelectedPriceRange('');
+              }}
+              sortSlot={
+                <CustomSelect
+                  value={sortBy}
+                  onChange={setSortBy}
+                  options={[
+                    {value: 'default', label: 'Empfohlen'},
+                    {value: 'price-asc', label: 'Preis: Niedrig → Hoch'},
+                    {value: 'price-desc', label: 'Preis: Hoch → Niedrig'},
+                    {value: 'newest', label: 'Neueste'},
+                  ]}
+                  placeholder="Sortieren"
+                  className="w-full"
+                />
+              }
+            />
           </div>
         )}
 

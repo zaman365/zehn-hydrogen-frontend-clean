@@ -5,7 +5,8 @@
 ## Priority order (C1 UI polish)
 
 1. BL-0003 — Hero crop (**VERIFY** — code done 2026-06-20)
-2. BL-0005 — Mobile responsiveness audit
+2. BL-0007 — Navbar interaction polish (**DONE** 2026-06-22)
+3. BL-0005 — Mobile responsiveness audit
 3. BL-0006 — Layout shift / flicker
 4. BL-0002 — Typography test alignment
 
@@ -27,6 +28,24 @@
 **Acceptance:** REQ-0003 AC 1–5; all three slider slides.
 
 **Session notes (2026-06-20):** Width-based fold in `homepage-hero.css`; stack 102/106; edge gradient; navbar 3px gap. Optional: client extends banner JPGs with studio padding below shoes for short-viewport edge case.
+
+---
+
+## BL-0007: Navbar interaction polish
+
+| Field | Value |
+|---|---|
+| **Type** | Enhancement / UI polish |
+| **Priority** | HIGH |
+| **REQ** | REQ-0001, REQ-0008, REQ-0005 |
+| **Status** | **DONE** — 2026-06-22 |
+| **Effort** | S |
+
+**Story:** Unified nav label/icon styling, Signal accent hover/active, ripple on click, circular icon hosts, pill text hosts.
+
+**Artifacts:** `RippleButton.tsx`, `HeaderNavItem.tsx`, `header-nav-styles.ts`, `Header.tsx`
+
+**Session notes (2026-06-22):** Pill hover hosts on desktop titles; mobile drawer row hover; Alle Produkte replaces desktop burger; dropdown headings removed; nav/dropdown glow; ENTDECKEN CtaShineButton.
 
 ---
 
