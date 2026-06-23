@@ -71,7 +71,7 @@ function HomepageProductSlider({
 
       <div
         ref={sliderRef}
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth scrollbar-hide pb-3"
+        className="flex min-w-0 max-w-full snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth scrollbar-hide pb-3"
       >
         {products.map((product, index) => (
           <div
@@ -101,7 +101,7 @@ export function HomepageProductSliders({
   if (visibleSections.length === 0) return null;
 
   return (
-    <div className="mb-5 space-y-8 sm:mb-7 sm:space-y-10">
+    <div className="mb-5 min-w-0 max-w-full space-y-8 sm:mb-7 sm:space-y-10">
       {visibleSections.map((section) => (
         <HomepageProductSlider key={section.id} section={section} />
       ))}

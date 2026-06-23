@@ -1,6 +1,7 @@
 import {useLoaderData} from 'react-router';
 import type {Route} from './+types/_index';
 import {Hero} from '~/components/zehn/Hero';
+import {TrustBadges} from '~/components/zehn/TrustBadges';
 // import {CategoryTiles} from '~/components/zehn/CategoryTiles';
 import {ProductGrid} from '~/components/zehn/ProductGrid';
 import {FeaturedBento} from '~/components/zehn/FeaturedBento';
@@ -311,22 +312,20 @@ export default function Homepage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero fold: aspect-ratio height (see homepage-hero.css); chips stay in ProductGrid */}
       <section data-homepage-hero-fold>
         <Hero />
       </section>
-      <div className="mt-0">
-        <ProductGrid
-          allProducts={allProducts}
-          bestsellerProducts={bestsellerProducts}
-          shortsProducts={shortsProducts}
-          hosenProducts={hosenProducts}
-          topsProducts={topsProducts}
-          jeansProducts={jeansProducts}
-          jackenProducts={jackenProducts}
-          featuredSections={homepageSliderSections}
-        />
-      </div>
+      <TrustBadges />
+      <ProductGrid
+        allProducts={allProducts}
+        bestsellerProducts={bestsellerProducts}
+        shortsProducts={shortsProducts}
+        hosenProducts={hosenProducts}
+        topsProducts={topsProducts}
+        jeansProducts={jeansProducts}
+        jackenProducts={jackenProducts}
+        featuredSections={homepageSliderSections}
+      />
       {/* Category tiles hidden for future use.
       <CategoryTiles
         tiles={[

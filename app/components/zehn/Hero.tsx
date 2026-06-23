@@ -28,6 +28,15 @@ import {useEffect, useState} from 'react';
 import {Sparkles} from 'lucide-react';
 import {CtaShineButton} from '~/components/zehn/CtaShineButton';
 import {HERO_SUBTITLE_PHRASES} from '~/lib/hero-content';
+import {
+  HERO_SUBTITLE_DESKTOP,
+  HERO_SUBTITLE_MOBILE,
+  HERO_TEXT_LINE,
+  HERO_TEXT_STACK_DESKTOP,
+  HERO_TEXT_STACK_MOBILE,
+  HERO_TITLE_DESKTOP,
+  HERO_TITLE_MOBILE,
+} from '~/lib/hero-typography';
 import {useTextCycle} from '~/lib/hero-text-shuffle';
 
 type HeroSlide = {
@@ -90,7 +99,9 @@ function HeroTextOverlay({to, isMobile}: {to: string; isMobile: boolean}) {
     return (
       <div className="hero-text-overlay hero-text-overlay--mobile">
         {/* Title: stagger step 1 — scales down on narrow viewports; wraps if needed */}
-        <p className="hero-reveal hero-title-glow font-display mb-1.5 max-w-full text-balance text-[clamp(11px,3.4vw,13px)] font-black uppercase leading-tight tracking-[0.1em]">
+        <p
+          className={`hero-reveal hero-title-glow ${HERO_TITLE_MOBILE} ${HERO_TEXT_LINE} mb-1.5`}
+        >
           SOMMERKOLLEKTION
         </p>
         {/*
@@ -100,7 +111,7 @@ function HeroTextOverlay({to, isMobile}: {to: string; isMobile: boolean}) {
          */}
         {subtitle !== null && (
           <p
-            className={`hero-reveal hero-reveal-delay-1 hero-subtitle-mobile mb-3${fading ? ' hero-subtitle-fading' : ''}`}
+            className={`hero-reveal hero-reveal-delay-1 ${HERO_SUBTITLE_MOBILE} ${HERO_TEXT_LINE} mb-3${fading ? ' hero-subtitle-fading' : ''}`}
           >
             {subtitle}
           </p>
@@ -122,13 +133,15 @@ function HeroTextOverlay({to, isMobile}: {to: string; isMobile: boolean}) {
   return (
     <div className="hero-text-overlay hero-text-overlay--desktop">
       {/* Title: fluid size — wraps on narrow desktop/tablet widths */}
-      <p className="hero-reveal hero-title-glow font-display mb-3 max-w-full text-balance text-[clamp(26px,5vw,39px)] font-black uppercase leading-tight tracking-[0.18em] xl:text-[clamp(34px,3.5vw,47px)]">
+      <p
+        className={`hero-reveal hero-title-glow ${HERO_TITLE_DESKTOP} ${HERO_TEXT_LINE} mb-3`}
+      >
         SOMMERKOLLEKTION
       </p>
       {/* Subtitle: stagger step 2 — client-only, null guard prevents hydration mismatch */}
       {subtitle !== null && (
         <p
-          className={`hero-reveal hero-reveal-delay-1 hero-subtitle-desktop mb-6${fading ? ' hero-subtitle-fading' : ''}`}
+          className={`hero-reveal hero-reveal-delay-1 ${HERO_SUBTITLE_DESKTOP} ${HERO_TEXT_LINE} mb-6${fading ? ' hero-subtitle-fading' : ''}`}
         >
           {subtitle}
         </p>
@@ -239,7 +252,7 @@ export function Hero() {
            * key={activeSlide} → React unmounts/remounts this subtree on each slide change
            * → CSS hero-reveal animations re-trigger automatically. No JS animation lib needed.
            */}
-          <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-end pb-10">
+          <div className={HERO_TEXT_STACK_MOBILE}>
             <div key={`mobile-text-${activeSlide}`}>
               <HeroTextOverlay to="/collections/neuheiten" isMobile />
             </div>
@@ -278,7 +291,7 @@ export function Hero() {
             onClick={handleBannerClick}
             aria-label="Zur Produktauswahl"
           />
-          <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-end pb-10">
+          <div className={HERO_TEXT_STACK_DESKTOP}>
             <div key={`desktop-text-${activeSlide}`}>
               <HeroTextOverlay to="/collections/neuheiten" isMobile={false} />
             </div>

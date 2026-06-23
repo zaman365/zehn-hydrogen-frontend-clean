@@ -1,25 +1,19 @@
 import {useState, useEffect, useMemo, useRef, useCallback} from 'react';
-import {Link} from 'react-router';
 import {ProductItem} from '~/components/ProductItem';
-import {CustomSelect} from '~/components/CustomSelect';
-import {DesktopProductFilterRow} from '~/components/zehn/DesktopProductFilterRow';
-import {MobileProductFilterDrawer} from '~/components/zehn/MobileProductFilterDrawer';
-import {FILTER_BAR_SHELL} from '~/lib/product-filter-ui';
+import {CategoryNavSection} from '~/components/zehn/CategoryNavSection';
+import {ProductFilterToolbar} from '~/components/zehn/ProductFilterToolbar';
 import {
   HomepageProductSliders,
   type HomepageProductSliderSection,
 } from '~/components/zehn/HomepageProductSliders';
-import {
-  ShoppingBag,
-  ChevronLeft,
-  ChevronRight,
-  SlidersHorizontal,
-} from 'lucide-react';
-import {
-  MAIN_CATEGORY_MAP,
-  getCategoryLabel,
-  getCategoryUrl,
-} from '~/lib/category-map';
+import {ShoppingBag, ChevronLeft, ChevronRight} from 'lucide-react';
+import {MAIN_CATEGORY_MAP} from '~/lib/category-map';
+import {getCategorySectionCopy, getCategorySubRowHint} from '~/lib/category-section-copy';
+import {ZEHN_HOMEPAGE_GRID_TOP} from '~/lib/homepage-section-styles';
+import {CATEGORY_NAV_HOMEPAGE_SHELL, CATEGORY_NAV_STACK_GAP} from '~/lib/category-nav-styles';
+import type {ProductFilterKind} from '~/lib/product-filter-ui';
+import {ZEHN_SITE_CONTENT_ROW} from '~/lib/site-content-row';
+import {cn} from '~/lib/utils';
 import {productMatchesCategory} from '~/lib/category-match';
 import {
   getAvailableFilteredProductValues,
@@ -43,10 +37,6 @@ type ProductGridProps = {
 const mainCategories = new Map<string, Set<string>>(
   Object.entries(MAIN_CATEGORY_MAP).map(([k, v]) => [k, new Set(v)]),
 );
-
-const getCollectionPath = (category: string): string => {
-  return category ? getCategoryUrl(category) : '/collections/all';
-};
 
 const getParentCategory = (category: string): string => {
   if (mainCategories.has(category)) return category;
@@ -84,15 +74,12 @@ export function ProductGrid({
   const [selectedCategory, setSelectedCategory] = useState<Category>('');
   const [isVisible, setIsVisible] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [headerVisible, setHeaderVisible] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedPriceRange, setSelectedPriceRange] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const menuRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
 
   const scrollToSelectionAndProducts = useCallback(() => {
     if (!menuRef.current) return;
@@ -221,8 +208,10 @@ export function ProductGrid({
     sortBy,
   ]);
 
-  const handleCategoryChange = (category: Category) => {
-    if (category !== selectedCategory) {
+  const applyCategorySelection = useCallback(
+    (category: Category) => {
+      if (category === selectedCategory) return;
+
       setIsTransitioning(true);
       setTimeout(() => {
         setSelectedCategory(category);
@@ -231,21 +220,39 @@ export function ProductGrid({
           scrollToSelectionAndProducts();
         }, 50);
       }, 300);
-    }
+    },
+    [selectedCategory, scrollToSelectionAndProducts],
+  );
+
+  const handleCategoryChange = (category: Category) => {
+    // Re-click active main chip clears selection — back to homepage sliders (ART-0043).
+    const nextCategory = selectedCategory === category ? '' : category;
+    applyCategorySelection(nextCategory);
   };
 
   const handleSubcategoryChange = (subcategory: Category) => {
-    if (subcategory !== selectedCategory) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setSelectedCategory(subcategory);
-        setTimeout(() => {
-          setIsTransitioning(false);
-          scrollToSelectionAndProducts();
-        }, 50);
-      }, 300);
-    }
+    applyCategorySelection(subcategory);
   };
+
+  const handleRemoveFilterChip = useCallback((kind: ProductFilterKind) => {
+    switch (kind) {
+      case 'price':
+        setSelectedPriceRange('');
+        break;
+      case 'size':
+        setSelectedSize('');
+        break;
+      case 'color':
+        setSelectedColor('');
+        break;
+    }
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSelectedSize('');
+    setSelectedColor('');
+    setSelectedPriceRange('');
+  }, []);
 
   const scrollGrid = (direction: 'left' | 'right') => {
     if (gridRef.current) {
@@ -276,10 +283,6 @@ export function ProductGrid({
   const hasSelectedCategory = Boolean(selectedCategory);
   const showControls = hasSelectedCategory && selectedCategory !== 'bestseller';
 
-  // Get subcategories to display based on active main category
-  const currentSubcategories = mainCategories.get(activeMainCategory);
-  const viewAllHref = getCollectionPath(selectedCategory);
-
   useEffect(() => {
     const gridObserver = new IntersectionObserver(
       ([entry]) => {
@@ -290,32 +293,15 @@ export function ProductGrid({
       {threshold: 0.1},
     );
 
-    const headerObserver = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHeaderVisible(true);
-        }
-      },
-      {threshold: 0.1},
-    );
-
     const gridElement = gridRef.current;
-    const headerElement = headerRef.current;
 
     if (gridElement) {
       gridObserver.observe(gridElement);
     }
 
-    if (headerElement) {
-      headerObserver.observe(headerElement);
-    }
-
     return () => {
       if (gridElement) {
         gridObserver.unobserve(gridElement);
-      }
-      if (headerElement) {
-        headerObserver.unobserve(headerElement);
       }
     };
   }, []);
@@ -336,152 +322,61 @@ export function ProductGrid({
     }
   }, [showControls]);
 
+  const categoryNavSection = (
+    <CategoryNavSection
+      menuRef={menuRef}
+      variant="homepage"
+      copy={getCategorySectionCopy('homepage')}
+      mainCategories={mainCategories}
+      activeMainCategory={activeMainCategory}
+      selectedCategory={selectedCategory}
+      mainInteraction="filter"
+      subInteraction="filter"
+      onMainSelect={handleCategoryChange}
+      onSubSelect={handleSubcategoryChange}
+      subcategoriesFor={activeMainCategory}
+      subPresentation="subRow"
+      subChipVariant="main"
+      subRowHint={
+        activeMainCategory
+          ? getCategorySubRowHint(activeMainCategory)
+          : undefined
+      }
+      showSubAlleChip
+      showSubBottomSeparator
+    />
+  );
+
   return (
-    <section className="w-full py-0.5 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header hidden per homepage request */}
-        {/*
-        <div ref={headerRef} className="text-center mb-6 sm:mb-8">
-          <h2 className={`font-sans text-h2 sm:text-h2-sm lg:text-h2-lg text-foreground mb-3 sm:mb-4 text-balance flex items-center justify-center gap-3 ${headerVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={headerVisible ? { animationDelay: '0.4s', animationFillMode: 'forwards' } : {}}>
-            <img src="/ZEHN_Wordmark.png" alt="ZEHN" className="h-5 sm:h-6 lg:h-7 w-auto" style={{ border: 'none', outline: 'none', boxShadow: 'none', borderRadius: '0' }} />
-            <span>Auswahl</span>
-          </h2>
-        </div>
-        */}
+    <section className="w-full py-0 bg-background min-w-0 overflow-x-clip">
+      <div className={cn(ZEHN_SITE_CONTENT_ROW, 'min-w-0')}>
+        <div
+          className={cn(
+            CATEGORY_NAV_HOMEPAGE_SHELL,
+          )}
+        >
+          <div className={CATEGORY_NAV_STACK_GAP}>
+            {categoryNavSection}
 
-        <div ref={menuRef} className="mb-2 sm:mb-3 space-y-2">
-            <div className="flex flex-wrap justify-center gap-2">
-              {Array.from(mainCategories.keys()).map((category) => {
-                const isActive = activeMainCategory === category;
-
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => handleCategoryChange(category)}
-                    className={`px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ${
-                      isActive
-                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                        : 'bg-card text-foreground hover:bg-card/80 shadow-md hover:scale-105'
-                    }`}
-                  >
-                    {category.toUpperCase()}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div
-              className={`flex flex-wrap justify-center gap-1 ${
-                currentSubcategories && currentSubcategories.size > 0
-                  ? 'min-h-[1.5rem]'
-                  : ''
-              }`}
-            >
-              {currentSubcategories &&
-                Array.from(currentSubcategories).length > 0 && (
-                  <>
-                    {Array.from(currentSubcategories).map((subcategory) => (
-                      <button
-                        key={subcategory}
-                        type="button"
-                        onClick={() => handleSubcategoryChange(subcategory)}
-                        className={`px-2 sm:px-3 py-[3px] rounded-full text-xs font-medium transition-all duration-300 ${
-                          selectedCategory === subcategory
-                            ? 'bg-primary text-primary-foreground shadow-md scale-105'
-                            : 'bg-card/50 text-foreground/70 hover:bg-card/70 hover:text-foreground shadow-sm hover:scale-105'
-                        }`}
-                      >
-                        {getCategoryLabel(subcategory)}
-                      </button>
-                    ))}
-                  </>
-                )}
-            </div>
-          </div>
-
-        {showControls && (
-          <div className="mb-4 sm:mb-6 space-y-3">
-            <div className={FILTER_BAR_SHELL}>
-              <div className="flex items-center justify-between w-full lg:contents">
-                <button
-                  type="button"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="lg:hidden inline-flex items-center gap-2 text-sm text-foreground"
-                >
-                  <SlidersHorizontal className="w-4 h-4" />
-                  Filter
-                </button>
-
-                <DesktopProductFilterRow
-                  selectedPriceRange={selectedPriceRange}
-                  selectedSize={selectedSize}
-                  selectedColor={selectedColor}
-                  availableSizes={availableSizes}
-                  availableColors={availableColors}
-                  onPriceChange={setSelectedPriceRange}
-                  onSizeChange={setSelectedSize}
-                  onColorChange={setSelectedColor}
-                  onClear={() => {
-                    setSelectedSize('');
-                    setSelectedColor('');
-                    setSelectedPriceRange('');
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2 pb-2">
-              <span className="font-body text-xs text-muted">
-                {displayProducts.length}{' '}
-                {displayProducts.length === 1 ? 'Produkt' : 'Produkte'}
-              </span>
-              <CustomSelect
-                value={sortBy}
-                onChange={setSortBy}
-                options={[
-                  {value: 'default', label: 'Empfohlen'},
-                  {value: 'price-asc', label: 'Preis: Niedrig → Hoch'},
-                  {value: 'price-desc', label: 'Preis: Hoch → Niedrig'},
-                  {value: 'newest', label: 'Neueste'},
-                ]}
-                className="w-[220px] max-w-[70vw]"
+            {showControls && (
+              <ProductFilterToolbar
+                selectedPriceRange={selectedPriceRange}
+                selectedSize={selectedSize}
+                selectedColor={selectedColor}
+                availableSizes={availableSizes}
+                availableColors={availableColors}
+                sortBy={sortBy}
+                productCount={displayProducts.length}
+                onPriceChange={setSelectedPriceRange}
+                onSizeChange={setSelectedSize}
+                onColorChange={setSelectedColor}
+                onSortChange={setSortBy}
+                onClear={handleClearFilters}
+                onRemoveChip={handleRemoveFilterChip}
               />
-            </div>
-
-            <MobileProductFilterDrawer
-              isOpen={showFilters}
-              onClose={() => setShowFilters(false)}
-              selectedPriceRange={selectedPriceRange}
-              selectedSize={selectedSize}
-              selectedColor={selectedColor}
-              availableSizes={availableSizes}
-              availableColors={availableColors}
-              onPriceChange={setSelectedPriceRange}
-              onSizeChange={setSelectedSize}
-              onColorChange={setSelectedColor}
-              onClear={() => {
-                setSelectedSize('');
-                setSelectedColor('');
-                setSelectedPriceRange('');
-              }}
-              sortSlot={
-                <CustomSelect
-                  value={sortBy}
-                  onChange={setSortBy}
-                  options={[
-                    {value: 'default', label: 'Empfohlen'},
-                    {value: 'price-asc', label: 'Preis: Niedrig → Hoch'},
-                    {value: 'price-desc', label: 'Preis: Hoch → Niedrig'},
-                    {value: 'newest', label: 'Neueste'},
-                  ]}
-                  placeholder="Sortieren"
-                  className="w-full"
-                />
-              }
-            />
+            )}
           </div>
-        )}
+        </div>
 
         {hasSelectedCategory && (
           <>
@@ -504,10 +399,10 @@ export function ProductGrid({
                 </div>
               </div>
             ) : (
-              <div>
+              <div className={ZEHN_HOMEPAGE_GRID_TOP}>
                 <div
                   ref={gridRef}
-                  className="flex overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 scrollbar-hide snap-x snap-mandatory scroll-smooth pb-2 sm:pb-0 sm:overflow-visible px-1"
+                  className="flex min-w-0 max-w-full overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 scrollbar-hide snap-x snap-mandatory scroll-smooth pb-2 sm:pb-0 sm:overflow-visible"
                 >
                   {displayProducts.map((product, index) => (
                     <div
@@ -552,17 +447,6 @@ export function ProductGrid({
         )}
 
         <HomepageProductSliders sections={featuredSections} />
-
-        {/*
-        <div className="text-center mt-8 sm:mt-12">
-          <Link
-            to={viewAllHref}
-            className="inline-flex items-center justify-center gap-2 bg-transparent border border-foreground/30 text-foreground px-6 sm:px-8 py-3 sm:py-4 rounded-full text-xs tracking-[0.3em] uppercase font-sans transition-all duration-300 hover:bg-foreground/5 min-h-[44px]"
-          >
-            Alle ansehen
-          </Link>
-        </div>
-        */}
       </div>
     </section>
   );

@@ -17,6 +17,7 @@ import {useState, useMemo, useEffect} from 'react';
 import {SlidersHorizontal, ChevronDown, ShoppingBag} from 'lucide-react';
 import {CustomSelect} from '~/components/CustomSelect';
 import {DesktopProductFilterRow} from '~/components/zehn/DesktopProductFilterRow';
+import {CategoryNavSection} from '~/components/zehn/CategoryNavSection';
 import {MobileProductFilterDrawer} from '~/components/zehn/MobileProductFilterDrawer';
 import {FILTER_BAR_SHELL} from '~/lib/product-filter-ui';
 import {
@@ -35,6 +36,10 @@ import {
   productMatchesSelectedFilters,
 } from '~/lib/product-filters';
 import {productMatchesCategory} from '~/lib/category-match';
+import {
+  getCategorySectionCopy,
+  resolveCategorySectionContext,
+} from '~/lib/category-section-copy';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const collection = data?.collection;
@@ -422,166 +427,98 @@ export default function Collection() {
     }
   }, [filteredProducts, sortBy]);
 
+  const navActiveMain = useMemo(() => {
+    if (isMainCategoryPage) return effectiveHandle;
+    if (isSubCategoryPage) {
+      return (
+        Object.entries(MAIN_CATEGORY_MAP).find(([, subs]) =>
+          subs.includes(effectiveHandle),
+        )?.[0] ?? ''
+      );
+    }
+    if (!selectedCategory) return activeMainCat;
+    if (mainCategories.has(selectedCategory)) return selectedCategory;
+    for (const [main, subs] of mainCategories) {
+      if (subs.has(selectedCategory)) return main;
+    }
+    return activeMainCat;
+  }, [
+    activeMainCat,
+    effectiveHandle,
+    isMainCategoryPage,
+    isSubCategoryPage,
+    mainCategories,
+    selectedCategory,
+  ]);
+
+  const subcategoriesFor = navActiveMain;
+
+  const sectionCopy = useMemo(() => {
+    if (isCuratedCollection && selectedCategory) {
+      const slug = resolveAlleCategory(selectedCategory) ?? selectedCategory;
+      return getCategorySectionCopy('category', slug);
+    }
+    const ctx = resolveCategorySectionContext(collection.handle, {
+      isCuratedCollection,
+      isMainCategoryPage,
+      isSubCategoryPage,
+    });
+    if (ctx === 'category') {
+      return getCategorySectionCopy('category', effectiveHandle);
+    }
+    return getCategorySectionCopy(ctx);
+  }, [
+    collection.handle,
+    effectiveHandle,
+    isCuratedCollection,
+    isMainCategoryPage,
+    isSubCategoryPage,
+    selectedCategory,
+  ]);
+
+  const navSelectedCategory = isSubCategoryPage
+    ? effectiveHandle
+    : isCuratedCollection
+      ? selectedCategory
+      : activeSubCat || activeMainCat;
+
   return (
     <div className="pt-3 sm:pt-6 lg:pt-12 pb-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Hero Header - ZEHN Style */}
-        <div className="text-center mb-6">
-          <h1
-            className="font-display text-h1 sm:text-h1-sm lg:text-h1-lg tracking-[0.3em] uppercase text-foreground animate-blur-in opacity-0"
-            style={{animationDelay: '0.1s', animationFillMode: 'forwards'}}
-          >
-            {selectedCategory
-              ? getCategoryLabel(selectedCategory)
-              : collection.handle === 'bestseller'
-                ? 'BESTSELLER'
-                : collection.handle === 'sale'
-                  ? 'SALE'
-                  : collection.handle === 'new-arrival' ||
-                      collection.handle === 'neuheiten'
-                    ? 'NEUHEITEN'
-                    : collection.title.toUpperCase()}
-          </h1>
-        </div>
-
-        {/* Category Navigation */}
-        <div className="mb-6 space-y-3">
-          {isCuratedPage ? (
-            <>
-              {/* Row 1: All main categories — only on curated/top-level pages */}
-              <div className="flex flex-wrap justify-center gap-2">
-                {Array.from(mainCategories.keys()).map((category) => {
-                  const btnClass = `px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300`;
-                  if (isCuratedCollection) {
-                    const isSelectedMain = mainCategories.has(selectedCategory);
-                    const isActive =
-                      selectedCategory === category ||
-                      (!isSelectedMain &&
-                        mainCategories.get(category)?.has(selectedCategory));
-                    return (
-                      <button
-                        key={category}
-                        type="button"
-                        onClick={() =>
-                          setSelectedCategory((prev) =>
-                            prev === category ? '' : category,
-                          )
-                        }
-                        className={`${btnClass} ${isActive ? 'bg-primary text-primary-foreground shadow-lg scale-105' : 'bg-card text-foreground hover:bg-card/80 shadow-md hover:scale-105'}`}
-                      >
-                        {getCategoryLabel(category)}
-                      </button>
-                    );
-                  }
-                  const isActive = activeMainCat === category;
-                  return (
-                    <Link
-                      key={category}
-                      to={getCategoryUrl(category)}
-                      prefetch="intent"
-                      className={`${btnClass} ${isActive ? 'bg-primary text-primary-foreground shadow-lg scale-105' : 'bg-card text-foreground hover:bg-card/80 shadow-md hover:scale-105'}`}
-                    >
-                      {getCategoryLabel(category)}
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* Row 2: Subcategories of the selected main category */}
-              <div className="flex flex-wrap justify-center gap-1.5 min-h-[2rem]">
-                {(() => {
-                  const activeCat = isCuratedCollection
-                    ? selectedCategory
-                    : activeMainCat;
-                  if (!activeCat) return null;
-                  const subcategories = mainCategories.get(activeCat);
-                  if (!subcategories || subcategories.size === 0) return null;
-                  return Array.from(subcategories).map((subcategory) => {
-                    const subClass = `px-2 sm:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300`;
-                    if (isCuratedCollection) {
-                      const isActive = selectedCategory === subcategory;
-                      return (
-                        <Link
-                          key={subcategory}
-                          to={`/collections/${rootSlug}/alle-${activeCat}/${subcategory}`}
-                          prefetch="intent"
-                          className={`${subClass} ${isActive ? 'bg-primary text-primary-foreground shadow-md scale-105' : 'bg-card/50 text-foreground/70 hover:bg-card/70 hover:text-foreground shadow-sm hover:scale-105'}`}
-                        >
-                          {getCategoryLabel(subcategory)}
-                        </Link>
-                      );
-                    }
-                    const isActive = activeSubCat === subcategory;
-                    return (
-                      <Link
-                        key={subcategory}
-                        to={getCategoryUrl(subcategory)}
-                        prefetch="intent"
-                        className={`${subClass} ${isActive ? 'bg-primary text-primary-foreground shadow-md scale-105' : 'bg-card/50 text-foreground/70 hover:bg-card/70 hover:text-foreground shadow-sm hover:scale-105'}`}
-                      >
-                        {getCategoryLabel(subcategory)}
-                      </Link>
-                    );
-                  });
-                })()}
-              </div>
-            </>
-          ) : isMainCategoryPage ? (
-            /* Only show subcategories of this main category */
-            (() => {
-              const subcategories = Array.from(
-                mainCategories.get(effectiveHandle) ?? [],
-              );
-              if (subcategories.length === 0) return null;
-              return (
-                <div className="flex flex-wrap justify-center gap-1.5">
-                  {subcategories.map((subcategory) => {
-                    const subClass = `px-2 sm:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300`;
-                    const isActive = isCuratedCollection
-                      ? selectedCategory === subcategory
-                      : activeSubCat === subcategory;
-                    return (
-                      <Link
-                        key={subcategory}
-                        to={`/collections/shop-all/alle-${effectiveHandle}/${subcategory}`}
-                        prefetch="intent"
-                        className={`${subClass} ${isActive ? 'bg-primary text-primary-foreground shadow-md scale-105' : 'bg-card/50 text-foreground/70 hover:bg-card/70 hover:text-foreground shadow-sm hover:scale-105'}`}
-                      >
-                        {getCategoryLabel(subcategory)}
-                      </Link>
-                    );
-                  })}
-                </div>
-              );
-            })()
-          ) : isSubCategoryPage ? (
-            /* Show sub-subcategories if any exist */
-            (() => {
-              const subcategories = Array.from(
-                mainCategories.get(effectiveHandle) ?? [],
-              );
-              if (subcategories.length === 0) return null;
+        {(isCuratedPage || isMainCategoryPage || isSubCategoryPage) && (
+          <CategoryNavSection
+            className="mb-6"
+            copy={sectionCopy}
+            mainCategories={mainCategories}
+            activeMainCategory={navActiveMain}
+            selectedCategory={navSelectedCategory}
+            showMainRow={isCuratedPage}
+            mainInteraction={isCuratedCollection ? 'filter' : 'link'}
+            subInteraction="link"
+            curatedMainToggle={isCuratedCollection}
+            onMainSelect={(category) =>
+              setSelectedCategory((prev) =>
+                prev === category ? '' : category,
+              )
+            }
+            getMainHref={getCategoryUrl}
+            getSubHref={(main, sub) => {
+              if (isCuratedCollection) {
+                return `/collections/${rootSlug}/alle-${main}/${sub}`;
+              }
+              if (isMainCategoryPage) {
+                return `/collections/shop-all/alle-${effectiveHandle}/${sub}`;
+              }
               const parentCat =
                 Object.entries(MAIN_CATEGORY_MAP).find(([, subs]) =>
                   subs.includes(effectiveHandle),
-                )?.[0] ?? '';
-              return (
-                <div className="flex flex-wrap justify-center gap-1.5">
-                  {subcategories.map((subcategory) => (
-                    <Link
-                      key={subcategory}
-                      to={`/collections/alle-${parentCat}/${subcategory}`}
-                      prefetch="intent"
-                      className="px-2 sm:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 bg-card/50 text-foreground/70 hover:bg-card/70 hover:text-foreground shadow-sm hover:scale-105"
-                    >
-                      {getCategoryLabel(subcategory)}
-                    </Link>
-                  ))}
-                </div>
-              );
-            })()
-          ) : null}
-        </div>
+                )?.[0] ?? main;
+              return `/collections/alle-${parentCat}/${sub}`;
+            }}
+            subcategoriesFor={subcategoriesFor}
+            subHighlightActive={!isSubCategoryPage}
+          />
+        )}
 
         {/* Filter Bar */}
         <div className="mb-4">

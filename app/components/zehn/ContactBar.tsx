@@ -30,7 +30,7 @@ export function ContactBar() {
             <h2 className="font-sans text-xl sm:text-2xl font-bold mb-0.5">
               NOCH FRAGEN?
             </h2>
-            <p className="font-sans text-[10px] sm:text-xs text-foreground/60 whitespace-nowrap">
+            <p className="font-sans text-[10px] sm:text-xs text-foreground/60">
               Telefonisch erreichbar: Montag bis Freitag, 09:00 – 19:00 Uhr.
             </p>
           </div>

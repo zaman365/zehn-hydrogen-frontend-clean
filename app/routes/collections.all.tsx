@@ -1,10 +1,9 @@
 import type {Route} from './+types/collections.all';
-import {useLoaderData, useSearchParams, Link} from 'react-router';
+import {useLoaderData, useSearchParams} from 'react-router';
 
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {
   MAIN_CATEGORY_MAP,
-  getCategoryLabel,
   resolveAlleCategory,
 } from '~/lib/category-map';
 import {ProductItem} from '~/components/ProductItem';
@@ -14,7 +13,11 @@ import type {Dispatch, SetStateAction} from 'react';
 import {SlidersHorizontal, ChevronDown, ShoppingBag} from 'lucide-react';
 import {CustomSelect} from '~/components/CustomSelect';
 import {DesktopProductFilterRow} from '~/components/zehn/DesktopProductFilterRow';
+import {CategoryNavSection} from '~/components/zehn/CategoryNavSection';
 import {MobileProductFilterDrawer} from '~/components/zehn/MobileProductFilterDrawer';
+import {
+  getCategorySectionCopy,
+} from '~/lib/category-section-copy';
 import {FILTER_BAR_SHELL} from '~/lib/product-filter-ui';
 import {
   getAvailableFilteredProductValues,
@@ -262,93 +265,40 @@ export default function Collection() {
     return () => clearTimeout(timer);
   }, [selectedCategory]);
 
+  const navActiveMain = useMemo(() => {
+    if (!selectedCategory) return '';
+    if (mainCategories.has(selectedCategory)) return selectedCategory;
+    for (const [main, subs] of mainCategories) {
+      if (subs.has(selectedCategory)) return main;
+    }
+    return '';
+  }, [mainCategories, selectedCategory]);
+
+  const sectionCopy = useMemo(() => {
+    const slug = resolveAlleCategory(selectedCategory) ?? selectedCategory;
+    if (slug && (mainCategories.has(slug) || navActiveMain)) {
+      return getCategorySectionCopy('category', slug);
+    }
+    return getCategorySectionCopy('shop-all');
+  }, [mainCategories, navActiveMain, selectedCategory]);
+
   return (
     <div className="pt-3 sm:pt-6 lg:pt-12 pb-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Hero Header */}
-        <div className="text-center mb-6">
-          <h1 className="font-sans text-h1 sm:text-h1-sm lg:text-h1-lg tracking-[0.3em] uppercase text-foreground">
-            {resolveAlleCategory(selectedCategory)
-              ? getCategoryLabel(selectedCategory)
-              : 'SHOP ALL'}
-          </h1>
-        </div>
-
-        {/* Category Navigation */}
-        <div className="mb-6 space-y-3">
-          {/* Row 1: Main Categories */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {Array.from(mainCategories.keys()).map((category) => {
-              // Check if this main category or any of its subcategories is selected.
-              // If the currently selected category is itself a main category,
-              // don't treat it as a subcategory of another main category.
-              const isSelectedMain = mainCategories.has(selectedCategory);
-              const isActive =
-                selectedCategory === category ||
-                (!isSelectedMain &&
-                  mainCategories.get(category)?.has(selectedCategory));
-
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                      : 'bg-card text-foreground hover:bg-card/80 shadow-md hover:scale-105'
-                  }`}
-                >
-                  {category.toUpperCase()}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Row 2: Subcategories - Show based on selected main category */}
-          <div className="flex flex-wrap justify-center gap-1.5 min-h-[2rem]">
-            {(() => {
-              // Find which main category the selected category belongs to.
-              // If the selected category is itself a main category, prefer it.
-              let parentCategory = selectedCategory;
-
-              if (!mainCategories.has(selectedCategory)) {
-                // If selected isn't a main category, find its parent main category.
-                for (const [mainCat, subCats] of mainCategories.entries()) {
-                  if (subCats.has(selectedCategory)) {
-                    parentCategory = mainCat;
-                    break;
-                  }
-                }
-              }
-
-              // Show subcategories of the parent category
-              const subcategories = mainCategories.get(parentCategory);
-
-              return (
-                subcategories &&
-                Array.from(subcategories).length > 0 && (
-                  <>
-                    {Array.from(subcategories).map((subcategory) => (
-                      <Link
-                        key={subcategory}
-                        to={`/collections/shop-all/alle-${parentCategory}/${subcategory}`}
-                        prefetch="intent"
-                        className={`px-2 sm:px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
-                          selectedCategory === subcategory
-                            ? 'bg-primary text-primary-foreground shadow-md scale-105'
-                            : 'bg-card/50 text-foreground/70 hover:bg-card/70 hover:text-foreground shadow-sm hover:scale-105'
-                        }`}
-                      >
-                        {getCategoryLabel(subcategory)}
-                      </Link>
-                    ))}
-                  </>
-                )
-              );
-            })()}
-          </div>
-        </div>
+        <CategoryNavSection
+          className="mb-6"
+          copy={sectionCopy}
+          mainCategories={mainCategories}
+          activeMainCategory={navActiveMain}
+          selectedCategory={selectedCategory}
+          mainInteraction="filter"
+          subInteraction="link"
+          onMainSelect={setSelectedCategory}
+          getSubHref={(main, sub) =>
+            `/collections/shop-all/alle-${main}/${sub}`
+          }
+          subcategoriesFor={navActiveMain}
+        />
 
         {/* Filter Bar */}
         <div className="mb-4">

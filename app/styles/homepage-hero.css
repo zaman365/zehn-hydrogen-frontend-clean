@@ -74,6 +74,12 @@
    * img_top = headerStack_m − offset_m = 102 − 39 = 63px
    */
   --hero-fold-img-offset-mobile: 39px;
+  /*
+   * Documented category strip height (title + subtitle + chips).
+   * Used for layout docs only — fold height must NOT subtract this band.
+   * Sync with site-header-stack.ts HOMEPAGE_CATEGORY_BAND.
+   */
+  --homepage-category-band: clamp(11rem, 20vh, 15rem);
 }
 
 /* ─── Fold container ─────────────────────────────────────────────────────── */
@@ -120,7 +126,10 @@
      * in frame while the studio floor may be slightly cropped.
      */
     min-height: 480px;
-    max-height: min(var(--hero-fold-height-desktop), calc(100dvh - 100px));
+    max-height: min(
+      var(--hero-fold-height-desktop),
+      calc(100dvh - 100px)
+    );
   }
 }
 

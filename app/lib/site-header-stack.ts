@@ -24,6 +24,12 @@ export const HERO_FOLD_MAX_HEIGHT = {
   desktop: '95dvh',
 } as const;
 
+/**
+ * First-viewport band below hero fold — category title + chips.
+ * Sync with --homepage-category-band in homepage-hero.css.
+ */
+export const HOMEPAGE_CATEGORY_BAND = 'clamp(11rem, 20vh, 15rem)' as const;
+
 export const SITE_HEADER_STACK_CSS_VARS = {
   mobile: '--site-header-stack-mobile',
   desktop: '--site-header-stack-desktop',

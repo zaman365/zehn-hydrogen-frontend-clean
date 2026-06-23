@@ -51,6 +51,7 @@ import {
 } from '~/lib/zehn-surface-styles';
 import {ZehnGlassPanel} from './ZehnGlassPanel';
 import {ZehnNavStaggerItem} from './ZehnNavStaggerItem';
+import {ZEHN_SITE_CONTENT_ROW} from '~/lib/site-content-row';
 import {cn} from '~/lib/utils';
 import {
   isNavCollectionRootActive,
@@ -831,7 +832,8 @@ export function Header({
         <nav
           ref={headerNavRef}
           className={cn(
-            'relative w-[97.5%] lg:w-[95%] max-w-[1400px] mx-auto px-2 sm:px-5 lg:px-8 py-0 my-0 transition-all duration-600 ease-out',
+            'relative py-0 my-0 transition-all duration-600 ease-out',
+            ZEHN_SITE_CONTENT_ROW,
             ZEHN_NAV_SURFACE,
             ZEHN_SURFACE_GLOW,
             hasAnimated

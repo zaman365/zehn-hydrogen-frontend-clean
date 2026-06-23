@@ -85,7 +85,7 @@ export function PageLayout({
           publicStoreDomain={publicStoreDomain}
         />
         {/* pt matches SITE_HEADER_STACK: announcement(26/29) + gap(3) + navbar card(73/74) */}
-        <main className="pt-[102px] sm:pt-[106px]">{children}</main>
+        <main className="pt-[102px] sm:pt-[106px] overflow-x-clip max-w-full">{children}</main>
         <ZehnFooter />
         <ContactChat />
         <CookieConsent />

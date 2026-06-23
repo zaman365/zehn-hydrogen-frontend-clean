@@ -1,12 +1,12 @@
-import { X } from 'lucide-react';
-import { ContactEmailForm } from './contact/ContactEmailForm';
+import {X} from 'lucide-react';
+import {ContactEmailForm} from './contact/ContactEmailForm';
 
 interface ContactEmailModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function ContactEmailModal({ isOpen, onClose }: ContactEmailModalProps) {
+export function ContactEmailModal({isOpen, onClose}: ContactEmailModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -24,7 +24,7 @@ export function ContactEmailModal({ isOpen, onClose }: ContactEmailModalProps) {
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-background border-b border-border/50 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between flex-shrink-0">
+          <div className="bg-background border-b border-border/50 px-4 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between flex-shrink-0">
             <h2 className="font-sans text-base sm:text-lg font-bold text-foreground">
               Contact us
             </h2>

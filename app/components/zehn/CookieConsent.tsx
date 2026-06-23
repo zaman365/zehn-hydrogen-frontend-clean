@@ -334,7 +334,7 @@ export function CookieConsent() {
                 <button
                   type="button"
                   onClick={handleSaveCustom}
-                  className="inline-flex items-center gap-1 sm:gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-accent text-accent-foreground font-sans text-xs sm:text-[13px] font-semibold hover:opacity-90 transition-opacity"
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-4 sm:px-4 py-1.5 sm:py-2 rounded-full bg-accent text-accent-foreground font-sans text-xs sm:text-[13px] font-semibold hover:opacity-90 transition-opacity"
                 >
                   <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   Auswahl speichern

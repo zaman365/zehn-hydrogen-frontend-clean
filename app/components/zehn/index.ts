@@ -43,3 +43,22 @@ export type {DesktopProductFilterRowProps} from './DesktopProductFilterRow';
 export {MobileProductFilterDrawer} from './MobileProductFilterDrawer';
 export type {MobileProductFilterDrawerProps} from './MobileProductFilterDrawer';
 export {FilterClearButton} from './FilterClearButton';
+export {ProductFilterToolbar} from './ProductFilterToolbar';
+export type {ProductFilterToolbarProps} from './ProductFilterToolbar';
+export {HomepageMobileFilterPanel} from './HomepageMobileFilterPanel';
+export type {HomepageMobileFilterPanelProps} from './HomepageMobileFilterPanel';
+export {ProductFilterActiveChips} from './ProductFilterActiveChips';
+export type {ProductFilterActiveChipsProps} from './ProductFilterActiveChips';
+export {ProductSortMetaRow} from './ProductSortMetaRow';
+export type {ProductSortMetaRowProps} from './ProductSortMetaRow';
+export {CategoryNavSection} from './CategoryNavSection';
+export type {
+  CategoryNavSectionProps,
+  CategoryNavInteraction,
+  CategoryNavSubPresentation,
+  CategoryNavVariant,
+} from './CategoryNavSection';
+export {CategoryNavSubRow} from './CategoryNavSubRow';
+export type {CategoryNavSubRowProps} from './CategoryNavSubRow';
+export {CategoryNavChip} from './CategoryNavChip';
+export type {CategoryNavChipProps} from './CategoryNavChip';

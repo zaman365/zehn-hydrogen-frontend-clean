@@ -30,6 +30,8 @@ export type DesktopProductFilterRowProps = {
   onSizeChange: (value: string) => void;
   onColorChange: (value: string) => void;
   onClear: () => void;
+  /** When false, parent owns clear-all (e.g. ProductFilterActiveChips on homepage). */
+  showClearButton?: boolean;
   className?: string;
 };
 
@@ -43,6 +45,7 @@ export function DesktopProductFilterRow({
   onSizeChange,
   onColorChange,
   onClear,
+  showClearButton = true,
   className,
 }: DesktopProductFilterRowProps) {
   const showClear = isProductFilterActive(
@@ -95,7 +98,7 @@ export function DesktopProductFilterRow({
         />
       )}
 
-      {showClear && <FilterClearButton onClick={onClear} />}
+      {showClear && showClearButton && <FilterClearButton onClick={onClear} />}
     </div>
   );
 }
