@@ -52,6 +52,43 @@ export const HEADER_NAV_ICON_SIZE = 'w-5 h-5';
 /** Stroke weight tuned to match font-semibold nav titles. */
 export const HEADER_NAV_ICON_STROKE = 2.25;
 
+/** Ring cutout — matches ZEHN_NAV_SURFACE bg-white/40 frosted nav card. */
+export const HEADER_NAV_COUNT_BADGE_RING = 'ring-2 ring-white/40';
+
+/**
+ * Accent count pill — wishlist + cart (16px circle, readable 10px type).
+ * Ring creates a cutout gap over the icon on frosted nav surface.
+ */
+export const HEADER_NAV_COUNT_BADGE =
+  'absolute grid place-items-center size-4 rounded-full bg-accent text-accent-foreground ' +
+  `${HEADER_NAV_COUNT_BADGE_RING} font-semibold text-[10px] leading-none tabular-nums`;
+
+/** Wider shell when label exceeds single digit (e.g. 9+). */
+export const HEADER_NAV_COUNT_BADGE_OVERFLOW =
+  'min-w-[18px] px-0.5';
+
+/** Default offset for w-5 h-5 icons inside 44px icon hosts. */
+export const HEADER_NAV_COUNT_BADGE_POSITION = '-top-2 -right-2';
+
+/** Offset for w-4 h-4 icons in mobile drawer rows — sits above icon corner. */
+export const HEADER_NAV_COUNT_BADGE_POSITION_MOBILE_ROW = '-top-3 -right-3';
+
+/** Pulse class toggled by useNavCountBadgePulse on count delta. */
+export const HEADER_NAV_COUNT_BADGE_PULSE = 'zehn-nav-count-badge--pulse';
+
+type HeaderNavCountBadgeOptions = {
+  position?: string;
+  className?: string;
+};
+
+/** Count badge shell — position override for mobile drawer icon hosts. */
+export function cnHeaderNavCountBadge({
+  position = HEADER_NAV_COUNT_BADGE_POSITION,
+  className,
+}: HeaderNavCountBadgeOptions = {}) {
+  return cn(HEADER_NAV_COUNT_BADGE, position, className);
+}
+
 /** Mobile drawer row — full-width with padded hover zone for ripple parity. */
 export const HEADER_NAV_MOBILE_ROW =
   'py-2 min-h-[44px] px-3 flex items-center gap-2 text-left w-full ' +

@@ -61,44 +61,48 @@ describe('tailwind.config.js — Font Configuration', () => {
 });
 
 // ============================================================================
-// root.tsx — Google Fonts URL
+// root.tsx — Self-Hosted Font Loading (Phase 1: performance / zero-flicker)
 // ============================================================================
 describe('root.tsx — Font Loading', () => {
   const content = readFile('app/root.tsx');
+  const fontsContent = readFile('app/styles/fonts.css');
 
   it('should NOT load Archivo Black from Google Fonts', () => {
     expect(content).not.toContain('Archivo+Black');
     expect(content).not.toContain('Archivo Black');
   });
 
-  it('should load Space Grotesk from Google Fonts', () => {
-    expect(content).toContain('Space+Grotesk');
+  it('should preload Space Grotesk from self-hosted WOFF2 (no Google Fonts CDN)', () => {
+    // Phase 1: fonts are self-hosted in public/fonts/, preloaded via links()
+    expect(content).toContain('/fonts/space-grotesk/space-grotesk-variable.woff2');
+    expect(content).not.toContain('fonts.googleapis.com');
   });
 
-  it('should NOT request weight 900 for Space Grotesk', () => {
-    // Space Grotesk does not have weight 900
-    const fontsUrl = content.match(/fonts\.googleapis\.com[^'"]+/);
-    expect(fontsUrl).not.toBeNull();
-    const url = fontsUrl![0];
-    // Check the Space Grotesk weight list doesn't include 900
-    const weightMatch = url.match(/Space\+Grotesk:wght@([^&'"]+)/);
-    if (weightMatch) {
-      expect(weightMatch[1]).not.toContain('900');
+  it('should NOT request weight 900 for Space Grotesk (variable font range is 300 700)', () => {
+    // fonts.css @font-face for Space Grotesk uses variable range 300 700, no 900
+    const sgBlocks = fontsContent.match(
+      /font-family:\s*['"]Space Grotesk['"][^}]+}/gs,
+    );
+    expect(sgBlocks).not.toBeNull();
+    for (const block of sgBlocks!) {
+      expect(block).not.toContain(' 900');
+      expect(block).toContain('300 700');
     }
   });
 
-  it('should load Space Grotesk weights 300,400,500,600,700', () => {
-    const fontsUrl = content.match(/fonts\.googleapis\.com[^'"]+/);
-    expect(fontsUrl).not.toBeNull();
-    const url = fontsUrl![0];
-    for (const weight of ['300', '400', '500', '600', '700']) {
-      expect(url).toContain(weight);
-    }
+  it('should define Space Grotesk variable font covering weights 300-700', () => {
+    // Variable @font-face syntax: font-weight: 300 700 covers all weights in one file
+    expect(fontsContent).toContain('font-weight: 300 700');
   });
 
-  it('should have preconnect to fonts.googleapis.com', () => {
-    expect(content).toContain('fonts.googleapis.com');
-    expect(content).toContain('fonts.gstatic.com');
+  it('should preload self-hosted WOFF2 with correct link rel attributes', () => {
+    // Preload must declare as:font, type:font/woff2, crossOrigin:anonymous for CORS
+    expect(content).toContain("as: 'font'");
+    expect(content).toContain("type: 'font/woff2'");
+    expect(content).toContain("crossOrigin: 'anonymous'");
+    // No Google Fonts domains remain in root.tsx
+    expect(content).not.toContain('fonts.googleapis.com');
+    expect(content).not.toContain('fonts.gstatic.com');
   });
 });
 

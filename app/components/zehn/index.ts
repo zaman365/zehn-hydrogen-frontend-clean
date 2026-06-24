@@ -20,6 +20,8 @@ export {
 export type { HeaderNavIconButtonProps, HeaderNavLinkProps } from './HeaderNavItem';
 export {HeaderNavAccordionRow} from './HeaderNavAccordionRow';
 export type {HeaderNavAccordionRowProps} from './HeaderNavAccordionRow';
+export {HeaderNavCountBadge} from './HeaderNavCountBadge';
+export type {HeaderNavCountBadgeProps} from './HeaderNavCountBadge';
 export {ZehnGlassPanel} from './ZehnGlassPanel';
 export type {ZehnGlassPanelProps, ZehnGlassPanelMotion} from './ZehnGlassPanel';
 export {ZehnNavStaggerItem} from './ZehnNavStaggerItem';

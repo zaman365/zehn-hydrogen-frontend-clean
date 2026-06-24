@@ -71,26 +71,23 @@ export function links() {
       rel: 'preconnect',
       href: 'https://shop.app',
     },
+    /* Preload body weight — first text painted (nav links, product names, labels).
+       crossOrigin required for CORS-compliant font fetch; matches @font-face CORS. */
     {
-      rel: 'preconnect',
-      href: 'https://fonts.googleapis.com',
-    },
-    {
-      rel: 'preconnect',
-      href: 'https://fonts.gstatic.com',
+      rel: 'preload',
+      href: '/fonts/space-grotesk/space-grotesk-variable.woff2',
+      as: 'font',
+      type: 'font/woff2',
       crossOrigin: 'anonymous',
     },
+    /* Preload bold weight — hero headings, section titles, category nav titles.
+       Separate file because latin-ext (umlauts) is in a different WOFF2 subset. */
     {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap',
-    },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap',
-    },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&display=swap',
+      rel: 'preload',
+      href: '/fonts/inter/inter-variable.woff2',
+      as: 'font',
+      type: 'font/woff2',
+      crossOrigin: 'anonymous',
     },
     {rel: 'icon', type: 'image/png', href: favicon},
   ];

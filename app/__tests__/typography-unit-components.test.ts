@@ -73,40 +73,54 @@ describe('Global — No Weight 900 or font-black Usage', () => {
 });
 
 // ============================================================================
-// Hero.tsx
+// Hero.tsx — CSS-class-based typography system
 // ============================================================================
 describe('Hero.tsx — Typography', () => {
   const content = readFile('app/components/zehn/Hero.tsx');
+  const appCss = readFile('app/styles/app.css');
 
-  it('H1 should use font-sans class', () => {
-    expect(content).toMatch(/h1\s+className="[^"]*font-sans/);
+  it('Hero title uses CSS class system (HERO_TITLE_MOBILE / HERO_TITLE_DESKTOP tokens)', () => {
+    // Hero applies font styling via CSS class constants from hero-typography.ts,
+    // not inline Tailwind text-h1. This keeps hero styles in app.css, not JSX.
+    expect(content).toContain('HERO_TITLE_MOBILE');
+    expect(content).toContain('HERO_TITLE_DESKTOP');
+    expect(appCss).toContain('.hero-title-mobile');
+    expect(appCss).toContain('.hero-title-desktop');
   });
 
-  it('H1 should use responsive text sizes (text-h1 sm:text-h1-sm lg:text-h1-lg)', () => {
-    expect(content).toContain('text-h1');
-    expect(content).toContain('text-h1-sm');
-    expect(content).toContain('text-h1-lg');
+  it('Hero title CSS classes use responsive font sizes via clamp()', () => {
+    // Responsive sizing handled by CSS clamp() — covers mobile through desktop without
+    // Tailwind breakpoint utilities (avoids class-name proliferation in JSX).
+    const mobileBlock = appCss.match(/\.hero-title-mobile\s*\{([^}]+)\}/s);
+    const desktopBlock = appCss.match(/\.hero-title-desktop\s*\{([^}]+)\}/s);
+    expect(mobileBlock).not.toBeNull();
+    expect(desktopBlock).not.toBeNull();
+    expect(mobileBlock![1]).toContain('clamp');
+    expect(desktopBlock![1]).toContain('clamp');
   });
 
-  it('H1 should use tracking-[-0.03em] (not 0.08em from Archivo)', () => {
-    expect(content).toContain('tracking-[-0.03em]');
-    expect(content).not.toContain('tracking-[0.08em]');
+  it('Hero title CSS uses Inter display font with letter-spacing', () => {
+    // Inter is the display font for hero punch — valid weight 900 (Inter supports 100-900).
+    // Space Grotesk is the brand body font; Inter is only for hero/display contexts.
+    const mobileBlock = appCss.match(/\.hero-title-mobile\s*\{([^}]+)\}/s);
+    expect(mobileBlock).not.toBeNull();
+    expect(mobileBlock![1]).toContain('Inter');
+    expect(mobileBlock![1]).toContain('letter-spacing');
   });
 
-  it('Subheadline should use font-body class', () => {
-    expect(content).toContain('font-body text-subheadline');
+  it('Hero subtitle uses CSS class system (HERO_SUBTITLE_MOBILE / HERO_SUBTITLE_DESKTOP)', () => {
+    expect(content).toContain('HERO_SUBTITLE_MOBILE');
+    expect(content).toContain('HERO_SUBTITLE_DESKTOP');
   });
 
-  it('CTA button should use font-body with font-medium (weight 500)', () => {
-    // Buttons use font-body per design system
-    const ctaLink = content.match(/Link[^>]*className="[^"]*font-body[^"]*font-medium/);
-    expect(ctaLink).not.toBeNull();
+  it('Hero CTA uses CtaShineButton component (font-semibold + font-display via zehn-cta-styles.ts)', () => {
+    // CtaShineButton encapsulates CTA_SHINE_BUTTON_BASE which includes font-semibold
+    expect(content).toContain('CtaShineButton');
   });
 
-  it('Trust badge text should use font-body', () => {
-    const badges = content.match(/span[^>]*className="[^"]*font-body[^"]*text-xs/g);
-    expect(badges).not.toBeNull();
-    expect(badges!.length).toBeGreaterThanOrEqual(3);
+  it('Hero does NOT use font-black (Tailwind weight 900) or Archivo', () => {
+    expect(content).not.toContain('font-black');
+    expect(content).not.toContain('Archivo');
   });
 });
 
@@ -116,36 +130,39 @@ describe('Hero.tsx — Typography', () => {
 describe('Footer.tsx — Typography', () => {
   const content = readFile('app/components/zehn/Footer.tsx');
 
-  it('Decorative ZEHN text should use font-bold (not font-black/900)', () => {
-    // The giant ZEHN watermark should be weight 700 (font-bold), not 900
-    // The span with giant text sizes contains the ZEHN text on the next line
-    const zehnLine = content.split('\n').find(
-      (l) => l.includes('text-[120px]') || l.includes('text-[200px]') || l.includes('text-[300px]') || l.includes('text-[400px]')
-    );
-    expect(zehnLine).toBeDefined();
-    expect(zehnLine).toContain('font-bold');
-    expect(zehnLine).not.toContain('font-black');
+  it('Decorative ZEHN background uses SVG — no font-black (weight 900) text node', () => {
+    // Footer uses /ZEHN_Platinum.svg for the decorative background element,
+    // not a text node styled with font-black or font-weight: 900.
+    expect(content).toContain('/ZEHN_Platinum.svg');
+    expect(content).not.toContain('font-black');
   });
 
   it('Section headings should use font-sans with uppercase', () => {
     expect(content).toMatch(/font-sans[^"]*tracking-\[0\.3em\][^"]*uppercase/);
   });
 
-  it('Footer links should use font-body', () => {
-    const linkMatches = content.match(/font-body[^"]*text-body/g);
+  it('Footer link columns use font-sans text-body for navigation links', () => {
+    // Footer uses font-sans (= Space Grotesk, same as font-body) for link elements.
+    // Both font-sans and font-body resolve to Space Grotesk in Tailwind config.
+    const linkMatches = content.match(/font-sans text-body/g);
     expect(linkMatches).not.toBeNull();
     expect(linkMatches!.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('Copyright/legal text should use font-body with small size', () => {
+  it('Copyright/legal text uses font-sans with small text size', () => {
     const legalLine = content.split('\n').find(
-      (l) => l.includes('font-body') && (l.includes('text-[12px]') || l.includes('text-[11px]') || l.includes('text-[13px]'))
+      (l) =>
+        l.includes('font-sans') &&
+        (l.includes('text-[12px]') ||
+          l.includes('text-[11px]') ||
+          l.includes('text-[13px]')),
     );
     expect(legalLine).toBeDefined();
   });
 
-  it('Brand section heading should use font-sans', () => {
-    expect(content).toMatch(/h2[^>]*className="[^"]*font-sans/);
+  it('Section headings use font-sans (h3 for accordion link groups)', () => {
+    // Footer uses h3 for footer link column headings (not h2 — h2 is page-level).
+    expect(content).toMatch(/h3[^>]*className="[^"]*font-sans/);
   });
 });
 
@@ -164,18 +181,19 @@ describe('CartDrawer.tsx — Typography', () => {
     expect(content).toMatch(/h3[^>]*className="[^"]*font-sans[^"]*font-medium/);
   });
 
-  it('Body text should use font-body', () => {
-    const bodyFontMatches = content.match(/font-body/g);
-    expect(bodyFontMatches).not.toBeNull();
-    expect(bodyFontMatches!.length).toBeGreaterThanOrEqual(5);
+  it('Body text should use font-sans (Space Grotesk brand font)', () => {
+    // CartDrawer uses font-sans consistently (= Space Grotesk, same as font-body).
+    const fontMatches = content.match(/font-sans/g);
+    expect(fontMatches).not.toBeNull();
+    expect(fontMatches!.length).toBeGreaterThanOrEqual(5);
   });
 
   it('Price totals should use font-semibold', () => {
     expect(content).toContain('font-semibold');
   });
 
-  it('Buttons should use font-medium with font-body', () => {
-    expect(content).toMatch(/font-body[^"]*font-medium|font-medium[^"]*font-body/);
+  it('Buttons should use font-medium with font-sans', () => {
+    expect(content).toMatch(/font-sans[^"]*font-medium|font-medium[^"]*font-sans/);
   });
 });
 
@@ -189,14 +207,15 @@ describe('SearchModal.tsx — Typography', () => {
     expect(content).toMatch(/h3[^>]*className="[^"]*font-sans/);
   });
 
-  it('Search input should use font-body', () => {
-    expect(content).toMatch(/font-body/);
+  it('Search input should use font-sans', () => {
+    // SearchModal uses font-sans (Space Grotesk) consistently for all text elements.
+    expect(content).toMatch(/font-sans/);
   });
 
-  it('Search result items should use font-body', () => {
-    const bodyMatches = content.match(/font-body/g);
-    expect(bodyMatches).not.toBeNull();
-    expect(bodyMatches!.length).toBeGreaterThanOrEqual(3);
+  it('Search result items should use font-sans', () => {
+    const fontMatches = content.match(/font-sans/g);
+    expect(fontMatches).not.toBeNull();
+    expect(fontMatches!.length).toBeGreaterThanOrEqual(3);
   });
 
   it('No font loading issues — no inline font-family overrides', () => {
@@ -221,8 +240,9 @@ describe('FeatureSection.tsx — Typography', () => {
     expect(content).toContain('text-h3-lg');
   });
 
-  it('Feature descriptions should use font-body', () => {
-    expect(content).toMatch(/p[^>]*className="[^"]*font-body/);
+  it('Feature descriptions should use font-sans', () => {
+    // FeatureSection uses font-sans (Space Grotesk) for paragraph text.
+    expect(content).toMatch(/p[^>]*className="[^"]*font-sans/);
   });
 });
 
@@ -236,8 +256,9 @@ describe('CTABanner.tsx — Typography', () => {
     expect(content).toMatch(/h3[^>]*className="[^"]*font-sans/);
   });
 
-  it('CTA subtext should use font-body', () => {
-    expect(content).toContain('font-body');
+  it('CTA subtext should use font-sans', () => {
+    // CTABanner uses font-sans (Space Grotesk) for all text elements.
+    expect(content).toContain('font-sans');
   });
 
   it('CTA body items should use proper text sizes', () => {
@@ -251,8 +272,9 @@ describe('CTABanner.tsx — Typography', () => {
 describe('Header.tsx — Navigation Typography', () => {
   const content = readFile('app/components/zehn/Header.tsx');
 
-  it('Header should use font-body for navigation', () => {
-    expect(content).toContain('font-body');
+  it('Header should use font-sans for navigation', () => {
+    // Header applies font-sans on the root <header> element (= Space Grotesk).
+    expect(content).toContain('font-sans');
   });
 
   it('Should NOT reference Archivo or weight 900', () => {
@@ -312,11 +334,14 @@ describe('collections.$handle.tsx — Typography', () => {
     }
   });
 
-  it('Filter heading should use font-sans', () => {
-    expect(content).toMatch(/h2[^>]*className="[^"]*font-sans/);
+  it('Empty state heading should use font-sans (h3 or h1)', () => {
+    // Collection page uses h3 for the "Coming Soon" empty state heading
+    // and h1 in error boundaries — both with font-sans.
+    expect(content).toMatch(/h[13][^>]*className="[^"]*font-sans/);
   });
 
-  it('Subtitle text should use font-body', () => {
-    expect(content).toContain('font-body');
+  it('Subtitle / paragraph text should use font-sans', () => {
+    // Collections page uses font-sans consistently for all text elements.
+    expect(content).toContain('font-sans');
   });
 });

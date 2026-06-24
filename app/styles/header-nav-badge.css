@@ -1,0 +1,24 @@
+/**
+ * Nav wishlist/cart count badge — single-play nudge on count change (REQ-0008).
+ */
+@keyframes zehn-nav-badge-pulse {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.zehn-nav-count-badge--pulse {
+  animation: zehn-nav-badge-pulse 400ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zehn-nav-count-badge--pulse {
+    animation: none;
+  }
+}

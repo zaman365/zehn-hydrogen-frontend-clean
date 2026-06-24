@@ -20,6 +20,7 @@ import {CartDrawer} from './CartDrawer';
 import {SearchModal} from './SearchModal';
 import {CategoryMenuPanel} from './CategoryMenuPanel';
 import {DesktopCategoryNavPopover} from './DesktopCategoryNavPopover';
+import {HeaderNavCountBadge} from './HeaderNavCountBadge';
 import {HeaderNavAccordionRow} from './HeaderNavAccordionRow';
 import {ZehnNavStaggerItem} from './ZehnNavStaggerItem';
 import {
@@ -38,6 +39,7 @@ import {
 import {
   HEADER_NAV_ICON_STROKE,
   DESKTOP_SHOP_ALL_NAV_LABEL,
+  HEADER_NAV_COUNT_BADGE_RING,
   HEADER_NAV_MOBILE_MENU_MAX_H,
   HEADER_NAV_MOBILE_SUBMENU_INDENT,
 } from '~/lib/header-nav-styles';
@@ -66,6 +68,7 @@ import {
   type NavMenuPhase,
 } from '~/lib/nav-menu-phase';
 import {useScrollLock} from '~/hooks/useScrollLock';
+import {useHeaderCartCount} from '~/hooks/useHeaderCartCount';
 
 const FALLBACK_HEADER_MENU: NonNullable<HeaderQuery['menu']> = {
   id: 'gid://shopify/Menu/199655587896',
@@ -720,7 +723,7 @@ export function Header({
             {/* Mobile: Hamburger menu button */}
             <HeaderNavIconButton
               buttonRef={mobileMenuButtonRef}
-              className="lg:hidden"
+              className="lg:hidden overflow-visible"
               active={mobileMenuAriaExpanded}
               ariaLabel={mobileMenuAriaExpanded ? 'Close menu' : 'Open menu'}
               ariaExpanded={mobileMenuAriaExpanded}
@@ -1060,7 +1063,7 @@ export function Header({
                       }`}
                       strokeWidth={HEADER_NAV_ICON_STROKE}
                     />
-                    {wishlistCount > 0 && <CountBadge count={wishlistCount} />}
+                    <HeaderNavCountBadge count={wishlistCount} position="mobileRow" />
                   </span>
                   Wunschliste
                 </HeaderNavMobileRow>
@@ -1096,34 +1099,41 @@ export function Header({
   );
 }
 
-function CountBadge({
-  count,
-  className = '-top-1.5 -right-1.5',
-}: {
-  count: number;
-  className?: string;
-}) {
-  const label = count > 9 ? '9+' : String(count);
-
-  return (
-    <span
-      className={`absolute ${className} h-3 w-3 rounded-full bg-accent text-accent-foreground`}
-    >
-      <span className="absolute inset-0 flex items-center justify-center text-[8px] font-medium leading-none tracking-normal">
-        {label}
-      </span>
-    </span>
-  );
-}
-
 function MobileMenuActivityDot({wishlistCount}: {wishlistCount: number}) {
   if (wishlistCount === 0) return null;
 
   return (
     <span
-      className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-accent"
+      className={`absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-accent ${HEADER_NAV_COUNT_BADGE_RING}`}
       aria-hidden="true"
     />
+  );
+}
+
+function MobileMenuCartButtonInner({
+  active,
+  onClick,
+}: {
+  active?: boolean;
+  onClick: () => void;
+}) {
+  const count = useHeaderCartCount();
+
+  return (
+    <HeaderNavMobileAction
+      active={active}
+      onClick={onClick}
+      ariaLabel={count > 0 ? `Warenkorb, ${count} Artikel` : 'Warenkorb'}
+    >
+      <span className="relative mr-3">
+        <ShoppingBag
+          className={`w-4 h-4 ${count > 0 ? 'text-accent' : ''}`}
+          strokeWidth={HEADER_NAV_ICON_STROKE}
+        />
+        <HeaderNavCountBadge count={count} position="mobileRow" />
+      </span>
+      Warenkorb
+    </HeaderNavMobileAction>
   );
 }
 
@@ -1137,29 +1147,57 @@ function MobileMenuCartButton({
   const data = useRouteLoaderData<RootLoader>('root');
   const cartPromise = data ? (data as any).cart : undefined;
 
-  const renderButton = (count: number) => (
-    <HeaderNavMobileAction
-      active={active}
-      onClick={onClick}
-      ariaLabel="Warenkorb"
-    >
-      <span className="relative mr-3">
-        <ShoppingBag
-          className={`w-4 h-4 ${count > 0 ? 'text-accent' : ''}`}
-          strokeWidth={HEADER_NAV_ICON_STROKE}
-        />
-        {count > 0 && <CountBadge count={count} />}
-      </span>
-      Warenkorb
-    </HeaderNavMobileAction>
-  );
-
   return (
-    <Suspense fallback={renderButton(0)}>
+    <Suspense
+      fallback={
+        <HeaderNavMobileAction
+          active={active}
+          onClick={onClick}
+          ariaLabel="Warenkorb"
+        >
+          <span className="relative mr-3">
+            <ShoppingBag
+              className="w-4 h-4"
+              strokeWidth={HEADER_NAV_ICON_STROKE}
+            />
+          </span>
+          Warenkorb
+        </HeaderNavMobileAction>
+      }
+    >
       <Await resolve={cartPromise}>
-        {(cart) => renderButton(cart?.totalQuantity ?? 0)}
+        <MobileMenuCartButtonInner active={active} onClick={onClick} />
       </Await>
     </Suspense>
+  );
+}
+
+function MobileCartButtonInner({
+  active,
+  onClick,
+}: {
+  active?: boolean;
+  onClick: () => void;
+}) {
+  const count = useHeaderCartCount();
+  const isCartActive = active || count > 0;
+
+  return (
+    <HeaderNavIconButton
+      active={isCartActive}
+      className="overflow-visible"
+      ariaLabel={count > 0 ? `Warenkorb, ${count} Artikel` : 'Warenkorb'}
+      onClick={onClick}
+    >
+      <span className="relative flex items-center justify-center">
+        <ShoppingBag
+          className={`w-5 h-5 ${count > 0 ? 'text-accent' : ''}`}
+          strokeWidth={HEADER_NAV_ICON_STROKE}
+          aria-hidden
+        />
+        <HeaderNavCountBadge count={count} />
+      </span>
+    </HeaderNavIconButton>
   );
 }
 
@@ -1186,26 +1224,7 @@ function MobileCartButton({
       }
     >
       <Await resolve={cartPromise}>
-        {(cart) => {
-          const count = cart?.totalQuantity ?? 0;
-          const isCartActive = active || count > 0;
-          return (
-            <HeaderNavIconButton
-              active={isCartActive}
-              ariaLabel="Warenkorb"
-              onClick={onClick}
-            >
-              <span className="relative flex items-center justify-center">
-                <ShoppingBag
-                  className={`w-5 h-5 ${count > 0 ? 'text-accent' : ''}`}
-                  strokeWidth={HEADER_NAV_ICON_STROKE}
-                  aria-hidden
-                />
-                {count > 0 && <CountBadge count={count} />}
-              </span>
-            </HeaderNavIconButton>
-          );
-        }}
+        <MobileCartButtonInner active={active} onClick={onClick} />
       </Await>
     </Suspense>
   );
@@ -1218,8 +1237,9 @@ function WishlistHeaderIcon({pathname}: {pathname: string}) {
     <HeaderNavIconButton
       as="link"
       to="/wishlist"
+      className="overflow-visible"
       active={isWishlistActive}
-      ariaLabel="Wunschliste"
+      ariaLabel={count > 0 ? `Wunschliste, ${count} Artikel` : 'Wunschliste'}
       title="Wunschliste"
     >
       <span className="relative flex items-center justify-center">
@@ -1228,7 +1248,7 @@ function WishlistHeaderIcon({pathname}: {pathname: string}) {
           strokeWidth={HEADER_NAV_ICON_STROKE}
           aria-hidden
         />
-        {count > 0 && <CountBadge count={count} />}
+        <HeaderNavCountBadge count={count} />
       </span>
     </HeaderNavIconButton>
   );

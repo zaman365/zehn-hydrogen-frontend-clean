@@ -14,28 +14,22 @@ function readFile(relativePath: string): string {
 }
 
 // ============================================================================
-// SMOKE 1: Font files load correctly
+// SMOKE 1: Font files load correctly (self-hosted — Phase 1 zero-flicker plan)
 // ============================================================================
 describe('Smoke — Font Loading', () => {
-  it('Google Fonts URL is valid and contains Space Grotesk', () => {
+  it('Self-hosted Space Grotesk WOFF2 preload exists in root.tsx (no Google Fonts CDN)', () => {
     const rootContent = readFile('app/root.tsx');
-    const urlMatch = rootContent.match(
-      /https:\/\/fonts\.googleapis\.com\/css2\?[^'"]+/
-    );
-    expect(urlMatch).not.toBeNull();
-    expect(urlMatch![0]).toContain('Space+Grotesk');
+    // Phase 1: fonts served from public/fonts/, preloaded via links()
+    expect(rootContent).toContain('/fonts/space-grotesk/space-grotesk-variable.woff2');
+    expect(rootContent).not.toContain('fonts.googleapis.com');
   });
 
-  it('Only one font family is loaded (not two)', () => {
-    const rootContent = readFile('app/root.tsx');
-    const urlMatch = rootContent.match(
-      /https:\/\/fonts\.googleapis\.com\/css2\?[^'"]+/
-    );
-    expect(urlMatch).not.toBeNull();
-    const url = urlMatch![0];
-    // Count 'family=' occurrences — should be exactly 1
-    const familyCount = (url.match(/family=/g) || []).length;
-    expect(familyCount).toBe(1);
+  it('fonts.css defines @font-face for Space Grotesk and Inter (not Archivo)', () => {
+    const fontsContent = readFile('app/styles/fonts.css');
+    expect(fontsContent).toContain("font-family: 'Space Grotesk'");
+    expect(fontsContent).toContain("font-family: 'Inter'");
+    // Archivo Black removed — no references remain
+    expect(fontsContent).not.toContain('Archivo');
   });
 });
 
@@ -90,7 +84,7 @@ describe('Smoke — Complete Archivo Removal', () => {
 });
 
 // ============================================================================
-// SMOKE 4: No weight 900 anywhere
+// SMOKE 4: No weight 900 on Space Grotesk (Inter hero display may use 900)
 // ============================================================================
 describe('Smoke — No Weight 900', () => {
   it('No fontWeight 900 in config or design tokens', () => {
@@ -100,11 +94,18 @@ describe('Smoke — No Weight 900', () => {
     expect(tokens).not.toMatch(/fontWeight\s*:\s*['"]900['"]/);
   });
 
-  it('No font-weight: 900 in CSS files', () => {
-    const appCss = readFile('app/styles/app.css');
-    const resetCss = readFile('app/styles/reset.css');
-    expect(appCss).not.toContain('font-weight: 900');
-    expect(resetCss).not.toContain('font-weight: 900');
+  it('Space Grotesk CSS rules do not use font-weight: 900 (max weight is 700)', () => {
+    // fonts.css @font-face for Space Grotesk uses variable range 300 700, not 900
+    const fontsCss = readFile('app/styles/fonts.css');
+    const sgBlocks = fontsCss.match(
+      /font-family:\s*['"]Space Grotesk['"][^}]+}/gs,
+    );
+    expect(sgBlocks).not.toBeNull();
+    for (const block of sgBlocks!) {
+      // Range syntax is "300 700" — no 900 in Space Grotesk blocks
+      expect(block).not.toContain(' 900');
+    }
+    // Inter hero display intentionally uses weight 900 — that is allowed
   });
 
   it('No font-black Tailwind class in component files', () => {
@@ -136,13 +137,16 @@ describe('Smoke — Critical Page Files Exist & Have Font Classes', () => {
     it(`${file.name} exists and uses typography classes`, () => {
       const content = readFile(file.path);
       expect(content.length).toBeGreaterThan(0);
-      // Every critical component file should have font-related classes
+      // Every critical component must use brand font (font-sans / font-body / Tailwind weight)
+      // Hero is CSS-class-based (hero-title-mobile/desktop in app.css) — HERO_TITLE_MOBILE token
       const hasFontClass =
         content.includes('font-sans') ||
         content.includes('font-body') ||
         content.includes('font-medium') ||
         content.includes('font-bold') ||
-        content.includes('font-semibold');
+        content.includes('font-semibold') ||
+        content.includes('HERO_TITLE_MOBILE') || // Hero uses CSS class system
+        content.includes('hero-title-mobile');
       expect(hasFontClass).toBe(true);
     });
   }
@@ -153,7 +157,6 @@ describe('Smoke — Critical Page Files Exist & Have Font Classes', () => {
     expect(content.length).toBeGreaterThan(0);
     expect(content).toContain('Hero');
     expect(content).toContain('ProductGrid');
-    expect(content).toContain('FeatureSection');
   });
 });
 

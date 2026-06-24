@@ -3,7 +3,10 @@
  * Typography: Space Grotesk (font-sans) — matches navbar labels + AC-1.
  * Glow values: @see app/styles/category-nav-glow.css (sole source of truth).
  */
-import {ZEHN_HOMEPAGE_STACK_GAP} from '~/lib/homepage-section-styles';
+import {
+  ZEHN_HOMEPAGE_SECTION_PY,
+  ZEHN_HOMEPAGE_STACK_GAP,
+} from '~/lib/homepage-section-styles';
 
 /** Section + header shell class names (presentation in app.css). */
 export const CATEGORY_NAV_SECTION = 'category-nav-section';
@@ -23,11 +26,11 @@ export const CATEGORY_NAV_SUBTITLE_SPOTLIGHT = 'category-nav-subtitle-spotlight'
 export const CATEGORY_NAV_BAND_SHELL_BASE =
   'homepage-category-nav-shell overflow-x-clip';
 
+/** Homepage idle band (no chip selected) — shared section rhythm from ZEHN_HOMEPAGE_SECTION_PY. */
+export const CATEGORY_NAV_HOMEPAGE_IDLE_PY = ZEHN_HOMEPAGE_SECTION_PY;
+
 /** Homepage band — same shell as catalog; rhythm via STACK_GAP + GRID_TOP (BL-0017). */
 export const CATEGORY_NAV_HOMEPAGE_SHELL = CATEGORY_NAV_BAND_SHELL_BASE;
-
-/** Homepage idle band (no chip selected) — pairs with trust strip pt above hero fold. */
-export const CATEGORY_NAV_HOMEPAGE_IDLE_PY = 'py-4' as const;
 
 /** Collection/catalog band — parent layout owns vertical rhythm; no extra shell py. */
 export const CATEGORY_NAV_CATALOG_SHELL = CATEGORY_NAV_BAND_SHELL_BASE;

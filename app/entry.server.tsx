@@ -23,7 +23,7 @@ export default async function handleRequest(
       "'self'",
       "'unsafe-inline'",
       'https://cdn.shopify.com',
-      'https://fonts.googleapis.com',
+      /* fonts.googleapis.com removed — fonts are self-hosted from public/fonts/ */
     ],
     scriptSrc: [
       "'self'",
@@ -45,7 +45,7 @@ export default async function handleRequest(
     ],
     fontSrc: [
       "'self'",
-      'https://fonts.gstatic.com',
+      /* fonts.gstatic.com removed — fonts are self-hosted from public/fonts/ */
       'https://cdn.shopify.com',
     ],
   });

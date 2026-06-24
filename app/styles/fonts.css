@@ -1,0 +1,60 @@
+/* Self-hosted fonts — PERFORMANCE_ZERO_FLICKER_PLAN.md Phase 1
+   Replaces Google Fonts CDN; zero external font requests at runtime.
+   Files in public/fonts/ are served at /fonts/ by Oxygen (Cloudflare).
+   Preloads for critical weights are in app/root.tsx links(). */
+
+/* ── Space Grotesk (variable font, weights 300–700) ──────────────────────
+   Primary brand font: body text, headings, nav, labels, chips, buttons.
+   Variable font = one file covers all weights 300–700.
+   font-display: swap = show system font immediately, swap when loaded (no FOIT).
+   Two unicode-range blocks: latin-ext covers German umlauts (ä ö ü ß Ä Ö Ü). */
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/space-grotesk/space-grotesk-variable-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/space-grotesk/space-grotesk-variable.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ── Inter (variable font, weights 700–900) ──────────────────────────────
+   Used exclusively for hero display titles (.hero-title-mobile/.hero-title-desktop
+   in app.css) and Tailwind font-display utility.
+   Weight 900 is valid for Inter (variable font spans 100–900).
+   Unlike Space Grotesk which maxes at 700, Inter 900 is intentional hero punch. */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+  src: url('/fonts/inter/inter-variable-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+  src: url('/fonts/inter/inter-variable.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}

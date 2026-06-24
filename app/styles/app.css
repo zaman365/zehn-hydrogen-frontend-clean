@@ -1,7 +1,9 @@
+@import './fonts.css';
 @import './homepage-hero.css';
 @import './category-nav-glow.css';
 @import './category-nav-sub-row.css';
 @import './trust-strip-glow.css';
+@import './header-nav-badge.css';
 
 @tailwind base;
 @tailwind components;
@@ -2476,7 +2478,7 @@ select option:hover {
   transform: translateY(-50%);
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(12rem, 20vw, 18rem);
-  font-weight: 900;
+  font-weight: 700;
   color: transparent;
   -webkit-text-stroke: 1px rgba(244, 244, 245, 0.05);
   line-height: 1;
@@ -2497,7 +2499,7 @@ select option:hover {
 .about-hero-h1 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(3.5rem, 6vw, 6rem);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 0.95;
   text-transform: uppercase;
   letter-spacing: -0.02em;
@@ -2554,7 +2556,7 @@ select option:hover {
 .about-data-val {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 2.5rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #ff5f1f;
   line-height: 1;
   margin-bottom: 0.5rem;
@@ -2660,7 +2662,7 @@ select option:hover {
 .about-ten-headline {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(3rem, 5vw, 5rem);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: -0.02em;
@@ -2760,7 +2762,7 @@ select option:hover {
 .about-sec-h2 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(2.5rem, 4vw, 4rem);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: -0.01em;
@@ -2797,7 +2799,7 @@ select option:hover {
   right: 1rem;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 7rem;
-  font-weight: 900;
+  font-weight: 700;
   color: transparent;
   -webkit-text-stroke: 1px rgba(244, 244, 245, 0.04);
   line-height: 1;
@@ -2815,7 +2817,7 @@ select option:hover {
 .about-val-title {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.25rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin-bottom: 1rem;
@@ -2848,7 +2850,7 @@ select option:hover {
 .about-pull-quote {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(2.5rem, 4vw, 3.5rem);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: -0.01em;
@@ -2904,7 +2906,7 @@ select option:hover {
 .about-prin-n {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.85rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #ff5f1f;
   flex-shrink: 0;
   width: 2rem;
@@ -2914,7 +2916,7 @@ select option:hover {
 .about-prin-title {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin-bottom: 0.5rem;
@@ -2941,7 +2943,7 @@ select option:hover {
 .about-m-quote {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(2.5rem, 4vw, 4rem);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.1;
   text-transform: uppercase;
   letter-spacing: -0.02em;
@@ -3011,7 +3013,7 @@ select option:hover {
 .about-ss-val {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.95rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: #0f1426;
@@ -3096,7 +3098,7 @@ select option:hover {
 .about-sw-name {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.9rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: #0f1426;
@@ -3147,7 +3149,7 @@ select option:hover {
 .about-type-h1 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 3.5rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.04em;
 }
 
@@ -3170,7 +3172,7 @@ select option:hover {
 .about-cta-final-headline {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(3rem, 5vw, 5rem);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: -0.02em;
