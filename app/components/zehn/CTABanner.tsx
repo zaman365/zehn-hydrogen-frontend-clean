@@ -1,6 +1,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Shirt, Award, TrendingUp } from "lucide-react"
+import {ZehnStaticImage} from '~/components/zehn'
 
 export function CTABanner() {
   const [isVisible, setIsVisible] = useState(false)
@@ -36,11 +37,10 @@ export function CTABanner() {
             isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
         >
-          {/* Background Image */}
-          <img
+          {/* ZehnStaticImage: skeleton+fade inside the banner's relative overflow-hidden container */}
+          <ZehnStaticImage
             src="/images/bf965cf4-e728-4e72-ab1b-16b1cd8f1822.png"
             alt="Premium quality"
-            className="absolute inset-0 w-full h-full object-cover"
           />
           
           {/* Gradient overlay for better text readability on mobile */}

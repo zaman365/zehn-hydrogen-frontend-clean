@@ -3,6 +3,7 @@ import {
   useLoaderData,
 } from 'react-router';
 import type {Route} from './+types/policies.$handle';
+import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
 import {type Shop} from '@shopify/hydrogen/storefront-api-types';
 import {ChevronRight} from 'lucide-react';
 
@@ -42,6 +43,7 @@ export async function loader({params, context}: Route.LoaderArgs) {
       [policyName]: true,
       language: context.storefront.i18n?.language,
     },
+    cache: getCachePolicy(context.storefront, CACHE_LONG),
   });
 
   const policy = data.shop?.[policyName];

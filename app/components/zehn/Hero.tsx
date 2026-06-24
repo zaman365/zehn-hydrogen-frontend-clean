@@ -176,6 +176,16 @@ export function Hero() {
     return () => window.clearInterval(slideTimer);
   }, []);
 
+  /** Preload carousel assets so slides 1–2 never show loading skeleton under frosted nav. */
+  useEffect(() => {
+    for (const slide of HERO_SLIDES) {
+      for (const url of [slide.src, slide.mobileSrc]) {
+        const img = new Image();
+        img.src = url;
+      }
+    }
+  }, []);
+
   return (
     <section data-homepage-hero>
       {/* Mobile viewport: portrait banners (1080×1350) */}
@@ -191,7 +201,7 @@ export function Hero() {
                   : 'opacity-0 scale-[1.025]'
               }`}
             >
-              {/* ZehnStaticImage: isLCP for slide 0 (no skeleton, eager/high); skeleton+fade for slides 1-2 */}
+              {/* Static skeleton only — pulse bleeds through frosted nav (bg-white/40) */}
               <ZehnStaticImage
                 src={slide.mobileSrc}
                 alt={slide.alt}
@@ -199,6 +209,8 @@ export function Hero() {
                 className="hero-slide-img hero-slide-img--mobile"
                 style={{objectPosition: slide.objectPositionMobile ?? HERO_OBJECT_POSITION_MOBILE}}
                 isLCP={index === 0}
+                skeletonPulse={false}
+                skeletonClassName="bg-[var(--hero-fold-bg)]"
                 width={1080}
                 height={1350}
                 onError={(event) => {
@@ -240,7 +252,7 @@ export function Hero() {
                   : 'opacity-0 scale-[1.025]'
               }`}
             >
-              {/* ZehnStaticImage: isLCP for slide 0 (no skeleton, eager/high); skeleton+fade for slides 1-2 */}
+              {/* Static skeleton only — pulse bleeds through frosted nav (bg-white/40) */}
               <ZehnStaticImage
                 src={slide.src}
                 alt={slide.alt}
@@ -248,6 +260,8 @@ export function Hero() {
                 className="hero-slide-img hero-slide-img--desktop"
                 style={{objectPosition: slide.objectPositionDesktop ?? HERO_OBJECT_POSITION_DESKTOP}}
                 isLCP={index === 0}
+                skeletonPulse={false}
+                skeletonClassName="bg-[var(--hero-fold-bg)]"
                 width={3000}
                 height={1200}
                 onError={(event) => {

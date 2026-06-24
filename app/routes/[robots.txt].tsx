@@ -1,10 +1,13 @@
 import type {Route} from './+types/[robots.txt]';
 import {parseGid} from '@shopify/hydrogen';
+import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
 
 export async function loader({request, context}: Route.LoaderArgs) {
   const url = new URL(request.url);
 
-  const {shop} = await context.storefront.query(ROBOTS_QUERY);
+  const {shop} = await context.storefront.query(ROBOTS_QUERY, {
+    cache: getCachePolicy(context.storefront, CACHE_LONG),
+  });
 
   const shopId = parseGid(shop.id).id;
   const body = robotsTxtData({url: url.origin, shopId});

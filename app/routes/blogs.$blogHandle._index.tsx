@@ -3,6 +3,7 @@ import {
   useLoaderData,
 } from 'react-router';
 import type {Route} from './+types/blogs.$blogHandle._index';
+import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
 import {Image, getPaginationVariables} from '@shopify/hydrogen';
 import type {ArticleItemFragment} from 'storefrontapi.generated';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
@@ -60,6 +61,7 @@ async function loadCriticalData({
         blogHandle: params.blogHandle,
         ...paginationVariables,
       },
+      cache: getCachePolicy(context.storefront, CACHE_LONG),
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);

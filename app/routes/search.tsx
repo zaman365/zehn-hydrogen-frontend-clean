@@ -1,5 +1,6 @@
 import {useLoaderData} from 'react-router';
 import type {Route} from './+types/search';
+import {getCachePolicy, CACHE_NONE} from '~/lib/storefront-cache-policy';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {SearchResults} from '~/components/SearchResults';
 import {ProductItem} from '~/components/ProductItem';
@@ -580,6 +581,7 @@ async function regularSearch({
   }: {errors?: Array<{message: string}>} & RegularSearchQuery =
     await storefront.query(SEARCH_QUERY, {
       variables: {...variables, term},
+      cache: getCachePolicy(storefront, CACHE_NONE),
     });
 
   if (!items) {
@@ -612,6 +614,7 @@ async function regularSearch({
         allProductsQuery,
         {
           variables: {first: 100},
+          cache: getCachePolicy(storefront, CACHE_NONE),
         },
       );
 
@@ -817,11 +820,11 @@ async function predictiveSearch({
   }: PredictiveSearchQuery & {errors?: Array<{message: string}>} =
     await storefront.query(PREDICTIVE_SEARCH_QUERY, {
       variables: {
-        // customize search options as needed
         limit,
         limitScope: 'EACH',
         term,
       },
+      cache: getCachePolicy(storefront, CACHE_NONE),
     });
 
   if (errors) {
@@ -858,6 +861,7 @@ async function predictiveSearch({
       allProductsQuery,
       {
         variables: {first: 50},
+        cache: getCachePolicy(storefront, CACHE_NONE),
       },
     );
 

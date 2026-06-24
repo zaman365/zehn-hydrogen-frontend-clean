@@ -5,6 +5,7 @@ import {
   MAIN_CATEGORY_MAP,
 } from '~/lib/category-map';
 import {CATALOG_QUERY} from '~/routes/collections.all';
+import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 
 const ROOT_HANDLE_MAP: Record<string, string | null> = {
   'shop-all': null,
@@ -31,6 +32,7 @@ export async function loader({
   if (parent in ROOT_HANDLE_MAP && sub in ALLE_PARENT_MAP) {
     const {products} = await context.storefront.query(CATALOG_QUERY, {
       variables: {first: 250},
+      cache: getCachePolicy(context.storefront, CACHE_SHORT),
     });
 
     const categoryLabel = getCategoryLabel(sub);

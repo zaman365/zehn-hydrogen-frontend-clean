@@ -1,5 +1,6 @@
 import {useLoaderData} from 'react-router';
 import type {Route} from './+types/_index';
+import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 import {Hero} from '~/components/zehn/Hero';
 import {TrustBadges} from '~/components/zehn/TrustBadges';
 // import {CategoryTiles} from '~/components/zehn/CategoryTiles';
@@ -160,7 +161,9 @@ export const meta: Route.MetaFunction = () => {
 export async function loader({context}: Route.LoaderArgs) {
   const {storefront} = context;
 
-  const data = await storefront.query(HOMEPAGE_QUERY);
+  const data = await storefront.query(HOMEPAGE_QUERY, {
+    cache: getCachePolicy(storefront, CACHE_SHORT),
+  });
   const fallbackHosenCollection = data.hosenCollections?.nodes?.find((collection: any) => {
     const handle = collection?.handle?.toLowerCase();
     const title = collection?.title?.toLowerCase();

@@ -1,6 +1,7 @@
 import {Link, useLoaderData} from 'react-router';
 import {ChevronRight} from 'lucide-react';
 import type {Route} from './+types/pages.$handle';
+import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {getStaticPage} from '~/lib/static-pages';
 import type {StaticPageData} from '~/lib/static-pages';
@@ -91,6 +92,7 @@ async function loadCriticalData({
       variables: {
         handle: params.handle,
       },
+      cache: getCachePolicy(context.storefront, CACHE_LONG),
     });
     page = result.page;
   } catch (error) {

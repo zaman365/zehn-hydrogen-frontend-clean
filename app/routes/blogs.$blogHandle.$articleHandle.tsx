@@ -1,5 +1,6 @@
 import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/blogs.$blogHandle.$articleHandle';
+import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
 import {Image} from '@shopify/hydrogen';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ChevronRight} from 'lucide-react';
@@ -63,6 +64,7 @@ async function loadCriticalData({context, request, params}: Route.LoaderArgs) {
   const [{blog}] = await Promise.all([
     context.storefront.query(ARTICLE_QUERY, {
       variables: {blogHandle, articleHandle},
+      cache: getCachePolicy(context.storefront, CACHE_LONG),
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);

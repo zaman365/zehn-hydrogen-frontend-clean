@@ -23,6 +23,7 @@ import {cn} from '~/lib/utils';
 import {
   ZEHN_MEDIA_SKELETON,
   ZEHN_MEDIA_SKELETON_FADE,
+  ZEHN_MEDIA_SKELETON_STATIC,
   ZEHN_MEDIA_FADE_IN,
 } from '~/lib/zehn-media-styles';
 
@@ -39,12 +40,21 @@ export type ZehnStaticImageProps = Omit<
    * Enables loading="eager" + fetchPriority="high" and disables skeleton.
    */
   isLCP?: boolean;
+  /**
+   * When false, skeleton uses static fill (no animate-pulse).
+   * Use under semi-transparent overlays (hero behind frosted nav).
+   */
+  skeletonPulse?: boolean;
+  /** Optional skeleton surface override (e.g. hero --hero-fold-bg). */
+  skeletonClassName?: string;
 };
 
 export function ZehnStaticImage({
   src,
   alt,
   isLCP = false,
+  skeletonPulse = true,
+  skeletonClassName,
   className,
   onLoad,
   ...props
@@ -56,6 +66,10 @@ export function ZehnStaticImage({
     onLoad?.(e);
   };
 
+  const skeletonBase = skeletonPulse
+    ? ZEHN_MEDIA_SKELETON
+    : ZEHN_MEDIA_SKELETON_STATIC;
+
   return (
     <>
       {/* Pulse skeleton — omitted for LCP images (no flash), fades out on load for others */}
@@ -63,7 +77,8 @@ export function ZehnStaticImage({
         <div
           aria-hidden="true"
           className={cn(
-            ZEHN_MEDIA_SKELETON,
+            skeletonBase,
+            skeletonClassName,
             ZEHN_MEDIA_SKELETON_FADE,
             loaded ? 'opacity-0' : 'opacity-100',
           )}

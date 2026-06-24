@@ -11,6 +11,10 @@
 export const ZEHN_MEDIA_SKELETON =
   'absolute inset-0 animate-pulse bg-muted/40 pointer-events-none' as const;
 
+/** Static skeleton — no pulse (hero under frosted nav; pulse bleeds through bg-white/40). */
+export const ZEHN_MEDIA_SKELETON_STATIC =
+  'absolute inset-0 bg-muted/40 pointer-events-none' as const;
+
 /**
  * Skeleton fade-out when image loads.
  * Matches ProductItem.tsx existing pattern (duration-300 opacity fade).

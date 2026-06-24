@@ -14,6 +14,7 @@ import {
   Image,
 } from '@shopify/hydrogen';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {useState, useEffect, useMemo, useRef} from 'react';
 import {
@@ -176,6 +177,7 @@ async function loadCriticalData({
   const [{product}] = await Promise.all([
     storefront.query(PRODUCT_QUERY, {
       variables: {handle, selectedOptions: getSelectedProductOptions(request)},
+      cache: getCachePolicy(storefront, CACHE_SHORT),
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
@@ -206,6 +208,7 @@ async function loadDeferredData({context}: Route.LoaderArgs) {
   // Get recommended products (random products for now)
   const {products} = await storefront.query(RECOMMENDED_PRODUCTS_QUERY, {
     variables: {first: 8},
+    cache: getCachePolicy(storefront, CACHE_SHORT),
   });
 
   return {

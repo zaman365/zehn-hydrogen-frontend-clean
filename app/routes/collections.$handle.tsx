@@ -31,6 +31,7 @@ import {
 } from '~/lib/category-map';
 import {shuffleWithSeed} from '~/lib/seeded-shuffle';
 import {CATALOG_QUERY} from '~/routes/collections.all';
+import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 import {
   getCategorySectionCopy,
   resolveCategorySectionContext,
@@ -106,6 +107,7 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   if (handle in ALLE_PARENT_MAP) {
     const {products} = await storefront.query(CATALOG_QUERY, {
       variables: {first: 250},
+      cache: getCachePolicy(storefront, CACHE_SHORT),
     });
     const categoryLabel = getCategoryLabel(handle);
     return {
@@ -124,7 +126,7 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   const [{collection: initialCollection}] = await Promise.all([
     storefront.query(COLLECTION_QUERY, {
       variables: {handle, ...paginationVariables},
-      // Add other queries here, so that they are loaded in parallel
+      cache: getCachePolicy(storefront, CACHE_SHORT),
     }),
   ]);
 
@@ -238,6 +240,7 @@ async function resolveCollectionHandle(
   for (const candidateHandle of handleCandidates) {
     const result = await storefront.query(COLLECTION_HANDLE_BY_HANDLE_QUERY, {
       variables: {handle: candidateHandle},
+      cache: getCachePolicy(storefront, CACHE_SHORT),
     });
 
     const matchedHandle = result.collection?.handle;
@@ -249,6 +252,7 @@ async function resolveCollectionHandle(
   for (const term of searchTerms) {
     const result = await storefront.query(COLLECTION_HANDLE_FALLBACK_QUERY, {
       variables: {query: term},
+      cache: getCachePolicy(storefront, CACHE_SHORT),
     });
 
     const matchedHandle = result.collections?.nodes?.[0]?.handle;

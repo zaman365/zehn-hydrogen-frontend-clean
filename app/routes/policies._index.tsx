@@ -1,5 +1,6 @@
 import {useLoaderData, Link} from 'react-router';
 import type {Route} from './+types/policies._index';
+import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
 import type {PoliciesQuery, PolicyItemFragment} from 'storefrontapi.generated';
 
 export const meta: Route.MetaFunction = () => {
@@ -13,7 +14,9 @@ export const meta: Route.MetaFunction = () => {
 };
 
 export async function loader({context}: Route.LoaderArgs) {
-  const data: PoliciesQuery = await context.storefront.query(POLICIES_QUERY);
+  const data: PoliciesQuery = await context.storefront.query(POLICIES_QUERY, {
+    cache: getCachePolicy(context.storefront, CACHE_LONG),
+  });
   
   const shopPolicies = data.shop;
   const policies: PolicyItemFragment[] = [

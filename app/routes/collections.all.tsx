@@ -1,5 +1,6 @@
 import type {Route} from './+types/collections.all';
 import {useLoaderData, useSearchParams, useLocation, useNavigate} from 'react-router';
+import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
@@ -58,6 +59,7 @@ async function loadCriticalData({context, request}: Route.LoaderArgs) {
   const [{products}] = await Promise.all([
     storefront.query(CATALOG_QUERY, {
       variables: {...paginationVariables},
+      cache: getCachePolicy(storefront, CACHE_SHORT),
     }),
   ]);
   return {products};

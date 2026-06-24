@@ -1,6 +1,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react"
+import {ZehnStaticImage} from '~/components/zehn'
 
 // ZEHN Design System Spacing Tokens
 const SPACING = {
@@ -313,16 +314,16 @@ export function Testimonials({
 
                           {/* Customer Info */}
                           <div className="flex items-center gap-3 pt-4 border-t border-border/30">
-                            <div className="w-12 h-12 rounded-full bg-background overflow-hidden flex-shrink-0">
-                              <img
-                                src={testimonial.image}
-                                alt={`${testimonial.name}, ${testimonial.role}`}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                                width={48}
-                                height={48}
-                              />
-                            </div>
+                            {/* relative required for ZehnStaticImage skeleton/img absolute positioning */}
+                          <div className="relative w-12 h-12 rounded-full bg-background overflow-hidden flex-shrink-0">
+                            {/* ZehnStaticImage: skeleton+fade for avatar thumbnail */}
+                            <ZehnStaticImage
+                              src={testimonial.image}
+                              alt={`${testimonial.name}, ${testimonial.role}`}
+                              width={48}
+                              height={48}
+                            />
+                          </div>
                             <div>
                               <h4 className="font-sans text-body font-medium text-foreground">{testimonial.name}</h4>
                               <p className="font-sans text-body text-muted">{testimonial.role}</p>

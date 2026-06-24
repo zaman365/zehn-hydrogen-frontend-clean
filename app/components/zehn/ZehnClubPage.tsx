@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {ZehnStaticImage} from '~/components/zehn';
 import {Link} from 'react-router';
 import {
   ChevronRight,
@@ -132,13 +133,11 @@ export function ZehnClubPage() {
               </p>
             </div>
 
-            {/* White ZEHN Club Logo */}
+            {/* White ZEHN Club Logo — circle frame enforces aspect-square so ZehnStaticImage fills correctly */}
             <div className="hidden sm:block ml-6">
-              <img
-                src="/Circle_Zehn_White.png"
-                alt="ZEHN Club"
-                className="h-24 sm:h-32 lg:h-40 w-auto rounded-full"
-              />
+              <div className="relative h-24 sm:h-32 lg:h-40 aspect-square rounded-full overflow-hidden">
+                <ZehnStaticImage src="/Circle_Zehn_White.png" alt="ZEHN Club" />
+              </div>
             </div>
           </div>
         </div>

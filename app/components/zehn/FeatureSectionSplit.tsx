@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Shirt, Ruler, Award, Scissors } from "lucide-react"
+import {ZehnStaticImage} from '~/components/zehn'
 
 const features = [
   {
@@ -100,11 +101,11 @@ export function FeatureSectionSplit() {
             }`}
             style={{ transitionDelay: '0ms', backgroundColor: '#f2f2f2' }}
           >
-            {/* Banner Image with Sharp Crisp Styling */}
-            <img
+            {/* ZehnStaticImage: skeleton+fade; object-contain preserves banner1 proportions */}
+            <ZehnStaticImage
               src="/banner1.png"
               alt="Premium ZEHN Fashion"
-              className="absolute inset-0 h-full w-full object-contain object-center"
+              className="object-contain"
               style={{
                 imageRendering: 'crisp-edges',
                 WebkitFontSmoothing: 'antialiased',
@@ -120,11 +121,12 @@ export function FeatureSectionSplit() {
             }`}
             style={{ transitionDelay: '100ms', backgroundColor: '#ffffff' }}
           >
-            {/* Banner2 Background Image */}
-            <img
+            {/* ZehnStaticImage: skeleton+fade; opacity-70 via className (overrides loaded state —
+                skeleton handles pre-load UX; image reveals at 70% opacity once skeleton fades) */}
+            <ZehnStaticImage
               src="/banner2.png"
               alt="Modern Fit Fashion"
-              className="absolute inset-0 h-full w-full object-cover opacity-70"
+              className="opacity-70"
               style={{
                 imageRendering: 'crisp-edges',
                 filter: 'contrast(1.1) saturate(1.05) brightness(1.05)',

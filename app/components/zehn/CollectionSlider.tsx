@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
+import {ZehnStaticImage} from '~/components/zehn'
 
 type CollectionSlide = {
   title: string
@@ -91,13 +92,11 @@ export function CollectionSlider({ collections }: CollectionSliderProps) {
                 <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                   {/* Image Side */}
                   <div className={`relative aspect-[4/5] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl ${index % 2 === 0 ? 'lg:order-1' : 'lg:order-2'}`}>
-                    <img
+                    {/* ZehnStaticImage: skeleton+fade; filter style passed through to native img */}
+                    <ZehnStaticImage
                       src={collection.image}
                       alt={collection.title}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      style={{
-                        filter: 'contrast(1.05) saturate(1.1) brightness(0.95)',
-                      }}
+                      style={{filter: 'contrast(1.05) saturate(1.1) brightness(0.95)'}}
                     />
 
                     {/* Gradient overlay */}

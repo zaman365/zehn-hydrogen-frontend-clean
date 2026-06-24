@@ -5,6 +5,7 @@ import {
   MAIN_CATEGORY_MAP,
 } from '~/lib/category-map';
 import {CATALOG_QUERY} from '~/routes/collections.all';
+import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 
 // Maps URL root slugs to Shopify collection handles (null = all products)
 const ROOT_HANDLE_MAP: Record<string, string | null> = {
@@ -41,6 +42,7 @@ export async function loader({
 
   const {products} = await context.storefront.query(CATALOG_QUERY, {
     variables: {first: 250},
+    cache: getCachePolicy(context.storefront, CACHE_SHORT),
   });
 
   const categoryLabel = getCategoryLabel(sub);

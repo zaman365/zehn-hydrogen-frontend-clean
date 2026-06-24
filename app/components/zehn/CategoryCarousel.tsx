@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import {ZehnStaticImage} from '~/components/zehn'
 
 type CategorySlide = {
   title: string
@@ -100,11 +101,10 @@ export function CategoryCarousel({ title, categories }: CategoryCarouselProps) {
                 className="group flex-shrink-0 w-[320px] sm:w-[380px] snap-start"
               >
                 <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-card">
-                  {/* Image */}
-                  <img
+                  {/* ZehnStaticImage: skeleton+fade; container enforces 4:5 aspect via Tailwind */}
+                  <ZehnStaticImage
                     src={category.image}
                     alt={category.title}
-                    className="absolute inset-0 w-full h-full object-cover"
                   />
 
                   {/* Overlay */}

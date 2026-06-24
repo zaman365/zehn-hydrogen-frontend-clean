@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { ArrowRight } from 'lucide-react';
+import {ZehnStaticImage} from '~/components/zehn';
 
 interface BentoItem {
   id: string;
@@ -93,11 +94,10 @@ export function FeaturedBento() {
                 item.gridClass
               }`}
             >
-              <img
+              {/* ZehnStaticImage: skeleton+fade inside Link's relative overflow-hidden bento cell */}
+              <ZehnStaticImage
                 src={item.image}
                 alt={item.title}
-                className="w-full h-full object-cover"
-                loading="lazy"
               />
             </Link>
           ))}

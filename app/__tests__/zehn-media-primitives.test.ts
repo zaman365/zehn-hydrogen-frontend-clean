@@ -227,6 +227,15 @@ describe('Phase 3 — Hero migration', () => {
     expect(src).toContain('isLCP={index === 0}');
   });
 
+  it('disables skeleton pulse under frosted nav (static hero-fold bg)', () => {
+    expect(src).toContain('skeletonPulse={false}');
+    expect(src).toContain('skeletonClassName="bg-[var(--hero-fold-bg)]"');
+  });
+
+  it('preloads all carousel images on mount', () => {
+    expect(src).toContain('new Image()');
+  });
+
   it('HeroSliderImage component deleted (inlined into ZehnStaticImage)', () => {
     expect(src).not.toContain('HeroSliderImage');
   });
@@ -286,6 +295,107 @@ describe('Phase 3 P1 — SearchModal dead import cleanup', () => {
 
   it('renders products via CompactProductCard (already ZehnShopifyImage)', () => {
     expect(src).toContain('CompactProductCard');
+  });
+});
+
+// ============================================================================
+// Phase 3 P2 — marketing/editorial component migration checks
+// ============================================================================
+describe('Phase 3 P2 — FeatureSectionSplit migration', () => {
+  const src = read('app/components/zehn/FeatureSectionSplit.tsx');
+
+  it('uses ZehnStaticImage for banner images', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('no longer uses raw <img> for banner images', () => {
+    expect(src).not.toContain('<img');
+  });
+
+  it('passes object-contain className for banner1 proportions', () => {
+    expect(src).toContain('object-contain');
+  });
+});
+
+describe('Phase 3 P2 — FeaturedBento migration', () => {
+  const src = read('app/components/zehn/FeaturedBento.tsx');
+
+  it('uses ZehnStaticImage for bento tile images', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('no longer uses raw <img> for tile images', () => {
+    expect(src).not.toContain('<img');
+  });
+});
+
+describe('Phase 3 P2 — CTABanner migration', () => {
+  const src = read('app/components/zehn/CTABanner.tsx');
+
+  it('uses ZehnStaticImage for background image', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('no longer uses raw <img> for background', () => {
+    expect(src).not.toContain('<img');
+  });
+});
+
+describe('Phase 3 P2 — CategoryCarousel migration', () => {
+  const src = read('app/components/zehn/CategoryCarousel.tsx');
+
+  it('uses ZehnStaticImage for category slide images', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('no longer uses raw <img> for category images', () => {
+    expect(src).not.toContain('<img');
+  });
+});
+
+describe('Phase 3 P2 — CollectionSlider migration', () => {
+  const src = read('app/components/zehn/CollectionSlider.tsx');
+
+  it('uses ZehnStaticImage for collection images', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('no longer uses raw <img> for collection images', () => {
+    expect(src).not.toContain('<img');
+  });
+});
+
+describe('Phase 3 P2 — Testimonials migration', () => {
+  const src = read('app/components/zehn/Testimonials.tsx');
+
+  it('uses ZehnStaticImage for avatar thumbnails', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('avatar container has relative class (required for absolute skeleton/img)', () => {
+    // ZehnStaticImage renders absolute children; container must be relative
+    expect(src).toContain('relative w-12 h-12 rounded-full');
+  });
+
+  it('no longer uses raw <img> for avatars', () => {
+    expect(src).not.toContain('<img');
+  });
+});
+
+describe('Phase 3 P2 — ZehnClubPage migration', () => {
+  const src = read('app/components/zehn/ZehnClubPage.tsx');
+
+  it('uses ZehnStaticImage for club logo', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('logo wrapped in relative aspect-square container for ZehnStaticImage', () => {
+    expect(src).toContain('aspect-square');
+    expect(src).toContain('overflow-hidden');
+  });
+
+  it('no longer uses raw <img> for logo', () => {
+    expect(src).not.toContain('<img');
   });
 });
 
