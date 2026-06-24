@@ -138,6 +138,22 @@ export function isMobileCatalogRootActive(
 }
 
 /**
+ * Mobile accordion label accent — collapsed rows use pathname only (no chip tint on `/`).
+ * Expanded rows use chip-aware root match (BL-0017 inner sync preserved).
+ */
+export function isMobileCatalogAccordionLabelActive(
+  pathname: string,
+  menuUrl: string,
+  chip: CatalogChipNavSnapshot | null | undefined,
+  isOpen: boolean,
+): boolean {
+  if (isOpen) {
+    return isMobileCatalogRootActive(pathname, menuUrl, chip);
+  }
+  return isNavCollectionRootActive(pathname, menuUrl);
+}
+
+/**
  * Section title for a menu panel — chip filter wins over stale pathname deep segments.
  */
 export function resolveChipMenuOpenSection(

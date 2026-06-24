@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import {ZehnMediaFrame, ZehnStaticImage} from '~/components/zehn';
 
 type Product = {
   id: string
@@ -164,14 +165,12 @@ export function ProductSlider({
                   to={`/products/${product.handle}`}
                   className="group flex-shrink-0 w-[280px] snap-start"
                 >
-                  {/* Image */}
-                  <div className="relative aspect-[3/4] overflow-hidden bg-card mb-3">
+                  {/* Image frame — sliderCard 3:4 portrait; ZehnStaticImage handles skeleton + fade */}
+                  <ZehnMediaFrame aspect="sliderCard" className="mb-3 bg-card">
                     {product.featuredImage ? (
-                      <img
+                      <ZehnStaticImage
                         src={product.featuredImage.url}
                         alt={product.featuredImage.altText || product.title}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="lazy"
                       />
                     ) : (
                       <div className="absolute inset-0 bg-muted/20 flex items-center justify-center">
@@ -179,13 +178,13 @@ export function ProductSlider({
                       </div>
                     )}
 
-                    {/* Sale Badge */}
+                    {/* Sale Badge — z-10 ensures it renders above skeleton and image */}
                     {hasDiscount && (
-                      <div className="absolute top-3 left-3 bg-accent text-accent-foreground px-3 py-1 text-xs font-bold uppercase">
+                      <div className="absolute top-3 left-3 z-10 bg-accent text-accent-foreground px-3 py-1 text-xs font-bold uppercase">
                         Sale
                       </div>
                     )}
-                  </div>
+                  </ZehnMediaFrame>
 
                   {/* Info */}
                   <div className="space-y-1">

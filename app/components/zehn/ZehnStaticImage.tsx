@@ -51,9 +51,9 @@ export function ZehnStaticImage({
 }: ZehnStaticImageProps) {
   const [loaded, setLoaded] = useState(false);
 
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleLoad: React.ReactEventHandler<HTMLImageElement> = (e) => {
     setLoaded(true);
-    (onLoad as React.ReactEventHandler<HTMLImageElement> | undefined)?.(e);
+    onLoad?.(e);
   };
 
   return (

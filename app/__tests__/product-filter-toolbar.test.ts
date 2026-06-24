@@ -321,7 +321,8 @@ describe('product filter toolbar wiring', () => {
     const panel = readFile('app/components/zehn/CategoryMenuPanel.tsx');
     const layout = readFile('app/components/PageLayout.tsx');
     expect(header).toContain('useCatalogChipNav');
-    expect(header).toContain('isMobileCatalogRootActive');
+    expect(header).toContain('isMobileCatalogAccordionLabelActive');
+    expect(header).toContain('mobileAccordionHintRef');
     expect(panel).toContain('resolveChipMenuOpenSection');
     expect(panel).toContain('setOpenSection(resolvedOpenSection)');
     expect(layout).toContain('CatalogChipNavProvider');

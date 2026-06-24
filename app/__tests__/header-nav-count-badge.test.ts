@@ -15,11 +15,13 @@ describe('header nav count badge', () => {
     expect(styles).toContain('HEADER_NAV_COUNT_BADGE_RING');
     expect(styles).toContain('ring-white/40');
     expect(styles).toContain('HEADER_NAV_COUNT_BADGE_POSITION_MOBILE_ROW');
-    expect(styles).toContain('grid place-items-center size-4');
-    expect(styles).toContain('text-[10px]');
-    expect(styles).toContain('cnHeaderNavCountBadge');
-    expect(styles).toContain('HEADER_NAV_COUNT_BADGE_INLINE');
-    expect(styles).toContain('HEADER_NAV_MOBILE_ROW_WITH_TRAILING');
+    expect(styles).toContain('HEADER_NAV_COUNT_BADGE_DIGIT');
+    expect(styles).toContain('inline-flex items-center justify-center');
+    expect(styles).toContain('leading-[10px]');
+    expect(styles).toContain('HEADER_NAV_MOBILE_LABELED_ROW_LABEL');
+    expect(styles).toContain('gap-2');
+    expect(styles).not.toContain('HEADER_NAV_MOBILE_ROW_WITH_TRAILING');
+    expect(styles).not.toContain('HEADER_NAV_COUNT_BADGE_TRAILING_SLOT');
   });
 
   it('HeaderNavCountBadge supports icon, mobileRow, and trailing presets', () => {
@@ -42,7 +44,7 @@ describe('header nav count badge', () => {
     expect(header).toContain('HeaderNavMobileLabeledRow');
     expect(labeledRow).toContain('position="trailing"');
     expect(header).toContain('mobileAccordionHintRef');
-    expect(header).toContain('shouldAutoExpandMobileAccordion');
+    expect(header).toContain('isMobileCatalogAccordionLabelActive');
     expect(header).toContain('overflow-visible');
     expect(header).toContain('useHeaderCartCount');
     expect(header).not.toContain('function CountBadge');
@@ -57,7 +59,7 @@ describe('header nav count badge', () => {
   it('header-nav-badge.css defines single-play pulse keyframes', () => {
     const css = readFile('app/styles/header-nav-badge.css');
     expect(css).toContain('zehn-nav-badge-pulse');
-    expect(css).toContain('prefers-reduced-motion');
+    expect(css).toContain('transform-origin: center');
   });
 
   it('zehn barrel exports HeaderNavCountBadge and labeled row', () => {

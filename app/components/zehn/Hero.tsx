@@ -26,6 +26,7 @@
  */
 import {useEffect, useState} from 'react';
 import {Sparkles} from 'lucide-react';
+import {ZehnStaticImage} from '~/components/zehn';
 import {CtaShineButton} from '~/components/zehn/CtaShineButton';
 import {HERO_SUBTITLE_PHRASES} from '~/lib/hero-content';
 import {
@@ -160,45 +161,6 @@ function HeroTextOverlay({to, isMobile}: {to: string; isMobile: boolean}) {
   );
 }
 
-function HeroSliderImage({
-  className,
-  height,
-  objectPosition,
-  priority,
-  slide,
-  useMobile = false,
-  width,
-}: {
-  className: string;
-  height: number;
-  objectPosition: string;
-  priority: boolean;
-  slide: HeroSlide;
-  useMobile?: boolean;
-  width: number;
-}) {
-  const src = useMobile ? slide.mobileSrc : slide.src;
-
-  return (
-    <img
-      src={src}
-      alt={slide.alt}
-      translate="no"
-      className={className}
-      style={{objectPosition}}
-      loading={priority ? 'eager' : 'lazy'}
-      width={width}
-      height={height}
-      fetchPriority={priority ? 'high' : 'auto'}
-      onError={(event) => {
-        if (event.currentTarget.dataset.fallbackApplied === 'true') return;
-        event.currentTarget.dataset.fallbackApplied = 'true';
-        event.currentTarget.src = slide.fallbackSrc;
-      }}
-    />
-  );
-}
-
 export function Hero() {
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -229,16 +191,21 @@ export function Hero() {
                   : 'opacity-0 scale-[1.025]'
               }`}
             >
-              <HeroSliderImage
-                slide={slide}
-                useMobile
-                objectPosition={
-                  slide.objectPositionMobile ?? HERO_OBJECT_POSITION_MOBILE
-                }
+              {/* ZehnStaticImage: isLCP for slide 0 (no skeleton, eager/high); skeleton+fade for slides 1-2 */}
+              <ZehnStaticImage
+                src={slide.mobileSrc}
+                alt={slide.alt}
+                translate="no"
                 className="hero-slide-img hero-slide-img--mobile"
-                priority={index === 0}
+                style={{objectPosition: slide.objectPositionMobile ?? HERO_OBJECT_POSITION_MOBILE}}
+                isLCP={index === 0}
                 width={1080}
                 height={1350}
+                onError={(event) => {
+                  if (event.currentTarget.dataset.fallbackApplied === 'true') return;
+                  event.currentTarget.dataset.fallbackApplied = 'true';
+                  event.currentTarget.src = slide.fallbackSrc;
+                }}
               />
             </div>
           ))}
@@ -273,15 +240,21 @@ export function Hero() {
                   : 'opacity-0 scale-[1.025]'
               }`}
             >
-              <HeroSliderImage
-                slide={slide}
-                objectPosition={
-                  slide.objectPositionDesktop ?? HERO_OBJECT_POSITION_DESKTOP
-                }
+              {/* ZehnStaticImage: isLCP for slide 0 (no skeleton, eager/high); skeleton+fade for slides 1-2 */}
+              <ZehnStaticImage
+                src={slide.src}
+                alt={slide.alt}
+                translate="no"
                 className="hero-slide-img hero-slide-img--desktop"
-                priority={index === 0}
+                style={{objectPosition: slide.objectPositionDesktop ?? HERO_OBJECT_POSITION_DESKTOP}}
+                isLCP={index === 0}
                 width={3000}
                 height={1200}
+                onError={(event) => {
+                  if (event.currentTarget.dataset.fallbackApplied === 'true') return;
+                  event.currentTarget.dataset.fallbackApplied = 'true';
+                  event.currentTarget.src = slide.fallbackSrc;
+                }}
               />
             </div>
           ))}

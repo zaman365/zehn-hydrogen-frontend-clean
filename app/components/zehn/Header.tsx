@@ -50,7 +50,7 @@ import {isNavPopoverPointerTarget} from '~/lib/header-nav-dropdown-styles';
 import {ZEHN_SITE_CONTENT_ROW} from '~/lib/site-content-row';
 import {cn} from '~/lib/utils';
 import {
-  isMobileCatalogRootActive,
+  isMobileCatalogAccordionLabelActive,
   isNavCollectionRootActive,
   resolveMobileNavOpenState,
   shouldAutoExpandMobileAccordion,
@@ -243,7 +243,12 @@ function MobileCollectionMenuSection({
         to={resolveCatalogNavTo(url)}
         label={item.title}
         isOpen={isOpen}
-        isRouteActive={isMobileCatalogRootActive(pathname, url, chipSnapshot)}
+        isRouteActive={isMobileCatalogAccordionLabelActive(
+          pathname,
+          url,
+          chipSnapshot,
+          isOpen,
+        )}
         onToggle={onToggle}
         onNavigate={onNavigate}
         ariaControls={sectionId}

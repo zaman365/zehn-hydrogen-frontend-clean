@@ -15,6 +15,7 @@
 
 .zehn-nav-count-badge--pulse {
   animation: zehn-nav-badge-pulse 400ms ease-out;
+  transform-origin: center;
 }
 
 @media (prefers-reduced-motion: reduce) {

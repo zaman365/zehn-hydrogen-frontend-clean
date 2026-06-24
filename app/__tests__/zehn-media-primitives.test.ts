@@ -40,6 +40,11 @@ describe('zehn-media-styles — tokens', () => {
     expect(tokens).toContain('cubic-bezier');
   });
 
+  it('exports sliderCard 3/4 ratio for standalone ProductSlider portrait cards', () => {
+    expect(tokens).toContain('sliderCard');
+    expect(tokens).toContain('aspect-[3/4]');
+  });
+
   it('exports ZehnMediaAspectKey type', () => {
     expect(tokens).toContain('ZehnMediaAspectKey');
   });
@@ -142,6 +147,93 @@ describe('ZehnStaticImage — behaviour contract', () => {
   it('uses native <img> (not Hydrogen Image)', () => {
     expect(img).not.toContain("from '@shopify/hydrogen'");
     expect(img).toContain('<img');
+  });
+});
+
+// ============================================================================
+// Phase 3 — component migration checks (file-content)
+// ============================================================================
+describe('Phase 3 — ProductItem migration', () => {
+  const src = read('app/components/ProductItem.tsx');
+
+  it('uses ZehnMediaFrame with product aspect', () => {
+    expect(src).toContain('ZehnMediaFrame');
+    expect(src).toContain("aspect=\"product\"");
+  });
+
+  it('uses ZehnShopifyImage with required sizes', () => {
+    expect(src).toContain('ZehnShopifyImage');
+    expect(src).toContain('sizes=');
+  });
+
+  it('maps isEager to isLCP prop', () => {
+    expect(src).toContain('isLCP={isEager}');
+  });
+
+  it('no longer contains manual imageLoaded state', () => {
+    expect(src).not.toContain('imageLoaded');
+  });
+
+  it('no longer imports Image from @shopify/hydrogen directly', () => {
+    // Image is now used internally by ZehnShopifyImage
+    expect(src).not.toMatch(/import.*\bImage\b.*from '@shopify\/hydrogen'/);
+  });
+});
+
+describe('Phase 3 — CompactProductCard migration', () => {
+  const src = read('app/components/CompactProductCard.tsx');
+
+  it('uses ZehnMediaFrame with square aspect', () => {
+    expect(src).toContain('ZehnMediaFrame');
+    expect(src).toContain("aspect=\"square\"");
+  });
+
+  it('uses ZehnShopifyImage', () => {
+    expect(src).toContain('ZehnShopifyImage');
+  });
+
+  it('no longer imports Image from @shopify/hydrogen directly', () => {
+    expect(src).not.toMatch(/import.*\bImage\b.*from '@shopify\/hydrogen'/);
+  });
+});
+
+describe('Phase 3 — ProductSlider migration', () => {
+  const src = read('app/components/zehn/ProductSlider.tsx');
+
+  it('uses ZehnMediaFrame with sliderCard aspect', () => {
+    expect(src).toContain('ZehnMediaFrame');
+    expect(src).toContain("aspect=\"sliderCard\"");
+  });
+
+  it('uses ZehnStaticImage', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('no longer uses raw <img> for product images', () => {
+    // ZehnStaticImage wraps the img internally; no raw img tag for product images
+    expect(src).not.toContain('<img\n');
+    expect(src).not.toContain("<img ");
+  });
+});
+
+describe('Phase 3 — Hero migration', () => {
+  const src = read('app/components/zehn/Hero.tsx');
+
+  it('uses ZehnStaticImage for slide images', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('passes isLCP for first slide (LCP candidate)', () => {
+    expect(src).toContain('isLCP={index === 0}');
+  });
+
+  it('HeroSliderImage component deleted (inlined into ZehnStaticImage)', () => {
+    expect(src).not.toContain('HeroSliderImage');
+  });
+
+  it('preserves fallback onError handler', () => {
+    expect(src).toContain('fallbackApplied');
+    expect(src).toContain('fallbackSrc');
   });
 });
 

@@ -1,5 +1,5 @@
 /**
- * Mobile drawer row — icon + label left, optional count badge trailing right.
+ * Mobile drawer row — icon + label + inline count badge (gap-2 beside title).
  * Used for Wunschliste / Warenkorb in Header.tsx (REQ-0008).
  */
 import type {LucideIcon} from 'lucide-react';
@@ -10,7 +10,8 @@ import {HeaderNavCountBadge} from '~/components/zehn/HeaderNavCountBadge';
 import {
   cnHeaderNavState,
   HEADER_NAV_MOBILE_LABELED_ROW_INNER,
-  HEADER_NAV_MOBILE_ROW_WITH_TRAILING,
+  HEADER_NAV_MOBILE_LABELED_ROW_LABEL,
+  HEADER_NAV_MOBILE_ROW,
 } from '~/lib/header-nav-styles';
 import {cn} from '~/lib/utils';
 
@@ -53,17 +54,17 @@ function LabeledRowContent({
   strokeWidth: number;
 }) {
   return (
-    <>
-      <span className={HEADER_NAV_MOBILE_LABELED_ROW_INNER}>
-        <Icon
-          className={cn('h-4 w-4 shrink-0', iconClassName)}
-          strokeWidth={strokeWidth}
-          aria-hidden
-        />
+    <span className={HEADER_NAV_MOBILE_LABELED_ROW_INNER}>
+      <Icon
+        className={cn('h-4 w-4 shrink-0', iconClassName)}
+        strokeWidth={strokeWidth}
+        aria-hidden
+      />
+      <span className={HEADER_NAV_MOBILE_LABELED_ROW_LABEL}>
         <span className="truncate">{label}</span>
+        <HeaderNavCountBadge count={count} position="trailing" />
       </span>
-      <HeaderNavCountBadge count={count} position="trailing" />
-    </>
+    </span>
   );
 }
 
@@ -82,7 +83,7 @@ export function HeaderNavMobileLabeledRow(
 
   const rowClassName = cn(
     cnHeaderNavState({active}),
-    HEADER_NAV_MOBILE_ROW_WITH_TRAILING,
+    HEADER_NAV_MOBILE_ROW,
     className,
   );
 

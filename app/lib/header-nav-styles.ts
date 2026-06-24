@@ -55,13 +55,18 @@ export const HEADER_NAV_ICON_STROKE = 2.25;
 /** Ring cutout — matches ZEHN_NAV_SURFACE bg-white/40 frosted nav card. */
 export const HEADER_NAV_COUNT_BADGE_RING = 'ring-2 ring-white/40';
 
+/** Shared digit shell — optical center in 16px circle (absolute + inline badges). */
+export const HEADER_NAV_COUNT_BADGE_DIGIT =
+  'inline-flex items-center justify-center size-4 font-semibold text-[10px] ' +
+  'leading-[10px] tabular-nums';
+
 /**
  * Accent count pill — wishlist + cart (16px circle, readable 10px type).
  * Ring creates a cutout gap over the icon on frosted nav surface.
  */
 export const HEADER_NAV_COUNT_BADGE =
-  'absolute grid place-items-center size-4 rounded-full bg-accent text-accent-foreground ' +
-  `${HEADER_NAV_COUNT_BADGE_RING} font-semibold text-[10px] leading-none tabular-nums`;
+  `absolute rounded-full bg-accent text-accent-foreground ${HEADER_NAV_COUNT_BADGE_RING} ` +
+  HEADER_NAV_COUNT_BADGE_DIGIT;
 
 /** Wider shell when label exceeds single digit (e.g. 9+). */
 export const HEADER_NAV_COUNT_BADGE_OVERFLOW =
@@ -89,10 +94,10 @@ export function cnHeaderNavCountBadge({
   return cn(HEADER_NAV_COUNT_BADGE, position, className);
 }
 
-/** Inline count pill — trailing end of mobile drawer labeled rows (no absolute anchor). */
+/** Inline count pill — beside drawer row label (no absolute anchor). */
 export const HEADER_NAV_COUNT_BADGE_INLINE =
-  'grid place-items-center size-4 shrink-0 rounded-full bg-accent text-accent-foreground ' +
-  `${HEADER_NAV_COUNT_BADGE_RING} font-semibold text-[10px] leading-none tabular-nums`;
+  `shrink-0 rounded-full bg-accent text-accent-foreground ${HEADER_NAV_COUNT_BADGE_RING} ` +
+  HEADER_NAV_COUNT_BADGE_DIGIT;
 
 export function cnHeaderNavCountBadgeInline(className?: string) {
   return cn(HEADER_NAV_COUNT_BADGE_INLINE, className);
@@ -104,13 +109,13 @@ export const HEADER_NAV_MOBILE_ROW =
   'rounded-lg transition-colors duration-[400ms] ease-out ' +
   'hover:bg-foreground/[0.06] active:bg-accent/10';
 
-/** Drawer row with icon+label left and optional trailing count badge. */
-export const HEADER_NAV_MOBILE_ROW_WITH_TRAILING =
-  `${HEADER_NAV_MOBILE_ROW} justify-between gap-3`;
-
-/** Icon + label cluster inside a trailing-badge drawer row. */
+/** Icon + label + inline badge cluster (Wunschliste / Warenkorb drawer rows). */
 export const HEADER_NAV_MOBILE_LABELED_ROW_INNER =
   'flex items-center gap-3 min-w-0';
+
+/** Label + count badge — gap-2 sits badge directly beside title text. */
+export const HEADER_NAV_MOBILE_LABELED_ROW_LABEL =
+  'flex items-center gap-2 min-w-0';
 
 /** Accordion row — SHORTS, HOSEN (desktop dropdown + mobile nested). */
 export const HEADER_NAV_DROPDOWN_SECTION =

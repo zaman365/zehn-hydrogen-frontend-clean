@@ -1,5 +1,6 @@
 import {Link} from 'react-router';
-import {Image, Money} from '@shopify/hydrogen';
+import {Money} from '@shopify/hydrogen';
+import {ZehnMediaFrame, ZehnShopifyImage} from '~/components/zehn';
 import {useRef, useState} from 'react';
 import {Heart} from 'lucide-react';
 import type {
@@ -107,17 +108,16 @@ export function CompactProductCard({
       className="group block"
     >
       <div className="bg-white rounded-lg overflow-hidden border border-black/10 hover:border-black/20 transition-colors">
-        {/* Image */}
-        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+        {/* Image frame — ZehnMediaFrame enforces 1:1; ZehnShopifyImage handles skeleton + fade */}
+        <ZehnMediaFrame aspect="square" className="bg-gray-100">
           {displayImage && (
-            <Image
+            <ZehnShopifyImage
               key={displayImage.url}
+              data={displayImage}
               alt={displayImage.altText || product.title}
               aspectRatio="1/1"
-              data={displayImage}
-              loading={loading}
               sizes="200px"
-              className="object-cover w-full h-full transition-all duration-300 ease-in-out animate-fade-in"
+              isLCP={loading === 'eager'}
             />
           )}
           {/* Wishlist Heart */}
@@ -136,7 +136,7 @@ export function CompactProductCard({
               }`}
             />
           </button>
-        </div>
+        </ZehnMediaFrame>
 
         {/* Info */}
         <div className="p-2">

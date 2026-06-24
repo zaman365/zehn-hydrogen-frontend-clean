@@ -7,7 +7,8 @@
  *  - `bg-white` base so skeleton doesn't bleed on transparent backgrounds
  *
  * Use with ZehnShopifyImage or ZehnStaticImage as children.
- * Do NOT put card chrome (badges, actions) directly inside; wrap those outside this frame.
+ * Overlay chrome (badges, floating action buttons) may be absolute children inside the frame.
+ * Non-overlay card elements (title, price, swatches) belong outside the frame.
  */
 import {cn} from '~/lib/utils';
 import {ZEHN_MEDIA_ASPECT, type ZehnMediaAspectKey} from '~/lib/zehn-media-styles';

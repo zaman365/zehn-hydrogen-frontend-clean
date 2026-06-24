@@ -1,6 +1,7 @@
 import {Link} from 'react-router';
-import {Image, Money} from '@shopify/hydrogen';
+import {Money} from '@shopify/hydrogen';
 import {useState, useEffect, useMemo, useRef} from 'react';
+import {ZehnMediaFrame, ZehnShopifyImage} from '~/components/zehn';
 import {ShoppingBag, Heart, ChevronLeft, ChevronRight} from 'lucide-react';
 import type {
   ProductItemFragment,
@@ -32,7 +33,6 @@ export function ProductItem({
 }) {
   const variantUrl = useVariantUrl(product.handle);
   const image = product.featuredImage;
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [activeColorName, setActiveColorName] = useState<string | null>(null);
   const [activeColorImageIndex, setActiveColorImageIndex] = useState(0);
   const [isCardHovered, setIsCardHovered] = useState(false);
@@ -166,26 +166,13 @@ export function ProductItem({
           }
         }}
       >
-        {/* Image */}
-        <div className="relative aspect-[7/10] bg-white overflow-hidden">
-          {/* Skeleton - hidden immediately for eager images */}
-          {!isEager && (
-            <div 
-              className={`absolute inset-0 bg-muted/40 transition-opacity duration-300 ${
-                imageLoaded ? 'opacity-0' : 'opacity-100'
-              }`}
-            />
-          )}
-          
-          {/* Main image */}
+        {/* Image frame — ZehnMediaFrame enforces 7:10 portrait ratio; ZehnShopifyImage handles skeleton + fade */}
+        <ZehnMediaFrame aspect="product">
           {currentDisplayImage && (
-            <Image
+            <ZehnShopifyImage
               data={currentDisplayImage}
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-              loading={loading}
-              {...(isEager ? {fetchpriority: 'high' as const} : {})}
-              className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${isEager ? 'opacity-100' : (imageLoaded ? 'opacity-100' : 'opacity-0')}`}
-              onLoad={() => setImageLoaded(true)}
+              isLCP={isEager}
             />
           )}
 
@@ -254,7 +241,7 @@ export function ProductItem({
           >
             <ShoppingBag className="w-5 h-5 text-primary-foreground" />
           </button>
-        </div>
+        </ZehnMediaFrame>
 
       </div>
 

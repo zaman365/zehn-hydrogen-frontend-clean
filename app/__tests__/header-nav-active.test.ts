@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   isCatalogMenuLinkActive,
+  isMobileCatalogAccordionLabelActive,
   isNavCollectionRootActive,
   isNavLinkActive,
   parseCollectionNavPath,
@@ -128,6 +129,48 @@ describe('shouldAutoExpandMobileAccordion', () => {
       true,
     );
     expect(shouldAutoExpandMobileAccordion(CHINO_PATH)).toBe(true);
+  });
+});
+
+describe('isMobileCatalogAccordionLabelActive', () => {
+  const homepageChip: CatalogChipNavSnapshot = {
+    source: 'homepage',
+    rootSlug: 'shop-all',
+    selectedCategory: 'alle-shorts',
+    activeMainCategory: 'shorts',
+  };
+
+  it('collapsed on homepage ignores chip — label stays idle', () => {
+    expect(
+      isMobileCatalogAccordionLabelActive(
+        '/',
+        '/collections/all',
+        homepageChip,
+        false,
+      ),
+    ).toBe(false);
+  });
+
+  it('expanded on homepage uses chip-aware accent', () => {
+    expect(
+      isMobileCatalogAccordionLabelActive(
+        '/',
+        '/collections/all',
+        homepageChip,
+        true,
+      ),
+    ).toBe(true);
+  });
+
+  it('collapsed on collection URL uses pathname match', () => {
+    expect(
+      isMobileCatalogAccordionLabelActive(
+        CHINO_PATH,
+        '/collections/all',
+        homepageChip,
+        false,
+      ),
+    ).toBe(true);
   });
 });
 
