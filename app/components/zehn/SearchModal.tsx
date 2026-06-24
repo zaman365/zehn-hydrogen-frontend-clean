@@ -1,10 +1,9 @@
 import {useState, useEffect, useRef} from 'react';
 import {Search, X} from 'lucide-react';
 import {Link, useNavigate} from 'react-router';
-import {Image, Money} from '@shopify/hydrogen';
+// SearchModal renders products via CompactProductCard (already uses ZehnMediaFrame + ZehnShopifyImage)
 import {SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
-import {urlWithTrackingParams} from '~/lib/search';
 import {CompactProductCard} from '~/components/CompactProductCard';
 import {useScrollLock} from '~/hooks/useScrollLock';
 import {ZEHN_SCROLL_EDGE} from '~/lib/zehn-scrollbar-styles';

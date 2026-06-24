@@ -55,10 +55,10 @@ export const HEADER_NAV_ICON_STROKE = 2.25;
 /** Ring cutout — matches ZEHN_NAV_SURFACE bg-white/40 frosted nav card. */
 export const HEADER_NAV_COUNT_BADGE_RING = 'ring-2 ring-white/40';
 
-/** Shared digit shell — optical center in 16px circle (absolute + inline badges). */
+/** Shared digit shell — reset nav label inheritance; optical center in 16px circle. */
 export const HEADER_NAV_COUNT_BADGE_DIGIT =
-  'inline-flex items-center justify-center size-4 font-semibold text-[10px] ' +
-  'leading-[10px] tabular-nums';
+  'flex items-center justify-center size-4 min-w-4 font-semibold text-[10px] ' +
+  'leading-none tabular-nums tracking-normal normal-case text-center';
 
 /**
  * Accent count pill — wishlist + cart (16px circle, readable 10px type).

@@ -16,8 +16,10 @@ describe('header nav count badge', () => {
     expect(styles).toContain('ring-white/40');
     expect(styles).toContain('HEADER_NAV_COUNT_BADGE_POSITION_MOBILE_ROW');
     expect(styles).toContain('HEADER_NAV_COUNT_BADGE_DIGIT');
-    expect(styles).toContain('inline-flex items-center justify-center');
-    expect(styles).toContain('leading-[10px]');
+    expect(styles).toContain('flex items-center justify-center');
+    expect(styles).toContain('tracking-normal');
+    expect(styles).toContain('normal-case');
+    expect(styles).toContain('leading-none');
     expect(styles).toContain('HEADER_NAV_MOBILE_LABELED_ROW_LABEL');
     expect(styles).toContain('gap-2');
     expect(styles).not.toContain('HEADER_NAV_MOBILE_ROW_WITH_TRAILING');

@@ -38,7 +38,7 @@ export { Newsletter } from './Newsletter';
 export { Footer } from './Footer';
 export { StaticPage } from './StaticPage';
 export { StaticPageContact } from './contact/StaticPageContact';
-export { CartDrawer, CartCount, useCartCount } from './CartDrawer';
+export { CartDrawer, CartCount } from './CartDrawer';
 export { CartProvider, useCart } from './cart-context';
 export type { CartItem } from './cart-context';
 export { SearchModal } from './SearchModal';

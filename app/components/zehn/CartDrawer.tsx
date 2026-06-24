@@ -1,5 +1,6 @@
 import { Minus, Plus, Trash2, ShoppingBag, X } from "lucide-react"
-import { Image, CartForm, Money, useOptimisticCart } from "@shopify/hydrogen"
+import { CartForm, Money, useOptimisticCart } from "@shopify/hydrogen"
+import {ZehnShopifyImage} from '~/components/zehn'
 import { useRouteLoaderData, Await } from "react-router"
 import { Suspense, useEffect } from "react"
 import type { RootLoader } from "~/root"
@@ -188,15 +189,13 @@ function CartDrawerContent({
 
                 return (
                   <div key={id} className="flex gap-4">
-                    {/* Product Image */}
+                    {/* Product Image — 96×96 container is the frame (relative overflow-hidden).
+                        ZehnShopifyImage provides skeleton+fade; bg-muted shows only when no image. */}
                     <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
                       {image ? (
-                        <Image
+                        <ZehnShopifyImage
                           data={image}
-                          alt={image.altText || title}
-                          className="w-full h-full object-cover"
                           sizes="96px"
-                          loading="lazy"
                         />
                       ) : (
                         <div className="w-full h-full bg-muted flex items-center justify-center">
@@ -452,13 +451,3 @@ export function CartCount() {
   )
 }
 
-/**
- * Simple hook for cart count - returns 0 during loading
- * For display in header badge where async rendering isn't ideal
- */
-export function useCartCount(): number {
-  // This is a simplified version that returns 0
-  // The cart count will update after the drawer is opened
-  // For real-time count in header, use <CartCount /> component instead
-  return 0
-}

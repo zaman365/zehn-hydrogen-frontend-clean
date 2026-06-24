@@ -120,17 +120,16 @@
  * 
  * AFTER:
  * ```tsx
- * import { CartDrawer, useCartCount } from '~/components/zehn/CartDrawer'
+ * import { CartDrawer, CartCount } from '~/components/zehn/CartDrawer'
  * import { useState } from 'react'
- * 
+ *
  * function Header() {
  *   const [isCartOpen, setIsCartOpen] = useState(false)
- *   const itemCount = useCartCount()
- *   
+ *
  *   return (
  *     <>
  *       <button onClick={() => setIsCartOpen(true)}>
- *         Cart ({itemCount})
+ *         Cart (<CartCount />)
  *       </button>
  *       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
  *     </>

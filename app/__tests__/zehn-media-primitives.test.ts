@@ -238,6 +238,58 @@ describe('Phase 3 — Hero migration', () => {
 });
 
 // ============================================================================
+// Phase 3 P1 — component migration checks (file-content)
+// ============================================================================
+describe('Phase 3 P1 — CategoryTiles migration', () => {
+  const src = read('app/components/zehn/CategoryTiles.tsx');
+
+  it('uses ZehnStaticImage for category tile images', () => {
+    expect(src).toContain('ZehnStaticImage');
+  });
+
+  it('no longer uses raw <img> for tile images', () => {
+    // ZehnStaticImage wraps the img internally
+    expect(src).not.toContain('<img');
+  });
+
+  it('imports ZehnStaticImage from zehn barrel', () => {
+    expect(src).toContain("from '~/components/zehn'");
+  });
+});
+
+describe('Phase 3 P1 — CartDrawer migration', () => {
+  const src = read('app/components/zehn/CartDrawer.tsx');
+
+  it('uses ZehnShopifyImage for line item thumbnails', () => {
+    expect(src).toContain('ZehnShopifyImage');
+  });
+
+  it('no longer imports Image from @shopify/hydrogen directly', () => {
+    expect(src).not.toMatch(/import.*\bImage\b.*from ['"]@shopify\/hydrogen['"]/);
+  });
+
+  it('passes sizes="96px" to ZehnShopifyImage (thumbnail size)', () => {
+    expect(src).toContain('sizes="96px"');
+  });
+});
+
+describe('Phase 3 P1 — SearchModal dead import cleanup', () => {
+  const src = read('app/components/zehn/SearchModal.tsx');
+
+  it('no longer imports Image from @shopify/hydrogen (dead import)', () => {
+    expect(src).not.toMatch(/import.*\bImage\b.*from ['"]@shopify\/hydrogen['"]/);
+  });
+
+  it('no longer imports Money from @shopify/hydrogen (dead import)', () => {
+    expect(src).not.toMatch(/import.*\bMoney\b.*from ['"]@shopify\/hydrogen['"]/);
+  });
+
+  it('renders products via CompactProductCard (already ZehnShopifyImage)', () => {
+    expect(src).toContain('CompactProductCard');
+  });
+});
+
+// ============================================================================
 // index.ts — all three primitives exported
 // ============================================================================
 describe('zehn/index.ts — media primitive exports', () => {

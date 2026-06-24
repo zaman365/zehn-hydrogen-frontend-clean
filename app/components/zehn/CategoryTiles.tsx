@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
+import {ZehnStaticImage} from '~/components/zehn'
 
 type CategoryTileProps = {
   title: string
@@ -45,12 +46,12 @@ export function CategoryTiles({ tiles }: { tiles: CategoryTileProps[] }) {
               className={`group relative aspect-square lg:aspect-auto lg:h-[450px] overflow-hidden rounded-lg flex-shrink-0 w-[280px] sm:w-[calc(40%-12px)] snap-start ${isVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`}
               style={isVisible ? { animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' } : {}}
             >
-              {/* Image */}
-              <img
+              {/* ZehnStaticImage: skeleton+fade inside Link's overflow-hidden container;
+                  Link itself is the responsive frame (aspect-square / fixed h-[450px] on lg).
+                  onError replaces src with fallbackImage if the primary load fails. */}
+              <ZehnStaticImage
                 src={tile.image}
                 alt={tile.title}
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
                 onError={(event) => {
                   if (tile.fallbackImage && event.currentTarget.src !== tile.fallbackImage) {
                     event.currentTarget.src = tile.fallbackImage
