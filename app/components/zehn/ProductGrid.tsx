@@ -1,24 +1,16 @@
-import {useState, useEffect, useMemo, useRef, useCallback} from 'react';
+import {useState, useEffect, useRef, useCallback} from 'react';
 import {ProductItem} from '~/components/ProductItem';
-import {CategoryNavSection} from '~/components/zehn/CategoryNavSection';
-import {ProductFilterToolbar} from '~/components/zehn/ProductFilterToolbar';
+import {ProductCatalogBand} from '~/components/zehn/ProductCatalogBand';
 import {
   HomepageProductSliders,
   type HomepageProductSliderSection,
 } from '~/components/zehn/HomepageProductSliders';
 import {ShoppingBag, ChevronLeft, ChevronRight} from 'lucide-react';
-import {MAIN_CATEGORY_MAP} from '~/lib/category-map';
-import {getCategorySectionCopy, getCategorySubRowHint} from '~/lib/category-section-copy';
+import {getCategorySectionCopy} from '~/lib/category-section-copy';
 import {ZEHN_HOMEPAGE_GRID_TOP} from '~/lib/homepage-section-styles';
-import {CATEGORY_NAV_HOMEPAGE_SHELL, CATEGORY_NAV_STACK_GAP} from '~/lib/category-nav-styles';
-import type {ProductFilterKind} from '~/lib/product-filter-ui';
 import {ZEHN_SITE_CONTENT_ROW} from '~/lib/site-content-row';
 import {cn} from '~/lib/utils';
-import {productMatchesCategory} from '~/lib/category-match';
-import {
-  getAvailableFilteredProductValues,
-  productMatchesSelectedFilters,
-} from '~/lib/product-filters';
+import {useProductCatalogFilters} from '~/hooks/useProductCatalogFilters';
 
 type Category = string;
 
@@ -33,34 +25,6 @@ type ProductGridProps = {
   featuredSections?: HomepageProductSliderSection[];
 };
 
-// Source main categories from canonical mapping
-const mainCategories = new Map<string, Set<string>>(
-  Object.entries(MAIN_CATEGORY_MAP).map(([k, v]) => [k, new Set(v)]),
-);
-
-const getParentCategory = (category: string): string => {
-  if (mainCategories.has(category)) return category;
-
-  for (const [mainCategory, subcategories] of mainCategories.entries()) {
-    if (subcategories.has(category)) return mainCategory;
-  }
-
-  return category;
-};
-
-const uniqueProducts = (products: any[]): any[] => {
-  const productMap = new Map<string, any>();
-
-  products.forEach((product) => {
-    const key = product?.id || product?.handle;
-    if (key && !productMap.has(key)) {
-      productMap.set(key, product);
-    }
-  });
-
-  return Array.from(productMap.values());
-};
-
 export function ProductGrid({
   allProducts,
   bestsellerProducts = [],
@@ -71,15 +35,30 @@ export function ProductGrid({
   jackenProducts = [],
   featuredSections = [],
 }: ProductGridProps) {
-  const [selectedCategory, setSelectedCategory] = useState<Category>('');
   const [isVisible, setIsVisible] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
-  const [selectedPriceRange, setSelectedPriceRange] = useState('');
-  const [sortBy, setSortBy] = useState('default');
   const menuRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  const filterState = useProductCatalogFilters({
+    mode: 'homepage',
+    allProducts,
+    bestsellerProducts,
+    shortsProducts,
+    hosenProducts,
+    topsProducts,
+    jeansProducts,
+    jackenProducts,
+    hideFacetsForCategory: (category) => category === 'bestseller',
+  });
+
+  const {
+    selectedCategory,
+    setSelectedCategory,
+    displayProducts,
+    showFacetToolbar,
+    hasSelectedCategory,
+  } = filterState;
 
   const scrollToSelectionAndProducts = useCallback(() => {
     if (!menuRef.current) return;
@@ -113,101 +92,6 @@ export function ProductGrid({
     };
   }, [scrollToSelectionAndProducts]);
 
-  // Base products by selected category using tag-based matching
-  const categoryProducts = useMemo(() => {
-    if (selectedCategory === 'bestseller') {
-      return bestsellerProducts.length > 0 ? bestsellerProducts : allProducts;
-    }
-
-    if (!selectedCategory) return [];
-
-    const parentCategory = getParentCategory(selectedCategory);
-    const dedicatedProducts: Record<string, any[]> = {
-      shorts: shortsProducts,
-      hosen: hosenProducts,
-      jeans: jeansProducts,
-      jacken: jackenProducts,
-      tops: topsProducts,
-    };
-    const fallbackProducts = allProducts.filter((product) =>
-      productMatchesCategory(product, parentCategory),
-    );
-    const parentProducts = uniqueProducts([
-      ...(dedicatedProducts[parentCategory] || []),
-      ...fallbackProducts,
-    ]);
-
-    if (selectedCategory === parentCategory) {
-      return parentProducts;
-    }
-
-    return parentProducts.filter((product) =>
-      productMatchesCategory(product, selectedCategory),
-    );
-  }, [
-    allProducts,
-    bestsellerProducts,
-    hosenProducts,
-    jeansProducts,
-    jackenProducts,
-    selectedCategory,
-    shortsProducts,
-    topsProducts,
-  ]);
-
-  const availableSizes = useMemo(
-    () =>
-      getAvailableFilteredProductValues(categoryProducts, 'size', {
-        color: selectedColor,
-        priceRange: selectedPriceRange,
-      }),
-    [categoryProducts, selectedColor, selectedPriceRange],
-  );
-
-  const availableColors = useMemo(
-    () =>
-      getAvailableFilteredProductValues(categoryProducts, 'color', {
-        size: selectedSize,
-        priceRange: selectedPriceRange,
-      }),
-    [categoryProducts, selectedSize, selectedPriceRange],
-  );
-
-  const displayProducts = useMemo(() => {
-    const filtered = categoryProducts.filter((product: any) =>
-      productMatchesSelectedFilters(product, {
-        size: selectedSize,
-        color: selectedColor,
-        priceRange: selectedPriceRange,
-      }),
-    );
-
-    switch (sortBy) {
-      case 'price-asc':
-        return filtered.sort(
-          (a: any, b: any) =>
-            parseFloat(a.priceRange?.minVariantPrice?.amount || '0') -
-            parseFloat(b.priceRange?.minVariantPrice?.amount || '0'),
-        );
-      case 'price-desc':
-        return filtered.sort(
-          (a: any, b: any) =>
-            parseFloat(b.priceRange?.minVariantPrice?.amount || '0') -
-            parseFloat(a.priceRange?.minVariantPrice?.amount || '0'),
-        );
-      case 'newest':
-        return filtered.reverse();
-      default:
-        return filtered;
-    }
-  }, [
-    categoryProducts,
-    selectedColor,
-    selectedPriceRange,
-    selectedSize,
-    sortBy,
-  ]);
-
   const applyCategorySelection = useCallback(
     (category: Category) => {
       if (category === selectedCategory) return;
@@ -221,38 +105,29 @@ export function ProductGrid({
         }, 50);
       }, 300);
     },
-    [selectedCategory, scrollToSelectionAndProducts],
+    [scrollToSelectionAndProducts, selectedCategory, setSelectedCategory],
   );
 
-  const handleCategoryChange = (category: Category) => {
-    // Re-click active main chip clears selection — back to homepage sliders (ART-0043).
-    const nextCategory = selectedCategory === category ? '' : category;
-    applyCategorySelection(nextCategory);
+  const handleMainSelect = useCallback(
+    (category: Category) => {
+      const nextCategory = selectedCategory === category ? '' : category;
+      applyCategorySelection(nextCategory);
+    },
+    [applyCategorySelection, selectedCategory],
+  );
+
+  const handleSubSelect = useCallback(
+    (subcategory: Category) => {
+      applyCategorySelection(subcategory);
+    },
+    [applyCategorySelection],
+  );
+
+  const bandFilterState = {
+    ...filterState,
+    handleMainSelect,
+    handleSubSelect,
   };
-
-  const handleSubcategoryChange = (subcategory: Category) => {
-    applyCategorySelection(subcategory);
-  };
-
-  const handleRemoveFilterChip = useCallback((kind: ProductFilterKind) => {
-    switch (kind) {
-      case 'price':
-        setSelectedPriceRange('');
-        break;
-      case 'size':
-        setSelectedSize('');
-        break;
-      case 'color':
-        setSelectedColor('');
-        break;
-    }
-  }, []);
-
-  const handleClearFilters = useCallback(() => {
-    setSelectedSize('');
-    setSelectedColor('');
-    setSelectedPriceRange('');
-  }, []);
 
   const scrollGrid = (direction: 'left' | 'right') => {
     if (gridRef.current) {
@@ -263,25 +138,6 @@ export function ProductGrid({
       });
     }
   };
-
-  // Determine which main category is active (either directly selected or parent of selected sub)
-  const getActiveMainCategory = (): string => {
-    // Check if selectedCategory is a main category
-    if (mainCategories.has(selectedCategory)) {
-      return selectedCategory;
-    }
-    // Check if selectedCategory is a subcategory — find its parent
-    for (const [mainCat, subCats] of mainCategories.entries()) {
-      if (Array.from(subCats).includes(selectedCategory)) {
-        return mainCat;
-      }
-    }
-    return '';
-  };
-
-  const activeMainCategory = getActiveMainCategory();
-  const hasSelectedCategory = Boolean(selectedCategory);
-  const showControls = hasSelectedCategory && selectedCategory !== 'bestseller';
 
   useEffect(() => {
     const gridObserver = new IntersectionObserver(
@@ -306,81 +162,25 @@ export function ProductGrid({
     };
   }, []);
 
-  // Reset animation when category changes
   useEffect(() => {
     setIsVisible(false);
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => clearTimeout(timer);
   }, [selectedCategory]);
 
-  useEffect(() => {
-    if (!showControls) {
-      setSelectedSize('');
-      setSelectedColor('');
-      setSelectedPriceRange('');
-      setSortBy('default');
-    }
-  }, [showControls]);
-
-  const categoryNavSection = (
-    <CategoryNavSection
-      menuRef={menuRef}
-      variant="homepage"
-      copy={getCategorySectionCopy('homepage')}
-      mainCategories={mainCategories}
-      activeMainCategory={activeMainCategory}
-      selectedCategory={selectedCategory}
-      mainInteraction="filter"
-      subInteraction="filter"
-      onMainSelect={handleCategoryChange}
-      onSubSelect={handleSubcategoryChange}
-      subcategoriesFor={activeMainCategory}
-      subPresentation="subRow"
-      subChipVariant="main"
-      subRowHint={
-        activeMainCategory
-          ? getCategorySubRowHint(activeMainCategory)
-          : undefined
-      }
-      showSubAlleChip
-      showSubBottomSeparator
-    />
-  );
-
   return (
     <section className="w-full py-0 bg-background min-w-0 overflow-x-clip">
       <div className={cn(ZEHN_SITE_CONTENT_ROW, 'min-w-0')}>
-        <div
-          className={cn(
-            CATEGORY_NAV_HOMEPAGE_SHELL,
-          )}
-        >
-          <div className={CATEGORY_NAV_STACK_GAP}>
-            {categoryNavSection}
-
-            {showControls && (
-              <ProductFilterToolbar
-                selectedPriceRange={selectedPriceRange}
-                selectedSize={selectedSize}
-                selectedColor={selectedColor}
-                availableSizes={availableSizes}
-                availableColors={availableColors}
-                sortBy={sortBy}
-                productCount={displayProducts.length}
-                onPriceChange={setSelectedPriceRange}
-                onSizeChange={setSelectedSize}
-                onColorChange={setSelectedColor}
-                onSortChange={setSortBy}
-                onClear={handleClearFilters}
-                onRemoveChip={handleRemoveFilterChip}
-              />
-            )}
-          </div>
-        </div>
+        <ProductCatalogBand
+          menuRef={menuRef}
+          navVariant="homepage"
+          copy={getCategorySectionCopy('homepage')}
+          filterState={bandFilterState}
+          showFilterToolbar={showFacetToolbar}
+        />
 
         {hasSelectedCategory && (
           <>
-            {/* Product Grid or Empty State */}
             {displayProducts.length === 0 ? (
               <div className="text-center py-8 sm:py-12">
                 <div className="max-w-md mx-auto space-y-4">
@@ -419,7 +219,6 @@ export function ProductGrid({
                   ))}
                 </div>
 
-                {/* Mobile Navigation - Compact pill design */}
                 <div className="flex sm:hidden justify-center items-center mt-6 pb-2">
                   <div className="inline-flex items-center gap-1 bg-card/80 backdrop-blur-sm rounded-full p-1.5 border border-border/50 shadow-md">
                     <button

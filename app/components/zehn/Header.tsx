@@ -15,11 +15,13 @@ import {
   Search,
   User,
   Heart,
-  ChevronDown,
 } from 'lucide-react';
 import {CartDrawer} from './CartDrawer';
 import {SearchModal} from './SearchModal';
+import {CategoryMenuPanel} from './CategoryMenuPanel';
+import {DesktopCategoryNavPopover} from './DesktopCategoryNavPopover';
 import {HeaderNavAccordionRow} from './HeaderNavAccordionRow';
+import {ZehnNavStaggerItem} from './ZehnNavStaggerItem';
 import {
   HeaderNavIcon,
   HeaderNavIconButton,
@@ -32,32 +34,30 @@ import type {RootLoader} from '~/root';
 import {
   getCategoryLabel,
   getCollectionRootSlug,
-  MAIN_CATEGORY_MAP,
 } from '~/lib/category-map';
 import {
   HEADER_NAV_ICON_STROKE,
   DESKTOP_SHOP_ALL_NAV_LABEL,
-  HEADER_NAV_MOBILE_SUBMENU_INDENT,
-  HEADER_NAV_DROPDOWN_SUBLIST,
   HEADER_NAV_MOBILE_MENU_MAX_H,
-  cnHeaderNavDropdownLink,
-  cnHeaderNavDropdownSection,
+  HEADER_NAV_MOBILE_SUBMENU_INDENT,
 } from '~/lib/header-nav-styles';
 import {
-  ZEHN_DROPDOWN_POSITIONER_OPEN,
   ZEHN_NAV_SURFACE,
   ZEHN_SURFACE_GLOW,
-  ZEHN_SURFACE_GLOW_BLEED,
 } from '~/lib/zehn-surface-styles';
-import {ZehnGlassPanel} from './ZehnGlassPanel';
-import {ZehnNavStaggerItem} from './ZehnNavStaggerItem';
+import {isNavPopoverPointerTarget} from '~/lib/header-nav-dropdown-styles';
 import {ZEHN_SITE_CONTENT_ROW} from '~/lib/site-content-row';
 import {cn} from '~/lib/utils';
 import {
+  isMobileCatalogRootActive,
   isNavCollectionRootActive,
-  isNavLinkActive,
   resolveMobileNavOpenState,
 } from '~/lib/header-nav-active';
+import {
+  isCatalogFreshNavUrl,
+  toCatalogFreshNav,
+} from '~/lib/catalog-band-context';
+import {useCatalogChipNav, type CatalogChipNavSnapshot} from '~/components/zehn/catalog-chip-nav-context';
 import {
   isMenuAriaExpanded,
   isMenuShellMounted,
@@ -126,21 +126,6 @@ export type ZehnHeaderNormalizedLink = {
 
 type MenuItem = NonNullable<HeaderQuery['menu']>['items'][number];
 type MenuEntry = MenuItem | {title: string; url: string; items?: MenuEntry[]};
-type CategoryMenuLink = {title: string; handle: string};
-type CategoryMenuSection = CategoryMenuLink & {items: CategoryMenuLink[]};
-
-// Build category menu sections from the canonical mapping to ensure links
-// and labels are consistent across the app.
-const CATEGORY_MENU_SECTIONS: CategoryMenuSection[] = Object.keys(
-  MAIN_CATEGORY_MAP,
-).map((main) => ({
-  title: getCategoryLabel(main),
-  handle: main,
-  items: (MAIN_CATEGORY_MAP[main] ?? []).map((sub) => ({
-    title: getCategoryLabel(sub),
-    handle: sub,
-  })),
-}));
 
 const DESIRED_URL_ORDER = [
   '/collections/all',
@@ -155,6 +140,11 @@ const TITLE_OVERRIDES: Record<string, string> = {
   '/collections/neuheiten': 'NEUHEITEN',
   '/collections/new-arrival': 'NEUHEITEN',
 };
+
+/** Top navbar catalog titles — land with Alle active (BL-0011 / BL-0017). */
+function resolveCatalogNavTo(url: string) {
+  return isCatalogFreshNavUrl(url) ? toCatalogFreshNav(url) : url;
+}
 
 const isExternalUrl = (url: string): boolean => {
   try {
@@ -206,146 +196,6 @@ const isShopAllMenuItem = ({
   return url === '/collections/all';
 };
 
-function CategoryMenuPanel({
-  id,
-  className,
-  onNavigate,
-  rootSourceUrl,
-  idPrefix = 'category-section',
-  interactionMode = 'toggleRow',
-  initialOpenSection = null,
-  staggerPhase = 'idle',
-}: {
-  id?: string;
-  className: string;
-  onNavigate?: () => void;
-  rootSourceUrl?: string;
-  idPrefix?: string;
-  /** toggleRow: desktop hover dropdown; splitRow: mobile link + chevron */
-  interactionMode?: 'toggleRow' | 'splitRow';
-  /** Mobile drawer auto-expand: open section matching current route on mount */
-  initialOpenSection?: string | null;
-  /** Desktop dropdown row stagger — synced to categoryMenuPhase */
-  staggerPhase?: ReturnType<typeof menuPhaseToStagger>;
-}) {
-  const [openSection, setOpenSection] = useState<string | null>(
-    initialOpenSection ?? null,
-  );
-  const {pathname} = useLocation();
-  const rootSlug = getCollectionRootSlug(rootSourceUrl ?? pathname);
-
-  return (
-    <nav id={id} className={className} aria-label="Kategorien">
-      {CATEGORY_MENU_SECTIONS.map((section, sectionIndex) => {
-        const sectionId = `${idPrefix}-${section.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')}`;
-        const isOpen = openSection === section.title;
-        const alleSectionUrl = `/collections/${rootSlug}/alle-${section.handle}`;
-
-        return (
-          <ZehnNavStaggerItem
-            key={section.title}
-            index={sectionIndex}
-            total={CATEGORY_MENU_SECTIONS.length}
-            phase={staggerPhase}
-            className="py-[5px] first:pt-0 last:pb-0"
-          >
-            {interactionMode === 'splitRow' ? (
-              <HeaderNavAccordionRow
-                to={alleSectionUrl}
-                label={section.title}
-                isOpen={isOpen}
-                isRouteActive={isNavLinkActive(
-                  pathname,
-                  alleSectionUrl,
-                  'descendant',
-                )}
-                onToggle={() =>
-                  setOpenSection((current) =>
-                    current === section.title ? null : section.title,
-                  )
-                }
-                onNavigate={onNavigate}
-                ariaControls={sectionId}
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() =>
-                  setOpenSection((current) =>
-                    current === section.title ? null : section.title,
-                  )
-                }
-                className={cnHeaderNavDropdownSection({active: isOpen})}
-                aria-expanded={isOpen}
-                aria-controls={sectionId}
-              >
-                <span>{section.title}</span>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ${
-                    isOpen ? 'rotate-180' : ''
-                  }`}
-                  aria-hidden="true"
-                />
-              </button>
-            )}
-            {
-              <div
-                id={sectionId}
-                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
-                  isOpen
-                    ? 'grid-rows-[1fr] opacity-100'
-                    : 'grid-rows-[0fr] opacity-0'
-                }`}
-              >
-                <div className="min-h-0 overflow-hidden">
-                  <div className={HEADER_NAV_DROPDOWN_SUBLIST}>
-                    <Link
-                      to={alleSectionUrl}
-                      prefetch="intent"
-                      onClick={onNavigate}
-                      className={cnHeaderNavDropdownLink({
-                        active: isNavLinkActive(
-                          pathname,
-                          alleSectionUrl,
-                          'exact',
-                        ),
-                      })}
-                    >
-                      Alle {section.title}
-                    </Link>
-                    {section.items.map((item) => {
-                      const itemUrl = `/collections/${rootSlug}/alle-${section.handle}/${item.handle}`;
-                      return (
-                        <Link
-                          key={`${section.title}-${item.title}`}
-                          to={itemUrl}
-                          prefetch="intent"
-                          onClick={onNavigate}
-                          className={cnHeaderNavDropdownLink({
-                            active: isNavLinkActive(
-                              pathname,
-                              itemUrl,
-                              'exact',
-                            ),
-                          })}
-                        >
-                          {item.title}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            }
-          </ZehnNavStaggerItem>
-        );
-      })}
-    </nav>
-  );
-}
-
 function MobileCollectionMenuSection({
   item,
   isOpen,
@@ -367,6 +217,7 @@ function MobileCollectionMenuSection({
   initialOpenSection?: string | null;
 }) {
   const {pathname} = useLocation();
+  const chipSnapshot = useCatalogChipNav();
   const url = normalizeMenuUrl({
     url: 'url' in item ? item.url : '',
     primaryDomainUrl,
@@ -385,10 +236,10 @@ function MobileCollectionMenuSection({
   return (
     <div>
       <HeaderNavAccordionRow
-        to={url}
+        to={resolveCatalogNavTo(url)}
         label={item.title}
         isOpen={isOpen}
-        isRouteActive={isNavCollectionRootActive(pathname, url)}
+        isRouteActive={isMobileCatalogRootActive(pathname, url, chipSnapshot)}
         onToggle={onToggle}
         onNavigate={onNavigate}
         ariaControls={sectionId}
@@ -406,7 +257,7 @@ function MobileCollectionMenuSection({
               onNavigate={onNavigate}
               rootSourceUrl={url}
               idPrefix={`mobile-${sectionKey}-category-section`}
-              interactionMode="splitRow"
+              interactionMode="toggleRow"
               initialOpenSection={initialOpenSection}
               className={cn(HEADER_NAV_MOBILE_SUBMENU_INDENT, 'flex flex-col gap-1')}
             />
@@ -415,6 +266,17 @@ function MobileCollectionMenuSection({
       </div>
     </div>
   );
+}
+
+/** Chip-derived accordion section for desktop hover popover (BL-0017). */
+function resolveDesktopCategoryInitialSection(
+  itemUrl: string,
+  chipSnapshot: CatalogChipNavSnapshot,
+): string | null {
+  if (chipSnapshot.source === 'idle') return null;
+  if (chipSnapshot.rootSlug !== getCollectionRootSlug(itemUrl)) return null;
+  if (!chipSnapshot.activeMainCategory) return null;
+  return getCategoryLabel(chipSnapshot.activeMainCategory);
 }
 
 const buildNormalizedMenu = ({
@@ -492,9 +354,6 @@ export function Header({
     title: string;
     url: string;
   } | null>(null);
-  const [dropdownCenterOffset, setDropdownCenterOffset] = useState<
-    number | null
-  >(null);
   const [openMobileCollection, setOpenMobileCollection] = useState<
     string | null
   >(null);
@@ -504,9 +363,7 @@ export function Header({
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const categoryMenuRef = useRef<HTMLDivElement>(null);
   const desktopNavTriggersRef = useRef<HTMLDivElement>(null);
-  const headerNavRef = useRef<HTMLElement>(null);
   const categoryMenuCloseTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
@@ -520,6 +377,7 @@ export function Header({
   const wasMenuOpenRef = useRef(false);
   const {count: wishlistCount} = useWishlist();
   const {pathname} = useLocation();
+  const chipSnapshot = useCatalogChipNav();
 
   // Get customer/auth state from root loader
   const rootData = useRouteLoaderData<RootLoader>('root');
@@ -631,7 +489,6 @@ export function Header({
     cancelCategoryMenuClose();
     setCategoryMenuPhase('idle');
     setDesktopCollection(null);
-    setDropdownCenterOffset(null);
   }, [cancelCategoryMenuClose]);
 
   const beginCloseCategoryMenu = useCallback(() => {
@@ -657,7 +514,7 @@ export function Header({
   }, [cancelCategoryMenuClose, beginCloseCategoryMenu]);
 
   const openDesktopCollectionMenu = useCallback(
-    (item: MenuEntry, triggerEl?: HTMLElement) => {
+    (item: MenuEntry) => {
       const url = normalizeMenuUrl({
         url: 'url' in item ? item.url : '',
         primaryDomainUrl,
@@ -670,14 +527,6 @@ export function Header({
       categoryMenuCloseFinishedRef.current = false;
       setDesktopCollection({title: item.title, url});
       setCategoryMenuPhase('open');
-
-      if (triggerEl && headerNavRef.current) {
-        const navRect = headerNavRef.current.getBoundingClientRect();
-        const itemRect = triggerEl.getBoundingClientRect();
-        setDropdownCenterOffset(
-          itemRect.left + itemRect.width / 2 - navRect.left,
-        );
-      }
     },
     [cancelCategoryMenuClose, primaryDomainUrl, publicStoreDomain],
   );
@@ -752,7 +601,7 @@ export function Header({
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node | null;
       if (target && desktopNavTriggersRef.current?.contains(target)) return;
-      if (target && categoryMenuRef.current?.contains(target)) return;
+      if (isNavPopoverPointerTarget(target)) return;
       beginCloseCategoryMenu();
     };
 
@@ -779,6 +628,21 @@ export function Header({
     return () => clearTimeout(timer);
   }, [categoryMenuPhase, finishCloseCategoryMenu]);
 
+  /** Keep inner section aligned with page chips even while menu is closed (BL-0017). */
+  useEffect(() => {
+    const resolved = resolveMobileNavOpenState(
+      pathname,
+      mobileNavMenuEntries,
+      chipSnapshot,
+    );
+    if (resolved.sectionTitle != null) {
+      setOpenMobileSection(resolved.sectionTitle);
+    }
+    if (resolved.collectionMenuUrl && chipSnapshot.source !== 'idle') {
+      setOpenMobileCollection(resolved.collectionMenuUrl);
+    }
+  }, [chipSnapshot, mobileNavMenuEntries, pathname]);
+
   useEffect(() => {
     if (!isMenuShellMounted(mobileMenuPhase)) {
       wasMenuOpenRef.current = false;
@@ -787,16 +651,27 @@ export function Header({
 
     if (shouldFreezeMobileAccordion(mobileMenuPhase)) return;
 
+    const resolved = resolveMobileNavOpenState(
+      pathname,
+      mobileNavMenuEntries,
+      chipSnapshot,
+    );
+
     if (!wasMenuOpenRef.current) {
-      const resolved = resolveMobileNavOpenState(pathname, mobileNavMenuEntries);
       if (resolved.collectionMenuUrl) {
         setOpenMobileCollection(resolved.collectionMenuUrl);
       }
       setOpenMobileSection(resolved.sectionTitle);
+      wasMenuOpenRef.current = true;
+      return;
     }
 
-    wasMenuOpenRef.current = true;
-  }, [mobileMenuPhase, pathname, mobileNavMenuEntries]);
+    // After in-menu navigation — align accordion to new catalog root (BL-0011).
+    if (resolved.collectionMenuUrl) {
+      setOpenMobileCollection(resolved.collectionMenuUrl);
+    }
+    setOpenMobileSection(resolved.sectionTitle);
+  }, [chipSnapshot, mobileMenuPhase, mobileNavMenuEntries, pathname]);
 
   useEffect(() => {
     if (!isMenuShellMounted(mobileMenuPhase)) return;
@@ -830,7 +705,6 @@ export function Header({
       {/* 3px breathing gap below announcement bar so navbar card visually floats */}
       <header className="fixed top-[29px] sm:top-[32px] left-0 right-0 z-50 font-sans bg-transparent">
         <nav
-          ref={headerNavRef}
           className={cn(
             'relative py-0 my-0 transition-all duration-600 ease-out',
             ZEHN_SITE_CONTENT_ROW,
@@ -889,24 +763,48 @@ export function Header({
               onMouseLeave={scheduleCategoryMenuClose}
             >
               {shopAllMenuItem && (
-                <HeaderNavLink
-                  to={shopAllMenuUrl}
-                  prefetch="intent"
-                  active={
-                    isNavCollectionRootActive(pathname, shopAllMenuUrl) ||
-                    (categoryMenuPhase === 'open' &&
-                      desktopCollection?.url === shopAllMenuUrl)
+                <DesktopCategoryNavPopover
+                  open={
+                    desktopCollection?.url === shopAllMenuUrl &&
+                    categoryMenuPhase !== 'idle'
                   }
-                  onMouseEnter={(e) =>
-                    openDesktopCollectionMenu(shopAllMenuItem, e.currentTarget)
+                  onOpenChange={(next) => {
+                    if (!next) beginCloseCategoryMenu();
+                  }}
+                  itemUrl={shopAllMenuUrl}
+                  panelKey={desktopCollection?.url ?? 'shop-all'}
+                  initialOpenSection={resolveDesktopCategoryInitialSection(
+                    desktopCollection?.url ?? shopAllMenuUrl,
+                    chipSnapshot,
+                  )}
+                  staggerPhase={desktopStaggerPhase}
+                  categoryMenuPhase={categoryMenuPhase}
+                  onPointerEnter={cancelCategoryMenuClose}
+                  onPointerLeave={scheduleCategoryMenuClose}
+                  onNavigate={closeCategoryMenu}
+                  onMotionEnd={
+                    categoryMenuPhase === 'closing'
+                      ? finishCloseCategoryMenu
+                      : undefined
                   }
-                  onFocus={(e) =>
-                    openDesktopCollectionMenu(shopAllMenuItem, e.currentTarget)
-                  }
-                  onClick={closeCategoryMenu}
                 >
-                  {DESKTOP_SHOP_ALL_NAV_LABEL}
-                </HeaderNavLink>
+                  <HeaderNavLink
+                    to={resolveCatalogNavTo(shopAllMenuUrl)}
+                    prefetch="intent"
+                    active={
+                      isNavCollectionRootActive(pathname, shopAllMenuUrl) ||
+                      (categoryMenuPhase === 'open' &&
+                        desktopCollection?.url === shopAllMenuUrl)
+                    }
+                    onMouseEnter={() =>
+                      openDesktopCollectionMenu(shopAllMenuItem)
+                    }
+                    onFocus={() => openDesktopCollectionMenu(shopAllMenuItem)}
+                    onClick={closeCategoryMenu}
+                  >
+                    {DESKTOP_SHOP_ALL_NAV_LABEL}
+                  </HeaderNavLink>
+                </DesktopCategoryNavPopover>
               )}
 
               {primaryMenuItems.map((item) => {
@@ -919,12 +817,10 @@ export function Header({
                 if (!url) return null;
 
                 const isLinkActive = isNavCollectionRootActive(pathname, url);
-                const sharedProps = {
+                const sharedLinkProps = {
                   active: isLinkActive,
-                  onMouseEnter: (e: React.MouseEvent<HTMLElement>) =>
-                    openDesktopCollectionMenu(item, e.currentTarget),
-                  onFocus: (e: React.FocusEvent<HTMLElement>) =>
-                    openDesktopCollectionMenu(item, e.currentTarget),
+                  onMouseEnter: () => openDesktopCollectionMenu(item),
+                  onFocus: () => openDesktopCollectionMenu(item),
                   onClick: closeCategoryMenu,
                 };
 
@@ -936,7 +832,7 @@ export function Header({
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      {...sharedProps}
+                      {...sharedLinkProps}
                     >
                       {item.title}
                     </HeaderNavLink>
@@ -944,14 +840,40 @@ export function Header({
                 }
 
                 return (
-                  <HeaderNavLink
+                  <DesktopCategoryNavPopover
                     key={item.title}
-                    to={url}
-                    prefetch="intent"
-                    {...sharedProps}
+                    open={
+                      desktopCollection?.url === url &&
+                      categoryMenuPhase !== 'idle'
+                    }
+                    onOpenChange={(next) => {
+                      if (!next) beginCloseCategoryMenu();
+                    }}
+                    itemUrl={url}
+                    panelKey={desktopCollection?.url ?? url}
+                    initialOpenSection={resolveDesktopCategoryInitialSection(
+                      desktopCollection?.url ?? url,
+                      chipSnapshot,
+                    )}
+                    staggerPhase={desktopStaggerPhase}
+                    categoryMenuPhase={categoryMenuPhase}
+                    onPointerEnter={cancelCategoryMenuClose}
+                    onPointerLeave={scheduleCategoryMenuClose}
+                    onNavigate={closeCategoryMenu}
+                    onMotionEnd={
+                      categoryMenuPhase === 'closing'
+                        ? finishCloseCategoryMenu
+                        : undefined
+                    }
                   >
-                    {item.title}
-                  </HeaderNavLink>
+                    <HeaderNavLink
+                      to={resolveCatalogNavTo(url)}
+                      prefetch="intent"
+                      {...sharedLinkProps}
+                    >
+                      {item.title}
+                    </HeaderNavLink>
+                  </DesktopCategoryNavPopover>
                 );
               })}
             </div>
@@ -1054,53 +976,6 @@ export function Header({
               />
             </div>
           </div>
-
-          {/* Desktop Navigation */}
-          {categoryMenuPhase !== 'idle' && (
-          <div
-            id="zehn-desktop-category-menu"
-            ref={categoryMenuRef}
-            className={cn(
-              'absolute top-full hidden w-fit max-w-[calc(100%_-_2rem)] lg:block',
-              ZEHN_DROPDOWN_POSITIONER_OPEN,
-              ZEHN_SURFACE_GLOW_BLEED,
-            )}
-            style={{
-              left:
-                dropdownCenterOffset !== null
-                  ? `${dropdownCenterOffset}px`
-                  : '0',
-              transform:
-                dropdownCenterOffset !== null ? 'translateX(-50%)' : 'none',
-            }}
-            aria-hidden={categoryMenuPhase === 'closing'}
-            {...({
-              inert: categoryMenuPhase === 'closing' ? true : undefined,
-            } as object)}
-            onMouseEnter={cancelCategoryMenuClose}
-            onMouseLeave={scheduleCategoryMenuClose}
-          >
-            <ZehnGlassPanel
-              scrollable
-              className="w-max max-w-full"
-              motion={categoryMenuPhase === 'closing' ? 'exit' : 'enter'}
-              onMotionEnd={
-                categoryMenuPhase === 'closing'
-                  ? finishCloseCategoryMenu
-                  : undefined
-              }
-            >
-              <CategoryMenuPanel
-                key={desktopCollection?.url ?? 'shop-all'}
-                onNavigate={closeCategoryMenu}
-                rootSourceUrl={desktopCollection?.url ?? shopAllMenuUrl}
-                idPrefix="desktop-category-section"
-                className="flex w-max max-w-full flex-col gap-1"
-                staggerPhase={desktopStaggerPhase}
-              />
-            </ZehnGlassPanel>
-          </div>
-          )}
 
           {/* Mobile Navigation */}
           <div

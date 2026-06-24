@@ -15,8 +15,8 @@ import {
   isProductFilterActive,
   PRICE_FILTER_OPTIONS,
   PRODUCT_FILTER_ICONS,
-  PRODUCT_FILTER_MIN_WIDTH,
   PRODUCT_FILTER_PLACEHOLDER,
+  PRODUCT_FILTER_TRIGGER_SHELL,
 } from '~/lib/product-filter-ui';
 import {cn} from '~/lib/utils';
 
@@ -71,7 +71,7 @@ export function DesktopProductFilterRow({
         placeholder={PRODUCT_FILTER_PLACEHOLDER.price}
         icon={PRODUCT_FILTER_ICONS.price}
         layout="filter"
-        className={cn(FILTER_SELECT_SHELL, PRODUCT_FILTER_MIN_WIDTH.price)}
+        className={cn(FILTER_SELECT_SHELL, PRODUCT_FILTER_TRIGGER_SHELL)}
       />
 
       {availableSizes.length > 0 && (
@@ -82,7 +82,7 @@ export function DesktopProductFilterRow({
           placeholder={PRODUCT_FILTER_PLACEHOLDER.size}
           icon={PRODUCT_FILTER_ICONS.size}
           layout="filter"
-          className={cn(FILTER_SELECT_SHELL, PRODUCT_FILTER_MIN_WIDTH.size)}
+          className={cn(FILTER_SELECT_SHELL, PRODUCT_FILTER_TRIGGER_SHELL)}
         />
       )}
 
@@ -94,7 +94,7 @@ export function DesktopProductFilterRow({
           placeholder={PRODUCT_FILTER_PLACEHOLDER.color}
           icon={PRODUCT_FILTER_ICONS.color}
           layout="filter"
-          className={cn(FILTER_SELECT_SHELL, PRODUCT_FILTER_MIN_WIDTH.color)}
+          className={cn(FILTER_SELECT_SHELL, PRODUCT_FILTER_TRIGGER_SHELL)}
         />
       )}
 

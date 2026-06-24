@@ -87,7 +87,7 @@ export function CustomSelect({
                   className="w-4 h-4 justify-self-start text-foreground/50"
                   aria-hidden
                 />
-                <span className="min-w-0 text-xs xl:text-sm text-center leading-tight truncate">
+                <span className="text-xs xl:text-sm text-center leading-tight whitespace-nowrap">
                   {displayLabel}
                 </span>
                 <ChevronDown

@@ -1,9 +1,13 @@
 /**
  * Radix Popover — portaled overlay for filter/sort selects (ART-0046).
- * Shadcn-style primitive; ZEHN tokens applied by consumers (CustomSelect).
+ * NavPopoverContent — desktop category hover menu with viewport collision (BL-0018).
  */
 import * as React from 'react';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
+import {
+  ZEHN_NAV_POPOVER_CONTENT,
+  ZEHN_NAV_POPOVER_DATA_ATTR,
+} from '~/lib/header-nav-dropdown-styles';
 import {cn} from '~/lib/utils';
 
 function Popover({
@@ -53,3 +57,26 @@ function PopoverAnchor({
 }
 
 export {Popover, PopoverTrigger, PopoverContent, PopoverAnchor};
+
+/** Desktop nav hover dropdown — Radix flip/shift; no manual offset math (BL-0018). */
+export function NavPopoverContent({
+  className,
+  side = 'bottom',
+  align = 'center',
+  sideOffset = 12,
+  collisionPadding = 16,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  return (
+    <PopoverContent
+      side={side}
+      align={align}
+      sideOffset={sideOffset}
+      collisionPadding={collisionPadding}
+      className={cn(ZEHN_NAV_POPOVER_CONTENT, className)}
+      onOpenAutoFocus={(event) => event.preventDefault()}
+      {...props}
+      {...{[ZEHN_NAV_POPOVER_DATA_ATTR]: ''}}
+    />
+  );
+}

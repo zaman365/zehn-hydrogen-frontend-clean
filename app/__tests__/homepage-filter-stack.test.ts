@@ -24,7 +24,7 @@ describe('useHomepageFilterStackOpen', () => {
 
   it('ProductFilterToolbar wires hook with default open', () => {
     const toolbar = readFile('app/components/zehn/ProductFilterToolbar.tsx');
-    expect(toolbar).toContain('useHomepageFilterStackOpen(true)');
+    expect(toolbar).toContain('useProductFilterStackOpen(true)');
   });
 
   it('mobile filter panel uses HeaderNavIconButton ripple toggle', () => {

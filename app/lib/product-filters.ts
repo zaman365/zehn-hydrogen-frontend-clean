@@ -1,4 +1,9 @@
 type ProductLike = {
+  id?: string | null;
+  handle?: string | null;
+  title?: string | null;
+  tags?: string[] | null;
+  productType?: string | null;
   options?: Array<{
     name?: string | null;
     optionValues?: Array<{name?: string | null} | null> | null;
@@ -303,4 +308,32 @@ export function productMatchesSelectedFilters(
   const colorMatches = !color || getProductOptionValues(product, 'color').some((value) => valuesMatch(value, color));
 
   return sizeMatches && colorMatches && productPriceRangeOverlaps(product, priceRange);
+}
+
+/** Catalog sort keys — shared by homepage and collection routes (REQ-0008). */
+export type ProductSortKey = 'default' | 'price-asc' | 'price-desc' | 'newest';
+
+export type {ProductLike};
+
+function productMinPrice(product: ProductLike): number {
+  return parseFloat(product.priceRange?.minVariantPrice?.amount ?? '0');
+}
+
+/** Sort a product list by catalog sort key — returns a new array. */
+export function sortProductsByKey<T extends ProductLike>(
+  products: T[],
+  sortBy: ProductSortKey,
+): T[] {
+  const copy = [...products];
+
+  switch (sortBy) {
+    case 'price-asc':
+      return copy.sort((a, b) => productMinPrice(a) - productMinPrice(b));
+    case 'price-desc':
+      return copy.sort((a, b) => productMinPrice(b) - productMinPrice(a));
+    case 'newest':
+      return copy.reverse();
+    default:
+      return copy;
+  }
 }

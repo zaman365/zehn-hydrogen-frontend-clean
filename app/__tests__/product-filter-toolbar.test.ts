@@ -7,6 +7,7 @@ import {
   PRODUCT_SORT_ICONS,
   PRODUCT_SORT_OPTIONS,
 } from '~/lib/product-filter-ui';
+import {sortProductsByKey} from '~/lib/product-filters';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 
@@ -46,36 +47,98 @@ describe('product filter toolbar helpers', () => {
   });
 
   it('defines desktop clear-all minimum facet count', () => {
-    expect(PRODUCT_FILTER_CLEAR_ALL_MIN).toBe(2);
+    expect(PRODUCT_FILTER_CLEAR_ALL_MIN).toBe(1);
+  });
+
+  it('sortProductsByKey orders by price ascending', () => {
+    const products = [
+      {priceRange: {minVariantPrice: {amount: '100'}}},
+      {priceRange: {minVariantPrice: {amount: '50'}}},
+    ];
+    const sorted = sortProductsByKey(products, 'price-asc');
+    expect(sorted[0].priceRange?.minVariantPrice?.amount).toBe('50');
   });
 });
 
 describe('product filter toolbar wiring', () => {
-  it('ProductGrid uses ProductFilterToolbar without mobile drawer', () => {
+  it('ProductGrid uses ProductCatalogBand without mobile drawer', () => {
     const grid = readFile('app/components/zehn/ProductGrid.tsx');
-    expect(grid).toContain('ProductFilterToolbar');
+    expect(grid).toContain('ProductCatalogBand');
+    expect(grid).toContain('useProductCatalogFilters');
     expect(grid).not.toContain('MobileProductFilterDrawer');
     expect(grid).not.toContain('showFilters');
-    expect(grid).not.toContain('viewAllHref');
-    expect(grid).not.toContain('getCollectionPath');
-    expect(grid).not.toContain('getCategoryUrl');
+  });
+
+  it('collection routes use ProductCatalogBand without mobile drawer', () => {
+    const allRoute = readFile('app/routes/collections.all.tsx');
+    const handleRoute = readFile('app/routes/collections.$handle.tsx');
+    for (const route of [allRoute, handleRoute]) {
+      expect(route).toContain('ProductCatalogBand');
+      expect(route).toContain('useProductCatalogFilters');
+      expect(route).not.toContain('MobileProductFilterDrawer');
+      expect(route).not.toContain('FILTER_BAR_SHELL');
+    }
+  });
+
+  it('ProductCatalogBand uses homepage sub-row with Alle chip', () => {
+    const band = readFile('app/components/zehn/ProductCatalogBand.tsx');
+    expect(band).toContain('subPresentation="subRow"');
+    expect(band).toContain('showSubAlleChip');
+    expect(band).toContain('showSubBottomSeparator');
+    expect(band).toContain('showMainAlleChip');
+    expect(band).toContain('onMainAlleSelect={handleMainAlleSelect}');
+    expect(band).toContain('getCollectionBandCopy');
+    expect(band).toContain('ProductFilterToolbar');
+  });
+
+  it('collection routes enable main-row Alle chip; homepage does not', () => {
+    const allRoute = readFile('app/routes/collections.all.tsx');
+    const handleRoute = readFile('app/routes/collections.$handle.tsx');
+    const grid = readFile('app/components/zehn/ProductGrid.tsx');
+    const nav = readFile('app/components/zehn/CategoryNavSection.tsx');
+
+    expect(allRoute).toContain('showMainAlleChip');
+    expect(handleRoute).toContain('showMainAlleChip={catalogBand}');
+    expect(handleRoute).toContain('showMainRow={catalogBand}');
+    expect(handleRoute).toContain('isCatalogBandPath');
+    expect(handleRoute).toContain('filterChipNav');
+    expect(grid).not.toContain('showMainAlleChip');
+    expect(nav).toContain('showMainAlleChip');
+    expect(nav).toContain('onMainAlleSelect');
+    expect(nav).toContain('MAIN_ROW_ALLE_LABEL');
+  });
+
+  it('header catalog nav links pass fresh filter reset state', () => {
+    const header = readFile('app/components/zehn/Header.tsx');
+    expect(header).toContain('resolveCatalogNavTo(shopAllMenuUrl)');
+    expect(header).toContain('resolveCatalogNavTo(url)');
+    expect(header).toContain('MobileCollectionMenuSection');
+  });
+
+  it('useProductCatalogFilters supports catalog route sync', () => {
+    const hook = readFile('app/hooks/useProductCatalogFilters.ts');
+    expect(hook).toContain('routeSync');
+    expect(hook).toContain('isCatalogRootPath');
+    expect(hook).toContain('onCatalogFreshConsumed');
   });
 
   it('toolbar composes collapsible mobile panel, desktop row, chips, and sort meta', () => {
     const toolbar = readFile('app/components/zehn/ProductFilterToolbar.tsx');
     expect(toolbar).toContain('HomepageMobileFilterPanel');
-    expect(toolbar).toContain('useHomepageFilterStackOpen');
+    expect(toolbar).toContain('useProductFilterStackOpen');
     expect(toolbar).toContain('HOMEPAGE_FILTER_SEPARATOR');
     expect(toolbar).toContain('DesktopProductFilterRow');
     expect(toolbar).toContain('ProductFilterActiveChips');
     expect(toolbar).toContain('ProductSortMetaRow');
-    expect(toolbar).toContain('HOMEPAGE_FILTER_TOOLBAR_DESKTOP');
+    expect(toolbar).toContain('PRODUCT_FILTER_TOOLBAR_DESKTOP');
+    expect(toolbar).toContain('PRODUCT_FILTER_TOOLBAR_DESKTOP_ROW_PRIMARY');
     expect(toolbar).toContain('FILTER_TOOLBAR_BAND_A_MOBILE');
+    expect(toolbar).not.toContain('PRODUCT_FILTER_TOOLBAR_DESKTOP_LEFT');
+    expect(toolbar).not.toContain('ZEHN_HOMEPAGE_INSET_PY');
     expect(toolbar).not.toContain('Anwenden');
     expect(toolbar).toContain('showClearButton={false}');
     expect(toolbar).toMatch(/onClear,/);
-    expect(toolbar).toContain('HOMEPAGE_FILTER_TOOLBAR_SHELL');
-    expect(toolbar).toContain('ZEHN_HOMEPAGE_INSET_PY');
+    expect(toolbar).toContain('PRODUCT_FILTER_TOOLBAR_SHELL');
   });
 
   it('mobile filter panel uses stack gap without inline mt', () => {
@@ -138,9 +201,9 @@ describe('product filter toolbar wiring', () => {
     expect(ui).not.toMatch(/PRODUCT_SORT_META_ROW[\s\S]*pt-2/);
     expect(ui).toMatch(/PRODUCT_SORT_COUNT_ROW[\s\S]*justify-center/);
     expect(ui).toMatch(/PRODUCT_SORT_COUNT_ROW[\s\S]*lg:justify-start/);
-    const sortMatch = ui.match(/export const PRODUCT_SORT_SELECT\s*=\s*'([^']+)'/);
-    expect(sortMatch?.[1]).toContain('w-full');
-    expect(sortMatch?.[1]).not.toContain('ml-auto');
+    expect(ui).toContain('PRODUCT_SORT_SELECT');
+    expect(ui).toContain('ZEHN_FILTER_PILL_MIN_W');
+    expect(ui).not.toMatch(/PRODUCT_SORT_SELECT[\s\S]*ml-auto/);
   });
 
   it('ProductGrid uses shared grid top rhythm token', () => {
@@ -161,16 +224,121 @@ describe('product filter toolbar wiring', () => {
     expect(row).toMatch(/showClear && showClearButton/);
   });
 
-  it('ProductFilterActiveChips documents clearAllMinCount for desktop clear-all', () => {
+  it('ProductFilterActiveChips uses ripple, lead copy, and compact clear (BL-0013)', () => {
     const chips = readFile('app/components/zehn/ProductFilterActiveChips.tsx');
     expect(chips).toContain('clearAllMinCount');
     expect(chips).toContain('PRODUCT_FILTER_CLEAR_ALL_MIN');
+    expect(chips).toContain('RippleButton');
+    expect(chips).toContain('PRODUCT_FILTER_ACTIVE_CHIPS_LEAD_TEXT_LONG');
+    expect(chips).toContain('PRODUCT_FILTER_ACTIVE_CHIP_REMOVE_ICON');
+    expect(chips).toContain('size="compact"');
     expect(chips).toContain('hidden lg:inline-flex');
     expect(chips).toContain('FilterClearButton');
   });
 
+  it('desktop toolbar uses two-row layout tokens (BL-0013)', () => {
+    const ui = readFile('app/lib/product-filter-ui.ts');
+    expect(ui).toContain('PRODUCT_FILTER_TOOLBAR_DESKTOP_ROW_PRIMARY');
+    const desktopMatch = ui.match(
+      /export const HOMEPAGE_FILTER_TOOLBAR_DESKTOP\s*=\s*\n\s*`([^`]+)`/,
+    );
+    expect(desktopMatch?.[1]).toContain('lg:flex-col');
+    expect(desktopMatch?.[1]).not.toContain('lg:items-center');
+  });
+
+  it('facet triggers use content-fit shell token (BL-0014)', () => {
+    const ui = readFile('app/lib/product-filter-ui.ts');
+    const row = readFile('app/components/zehn/DesktopProductFilterRow.tsx');
+    const select = readFile('app/components/CustomSelect.tsx');
+    expect(ui).toContain('PRODUCT_FILTER_TRIGGER_SHELL');
+    expect(ui).toContain('ZEHN_FILTER_PILL_MIN_W');
+    expect(ui).toContain('w-auto');
+    expect(ui).not.toContain('PRODUCT_FILTER_MIN_WIDTH');
+    expect(row).toContain('PRODUCT_FILTER_TRIGGER_SHELL');
+    expect(row).not.toContain('PRODUCT_FILTER_MIN_WIDTH');
+    expect(select).toContain('whitespace-nowrap');
+    expect(select).not.toContain('leading-tight truncate');
+    expect(ui).toMatch(/FILTER_SELECT_TRIGGER[\s\S]*auto/);
+  });
+
+  it('active chips row uses ListFilter lead icon (BL-0014)', () => {
+    const chips = readFile('app/components/zehn/ProductFilterActiveChips.tsx');
+    const ui = readFile('app/lib/product-filter-ui.ts');
+    expect(chips).toContain('ListFilter');
+    expect(chips).toContain('PRODUCT_FILTER_ACTIVE_CHIPS_LEAD_ICON');
+    expect(chips).toContain('PRODUCT_FILTER_ACTIVE_CHIPS_LEAD_TEXT');
+    expect(ui).toContain('PRODUCT_FILTER_ACTIVE_CHIPS_ICON');
+    expect(ui).not.toMatch(
+      /PRODUCT_FILTER_ACTIVE_CHIPS_LEAD[\s\S]*hidden lg:inline font-sans/,
+    );
+  });
+
+  it('FilterClearButton supports compact chip-row size (BL-0013)', () => {
+    const clear = readFile('app/components/zehn/FilterClearButton.tsx');
+    expect(clear).toContain("size?: 'default' | 'compact'");
+    expect(clear).toContain('PRODUCT_FILTER_CLEAR_CHIP');
+  });
+
+  it('ProductCatalogBand uses catalog shell without section py on collection routes', () => {
+    const band = readFile('app/components/zehn/ProductCatalogBand.tsx');
+    const styles = readFile('app/lib/category-nav-styles.ts');
+    expect(styles).toContain('CATEGORY_NAV_CATALOG_SHELL');
+    expect(styles).toContain('CATEGORY_NAV_BAND_SHELL_BASE');
+    expect(styles).toMatch(
+      /CATEGORY_NAV_CATALOG_SHELL[\s\S]*CATEGORY_NAV_BAND_SHELL_BASE/,
+    );
+    expect(styles).toMatch(
+      /CATEGORY_NAV_HOMEPAGE_SHELL[\s\S]*CATEGORY_NAV_BAND_SHELL_BASE/,
+    );
+    expect(styles).not.toMatch(
+      /CATEGORY_NAV_HOMEPAGE_SHELL[\s\S]*ZEHN_HOMEPAGE_SECTION_PY/,
+    );
+    expect(styles).not.toMatch(
+      /CATEGORY_NAV_CATALOG_SHELL[\s\S]*ZEHN_HOMEPAGE_SECTION_PY/,
+    );
+    expect(band).toContain('CATEGORY_NAV_CATALOG_SHELL');
+    expect(band).toContain('CATEGORY_NAV_HOMEPAGE_SHELL');
+    expect(band).toContain('CATEGORY_NAV_HOMEPAGE_IDLE_PY');
+    expect(band).toContain('isHomepageIdle');
+    expect(band).toContain("navVariant === 'homepage'");
+  });
+
+  it('route sync uses isBandLeaf for catalog root reset (BL-0017)', () => {
+    const hook = readFile('app/hooks/useProductCatalogFilters.ts');
+    expect(hook).toContain('const isBandLeaf = isBand && !isRoot');
+    expect(hook).toContain('if (isBandLeaf)');
+  });
+
+  it('ProductCatalogBand publishes chip nav + main Alle divider (BL-0017)', () => {
+    const band = readFile('app/components/zehn/ProductCatalogBand.tsx');
+    expect(band).toContain('usePublishCatalogChipNav');
+    expect(band).toContain('CATEGORY_NAV_MAIN_BOTTOM_DIVIDER');
+    expect(band).toContain('showMainBottomDivider');
+  });
+
+  it('Header syncs mobile menu with chip snapshot (BL-0017)', () => {
+    const header = readFile('app/components/zehn/Header.tsx');
+    const panel = readFile('app/components/zehn/CategoryMenuPanel.tsx');
+    const layout = readFile('app/components/PageLayout.tsx');
+    expect(header).toContain('useCatalogChipNav');
+    expect(header).toContain('isMobileCatalogRootActive');
+    expect(panel).toContain('resolveChipMenuOpenSection');
+    expect(panel).toContain('setOpenSection(resolvedOpenSection)');
+    expect(layout).toContain('CatalogChipNavProvider');
+    expect(header).toContain('isCatalogFreshNavUrl');
+  });
+
+  it('category-nav-section uses zero mb — band stack gap owns sibling rhythm (BL-0016)', () => {
+    const css = readFile('app/styles/app.css');
+    const block = css.match(/\.category-nav-section\s*\{[^}]+\}/)?.[0];
+    expect(block).toBeDefined();
+    expect(block).toContain('margin-bottom: 0');
+    expect(block).not.toContain('margin-bottom: 1.5rem');
+  });
+
   it('barrel exports ART-0040 filter and nav components', () => {
     const barrel = readFile('app/components/zehn/index.ts');
+    expect(barrel).toContain('ProductCatalogBand');
     expect(barrel).toContain('ProductFilterToolbar');
     expect(barrel).toContain('HomepageMobileFilterPanel');
     expect(barrel).not.toContain('MobileProductFilterStack');

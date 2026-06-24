@@ -2,16 +2,46 @@
  * Category nav glow tokens — sole source of truth (REQ-0007 / REQ-0008).
  * Chip box-shadow + header spotlight (text-shadow + ambient splash in app.css).
  * Hero-parity orange weights, tuned for dark text on light page background.
+ *
+ * Active chips: glass white→Signal gradient + inset bloom (not solid primary fill).
+ * Idle chips: flat rgba glass — see app.css .category-nav-chip--main|--sub.
  */
 
 :root {
-  /* Chip idle / hover / active halos */
+  /* Chip idle / hover / active outer halos */
   --category-nav-chip-glow: 0 2px 10px rgba(15, 20, 38, 0.08),
     0 0 18px rgba(255, 95, 31, 0.08);
   --category-nav-chip-glow-hover: 0 4px 14px rgba(15, 20, 38, 0.1),
     0 0 24px rgba(255, 95, 31, 0.14);
-  --category-nav-chip-glow-active: 0 4px 16px rgba(15, 20, 38, 0.14),
-    0 0 28px rgba(255, 95, 31, 0.35), 0 0 48px rgba(255, 95, 31, 0.12);
+  /* Softer outer halo — supports glass active fill instead of dominating it */
+  --category-nav-chip-glow-active: 0 4px 14px rgba(15, 20, 38, 0.12),
+    0 0 24px rgba(255, 95, 31, 0.22), 0 0 40px rgba(255, 95, 31, 0.1);
+
+  /* Active glass fill — main row (matches idle 0.92 white base) */
+  --category-nav-chip-active-bg-main: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 235, 220, 0.9) 40%,
+    rgba(255, 95, 31, 0.12) 55%,
+    rgba(255, 95, 31, 0.22) 100%
+  );
+
+  /* Active glass fill — sub row (slightly more transparent, matches idle 0.72) */
+  --category-nav-chip-active-bg-sub: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(255, 235, 220, 0.78) 40%,
+    rgba(255, 95, 31, 0.1) 55%,
+    rgba(255, 95, 31, 0.18) 100%
+  );
+
+  /* Active border — Signal tint with white top highlight */
+  --category-nav-chip-active-border: rgba(255, 95, 31, 0.28);
+
+  /* Inner glow — white edge + warm Signal bloom inside the pill */
+  --category-nav-chip-active-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 2px 16px rgba(255, 95, 31, 0.2),
+    inset 0 -1px 8px rgba(255, 95, 31, 0.15);
 
   /* Title — hero-parity signal splash on glyphs (no bounded pill) */
   --category-nav-title-spotlight: 0 0 40px rgba(255, 95, 31, 0.38),

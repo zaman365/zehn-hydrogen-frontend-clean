@@ -3,11 +3,11 @@
  * Typography: Space Grotesk (font-sans) — matches navbar labels + AC-1.
  * Glow values: @see app/styles/category-nav-glow.css (sole source of truth).
  */
-import {ZEHN_HOMEPAGE_SECTION_PY, ZEHN_HOMEPAGE_STACK_GAP} from '~/lib/homepage-section-styles';
+import {ZEHN_HOMEPAGE_STACK_GAP} from '~/lib/homepage-section-styles';
 
 /** Section + header shell class names (presentation in app.css). */
 export const CATEGORY_NAV_SECTION = 'category-nav-section';
-/** Homepage — zero bottom margin; shell py handles rhythm (ART-0042). */
+/** Homepage — zero bottom margin; STACK_GAP + parent layout own rhythm (BL-0017). */
 export const CATEGORY_NAV_SECTION_HOME = 'category-nav-section--home';
 /** Shared vertical rhythm — nav rows + filter block (ART-0043 / ART-0048). */
 export const CATEGORY_NAV_STACK_GAP = ZEHN_HOMEPAGE_STACK_GAP;
@@ -19,8 +19,18 @@ export const CATEGORY_NAV_SUBTITLE = 'category-nav-subtitle';
 /** Text-shadow spotlight layers on title/subtitle glyphs. */
 export const CATEGORY_NAV_TITLE_SPOTLIGHT = 'category-nav-title-spotlight';
 export const CATEGORY_NAV_SUBTITLE_SPOTLIGHT = 'category-nav-subtitle-spotlight';
-/** Homepage band wrapper — vertical padding below hero fold. */
-export const CATEGORY_NAV_HOMEPAGE_SHELL = `homepage-category-nav-shell overflow-x-clip ${ZEHN_HOMEPAGE_SECTION_PY}`;
+/** Band shell base — overflow clip; no shell py (BL-0015 / BL-0017). */
+export const CATEGORY_NAV_BAND_SHELL_BASE =
+  'homepage-category-nav-shell overflow-x-clip';
+
+/** Homepage band — same shell as catalog; rhythm via STACK_GAP + GRID_TOP (BL-0017). */
+export const CATEGORY_NAV_HOMEPAGE_SHELL = CATEGORY_NAV_BAND_SHELL_BASE;
+
+/** Homepage idle band (no chip selected) — pairs with trust strip pt above hero fold. */
+export const CATEGORY_NAV_HOMEPAGE_IDLE_PY = 'py-4' as const;
+
+/** Collection/catalog band — parent layout owns vertical rhythm; no extra shell py. */
+export const CATEGORY_NAV_CATALOG_SHELL = CATEGORY_NAV_BAND_SHELL_BASE;
 export const CATEGORY_NAV_TITLE_HOME = 'category-nav-title--home';
 export const CATEGORY_NAV_CHIPS = 'category-nav-chips';
 export const CATEGORY_NAV_CHIPS_SUB =
@@ -45,7 +55,7 @@ export const CATEGORY_NAV_CHIP_HOST = 'relative overflow-hidden';
 export const CATEGORY_NAV_CHIP_MAIN =
   'category-nav-chip category-nav-chip--main';
 
-/** Active main chip — primary fill + stronger glow. */
+/** Active main chip — glass white→Signal gradient + inset glow (category-nav-glow.css). */
 export const CATEGORY_NAV_CHIP_MAIN_ACTIVE =
   'category-nav-chip category-nav-chip--main category-nav-chip--active';
 
@@ -53,7 +63,7 @@ export const CATEGORY_NAV_CHIP_MAIN_ACTIVE =
 export const CATEGORY_NAV_CHIP_SUB =
   'category-nav-chip category-nav-chip--sub';
 
-/** Active sub chip. */
+/** Active sub chip — glass gradient + inset glow (lighter base than main). */
 export const CATEGORY_NAV_CHIP_SUB_ACTIVE =
   'category-nav-chip category-nav-chip--sub category-nav-chip--active';
 

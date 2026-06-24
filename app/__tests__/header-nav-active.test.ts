@@ -1,10 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {
+  isCatalogMenuLinkActive,
   isNavCollectionRootActive,
   isNavLinkActive,
   parseCollectionNavPath,
   resolveMobileNavOpenState,
 } from '~/lib/header-nav-active';
+import type {CatalogChipNavSnapshot} from '~/components/zehn/catalog-chip-nav-context';
 
 const CHINO_PATH =
   '/collections/shop-all/alle-hosen/chinohosen';
@@ -97,5 +99,82 @@ describe('resolveMobileNavOpenState', () => {
       collectionMenuUrl: null,
       sectionTitle: null,
     });
+  });
+
+  it('resolves section from chip snapshot on catalog root (BL-0017)', () => {
+    const chip: CatalogChipNavSnapshot = {
+      source: 'collection',
+      rootSlug: 'bestseller',
+      selectedCategory: 'cargo-shorts',
+      activeMainCategory: 'shorts',
+    };
+    expect(
+      resolveMobileNavOpenState('/collections/bestseller', MENU_ENTRIES, chip),
+    ).toEqual({
+      collectionMenuUrl: '/collections/bestseller',
+      sectionTitle: 'SHORTS',
+    });
+  });
+});
+
+describe('isCatalogMenuLinkActive', () => {
+  const chip: CatalogChipNavSnapshot = {
+    source: 'collection',
+    rootSlug: 'bestseller',
+    selectedCategory: 'cargo-shorts',
+    activeMainCategory: 'shorts',
+  };
+
+  it('highlights leaf from chip state on catalog root', () => {
+    expect(
+      isCatalogMenuLinkActive(
+        '/collections/bestseller',
+        '/collections/bestseller/alle-shorts/cargo-shorts',
+        'exact',
+        chip,
+      ),
+    ).toBe(true);
+  });
+
+  it('chip overrides stale pathname on same catalog root', () => {
+    const shopAllChip: CatalogChipNavSnapshot = {
+      source: 'collection',
+      rootSlug: 'shop-all',
+      selectedCategory: 'chinohosen',
+      activeMainCategory: 'hosen',
+    };
+    expect(
+      isCatalogMenuLinkActive(
+        CHINO_PATH,
+        '/collections/shop-all/alle-hosen/chinohosen',
+        'exact',
+        shopAllChip,
+      ),
+    ).toBe(true);
+    expect(
+      isCatalogMenuLinkActive(
+        CHINO_PATH,
+        '/collections/shop-all/alle-jacken/winterjacken',
+        'exact',
+        shopAllChip,
+      ),
+    ).toBe(false);
+  });
+
+  it('falls back to pathname when chip root differs from link root', () => {
+    const shopAllChip: CatalogChipNavSnapshot = {
+      source: 'collection',
+      rootSlug: 'shop-all',
+      selectedCategory: 'chinohosen',
+      activeMainCategory: 'hosen',
+    };
+    expect(
+      isCatalogMenuLinkActive(
+        CHINO_PATH,
+        '/collections/bestseller/alle-shorts/cargo-shorts',
+        'exact',
+        shopAllChip,
+      ),
+    ).toBe(false);
   });
 });

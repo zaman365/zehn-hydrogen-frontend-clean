@@ -45,6 +45,8 @@ export type {MobileProductFilterDrawerProps} from './MobileProductFilterDrawer';
 export {FilterClearButton} from './FilterClearButton';
 export {ProductFilterToolbar} from './ProductFilterToolbar';
 export type {ProductFilterToolbarProps} from './ProductFilterToolbar';
+export {ProductCatalogBand} from './ProductCatalogBand';
+export type {ProductCatalogBandProps} from './ProductCatalogBand';
 export {HomepageMobileFilterPanel} from './HomepageMobileFilterPanel';
 export type {HomepageMobileFilterPanelProps} from './HomepageMobileFilterPanel';
 export {ProductFilterActiveChips} from './ProductFilterActiveChips';

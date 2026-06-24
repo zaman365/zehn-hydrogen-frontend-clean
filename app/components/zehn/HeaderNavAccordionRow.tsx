@@ -15,7 +15,7 @@ import {
 import {cn} from '~/lib/utils';
 
 export type HeaderNavAccordionRowProps = {
-  to: string;
+  to: LinkProps['to'];
   label: string;
   isOpen: boolean;
   isRouteActive?: boolean;

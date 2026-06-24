@@ -4,6 +4,7 @@
  */
 import type {LucideIcon} from 'lucide-react';
 import type {ComponentPropsWithoutRef, FocusEvent, MouseEvent, ReactNode} from 'react';
+import {forwardRef} from 'react';
 import {Link, type LinkProps} from 'react-router';
 import {RippleButton} from '~/components/zehn/RippleButton';
 import {
@@ -42,7 +43,8 @@ export type HeaderNavLinkProps =
   | HeaderNavLinkExternalProps;
 
 /** Desktop nav title — compact text host + ripple (production-tight spacing). */
-export function HeaderNavLink(props: HeaderNavLinkProps) {
+export const HeaderNavLink = forwardRef<HTMLAnchorElement, HeaderNavLinkProps>(
+  function HeaderNavLink(props, ref) {
   const {active = false, className, children, onMouseEnter, onFocus, onClick} =
     props;
 
@@ -52,6 +54,7 @@ export function HeaderNavLink(props: HeaderNavLinkProps) {
     const {href, target, rel} = props;
     return (
       <RippleButton
+        ref={ref}
         as="anchor"
         href={href}
         target={target}
@@ -69,6 +72,7 @@ export function HeaderNavLink(props: HeaderNavLinkProps) {
   const {to, prefetch, onPointerDown: _onPointerDown, ...rest} = props;
   return (
     <RippleButton
+      ref={ref}
       as="link"
       to={to}
       prefetch={prefetch}
@@ -81,7 +85,8 @@ export function HeaderNavLink(props: HeaderNavLinkProps) {
       {children}
     </RippleButton>
   );
-}
+},
+);
 
 type HeaderNavIconButtonButtonProps = {
   as?: 'button';

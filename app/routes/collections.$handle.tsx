@@ -6,6 +6,7 @@ import {
   useRouteError,
   isRouteErrorResponse,
   useLocation,
+  useNavigate,
 } from 'react-router';
 import type {Route} from './+types/collections.$handle';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
@@ -13,13 +14,12 @@ import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ProductItem} from '~/components/ProductItem';
 import type {ProductItemFragment} from 'storefrontapi.generated';
-import {useState, useMemo, useEffect} from 'react';
-import {SlidersHorizontal, ChevronDown, ShoppingBag} from 'lucide-react';
-import {CustomSelect} from '~/components/CustomSelect';
-import {DesktopProductFilterRow} from '~/components/zehn/DesktopProductFilterRow';
-import {CategoryNavSection} from '~/components/zehn/CategoryNavSection';
-import {MobileProductFilterDrawer} from '~/components/zehn/MobileProductFilterDrawer';
-import {FILTER_BAR_SHELL} from '~/lib/product-filter-ui';
+import {useMemo} from 'react';
+import {ShoppingBag} from 'lucide-react';
+import {ProductCatalogBand} from '~/components/zehn/ProductCatalogBand';
+import {ZEHN_HOMEPAGE_GRID_TOP} from '~/lib/homepage-section-styles';
+import {useProductCatalogFilters} from '~/hooks/useProductCatalogFilters';
+import {ZEHN_SITE_CONTENT_ROW} from '~/lib/site-content-row';
 import {
   MAIN_CATEGORY_MAP,
   getCategoryLabel,
@@ -32,14 +32,14 @@ import {
 import {shuffleWithSeed} from '~/lib/seeded-shuffle';
 import {CATALOG_QUERY} from '~/routes/collections.all';
 import {
-  getAvailableFilteredProductValues,
-  productMatchesSelectedFilters,
-} from '~/lib/product-filters';
-import {productMatchesCategory} from '~/lib/category-match';
-import {
   getCategorySectionCopy,
   resolveCategorySectionContext,
 } from '~/lib/category-section-copy';
+import {
+  isCatalogBandPath,
+  resolveCatalogPageContext,
+} from '~/lib/catalog-band-context';
+import type {CatalogFreshNavState} from '~/lib/catalog-band-context';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const collection = data?.collection;
@@ -95,7 +95,7 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   const {handle} = params;
   const {storefront} = context;
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
+    pageBy: 250,
   });
 
   if (!handle) {
@@ -265,10 +265,7 @@ async function resolveCollectionHandle(
 export default function Collection() {
   const {collection} = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
-  const [showFilters, setShowFilters] = useState<boolean>(false);
 
-  // Curated collections (sale, bestseller, neuheiten) filter within themselves.
-  // Category collections (shorts, hosen, etc.) navigate between category pages.
   const allCategoryHandles = useMemo(() => {
     const handles = new Set(Object.keys(MAIN_CATEGORY_MAP));
     Object.values(MAIN_CATEGORY_MAP)
@@ -278,7 +275,6 @@ export default function Collection() {
   }, []);
   const isCuratedCollection = !allCategoryHandles.has(collection.handle);
 
-  // Resolve alle-* handles to their parent category for page-type detection
   const effectiveHandle =
     resolveAlleCategory(collection.handle) ?? collection.handle;
   const isMainCategoryPage = isMainCategory(effectiveHandle);
@@ -286,14 +282,16 @@ export default function Collection() {
     !isMainCategoryPage && allCategoryHandles.has(effectiveHandle);
   const isCuratedPage = !isMainCategoryPage && !isSubCategoryPage;
 
-  // Root slug for 3-level URLs — derived from URL, not Shopify handle, for consistency
-  const {pathname} = useLocation();
+  const {pathname, state: locationState} = useLocation();
+  const navigate = useNavigate();
+  const catalogFresh = Boolean(
+    (locationState as CatalogFreshNavState | null)?.catalogFresh,
+  );
   const rootSlug = getCollectionRootSlug(
     pathname,
     getCollectionRootSlug(collection.handle),
   );
 
-  // Derive active category state from the current collection handle (used by category collections)
   const activeMainCat = isMainCategory(collection.handle)
     ? collection.handle
     : (Object.entries(MAIN_CATEGORY_MAP).find(([, subs]) =>
@@ -303,40 +301,6 @@ export default function Collection() {
     ? ''
     : collection.handle;
 
-  // Category filter for curated collections; pre-seeded for alle-* routes
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    () => resolveAlleCategory(collection.handle) ?? '',
-  );
-
-  // Sync selectedCategory from ?category= URL param
-  useEffect(() => {
-    if (!isCuratedCollection) return;
-    const cat = (searchParams.get('category') || '').toLowerCase().trim();
-    if (!cat) return;
-    const resolvedCat = resolveAlleCategory(cat);
-    if (
-      resolvedCat
-        ? allCategoryHandles.has(resolvedCat)
-        : allCategoryHandles.has(cat)
-    ) {
-      setSelectedCategory(cat);
-    }
-  }, [searchParams, isCuratedCollection, allCategoryHandles]);
-
-  // Sync selectedCategory when navigating between alle-* routes without unmounting
-  useEffect(() => {
-    const resolved = resolveAlleCategory(collection.handle);
-    if (resolved !== null) setSelectedCategory(resolved);
-  }, [collection.handle]);
-
-  const [sortBy, setSortBy] = useState<string>('default');
-
-  // Filter states
-  const [selectedSize, setSelectedSize] = useState<string>('');
-  const [selectedColor, setSelectedColor] = useState<string>('');
-  const [selectedPriceRange, setSelectedPriceRange] = useState<string>('');
-
-  // Shuffle products based on collection handle for variety
   const shuffledProducts = useMemo(() => {
     return shuffleWithSeed(
       (collection.products.nodes as any[]).filter(Boolean),
@@ -344,88 +308,40 @@ export default function Collection() {
     );
   }, [collection.products.nodes, collection.handle]);
 
-  // Define main categories with their subcategories (hardcoded)
-  const mainCategories = useMemo(() => {
-    const categoryMap = new Map<string, Set<string>>();
-    for (const [main, subs] of Object.entries(MAIN_CATEGORY_MAP)) {
-      categoryMap.set(main, new Set(subs));
-    }
-    return categoryMap;
-  }, []);
+  const catalogBand = isCatalogBandPath(pathname);
+  const filterChipNav = catalogBand && isCuratedCollection;
+  const catalogPageContext = catalogBand
+    ? resolveCatalogPageContext(pathname)
+    : undefined;
 
-  const categoryFilteredProducts = useMemo(() => {
-    const effectiveCategory =
-      resolveAlleCategory(selectedCategory) || selectedCategory;
-    if (!effectiveCategory) return shuffledProducts;
-
-    return shuffledProducts.filter((product: any) =>
-      productMatchesCategory(product, effectiveCategory),
-    );
-  }, [shuffledProducts, selectedCategory]);
-
-  const availableSizes = useMemo(
-    () =>
-      getAvailableFilteredProductValues(
-        categoryFilteredProducts as any[],
-        'size',
+  const filterState = useProductCatalogFilters({
+    mode: 'collection',
+    baseProducts: shuffledProducts,
+    initialCategory: resolveAlleCategory(collection.handle) ?? '',
+    curatedMainToggle: isCuratedCollection,
+    alwaysShowFacetToolbar: true,
+    routeSync: {
+      pathname,
+      collectionHandle: collection.handle,
+      catalogFresh,
+      searchCategory: searchParams.get('category') ?? '',
+    },
+    onCatalogFreshConsumed: () => {
+      if (!catalogFresh) return;
+      navigate(
         {
-          color: selectedColor,
-          priceRange: selectedPriceRange,
+          pathname,
+          search: searchParams.toString()
+            ? `?${searchParams.toString()}`
+            : '',
         },
-      ),
-    [categoryFilteredProducts, selectedColor, selectedPriceRange],
-  );
+        {replace: true, state: null},
+      );
+    },
+  });
 
-  const availableColors = useMemo(
-    () =>
-      getAvailableFilteredProductValues(
-        categoryFilteredProducts as any[],
-        'color',
-        {
-          size: selectedSize,
-          priceRange: selectedPriceRange,
-        },
-      ),
-    [categoryFilteredProducts, selectedSize, selectedPriceRange],
-  );
-
-  const filteredProducts = useMemo(() => {
-    return categoryFilteredProducts.filter((product: any) =>
-      productMatchesSelectedFilters(product, {
-        size: selectedSize,
-        color: selectedColor,
-        priceRange: selectedPriceRange,
-      }),
-    );
-  }, [
-    categoryFilteredProducts,
-    selectedSize,
-    selectedColor,
-    selectedPriceRange,
-  ]);
-
-  // Sort products
-  const sortedProducts = useMemo(() => {
-    const products = [...filteredProducts];
-    switch (sortBy) {
-      case 'price-asc':
-        return products.sort(
-          (a: any, b: any) =>
-            parseFloat(a.priceRange?.minVariantPrice?.amount || '0') -
-            parseFloat(b.priceRange?.minVariantPrice?.amount || '0'),
-        );
-      case 'price-desc':
-        return products.sort(
-          (a: any, b: any) =>
-            parseFloat(b.priceRange?.minVariantPrice?.amount || '0') -
-            parseFloat(a.priceRange?.minVariantPrice?.amount || '0'),
-        );
-      case 'newest':
-        return products.reverse();
-      default:
-        return products;
-    }
-  }, [filteredProducts, sortBy]);
+  const {selectedCategory, displayProducts, mainCategories, activeMainCategory} =
+    filterState;
 
   const navActiveMain = useMemo(() => {
     if (isMainCategoryPage) return effectiveHandle;
@@ -451,13 +367,31 @@ export default function Collection() {
     selectedCategory,
   ]);
 
-  const subcategoriesFor = navActiveMain;
-
-  const sectionCopy = useMemo(() => {
-    if (isCuratedCollection && selectedCategory) {
-      const slug = resolveAlleCategory(selectedCategory) ?? selectedCategory;
-      return getCategorySectionCopy('category', slug);
+  const categoryNavCopy = useMemo(() => {
+    if (catalogBand) return undefined;
+    if (isMainCategoryPage || isSubCategoryPage) {
+      return getCategorySectionCopy('category', effectiveHandle);
     }
+    return undefined;
+  }, [catalogBand, effectiveHandle, isMainCategoryPage, isSubCategoryPage]);
+
+  const navSelectedCategory = filterChipNav
+    ? selectedCategory
+    : isSubCategoryPage
+      ? effectiveHandle
+      : isCuratedCollection
+        ? selectedCategory
+        : activeSubCat || activeMainCat;
+
+  const navActiveMainResolved = filterChipNav
+    ? activeMainCategory
+    : navActiveMain;
+
+  const showCatalogNav =
+    isCuratedPage || isMainCategoryPage || isSubCategoryPage;
+
+  const miscBandCopy = useMemo(() => {
+    if (showCatalogNav) return undefined;
     const ctx = resolveCategorySectionContext(collection.handle, {
       isCuratedCollection,
       isMainCategoryPage,
@@ -473,34 +407,27 @@ export default function Collection() {
     isCuratedCollection,
     isMainCategoryPage,
     isSubCategoryPage,
-    selectedCategory,
+    showCatalogNav,
   ]);
-
-  const navSelectedCategory = isSubCategoryPage
-    ? effectiveHandle
-    : isCuratedCollection
-      ? selectedCategory
-      : activeSubCat || activeMainCat;
 
   return (
     <div className="pt-3 sm:pt-6 lg:pt-12 pb-20">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        {(isCuratedPage || isMainCategoryPage || isSubCategoryPage) && (
-          <CategoryNavSection
-            className="mb-6"
-            copy={sectionCopy}
-            mainCategories={mainCategories}
-            activeMainCategory={navActiveMain}
-            selectedCategory={navSelectedCategory}
-            showMainRow={isCuratedPage}
-            mainInteraction={isCuratedCollection ? 'filter' : 'link'}
-            subInteraction="link"
+      <div className={ZEHN_SITE_CONTENT_ROW}>
+        {showCatalogNav && (
+          <ProductCatalogBand
+            pageContext={catalogPageContext}
+            copy={categoryNavCopy}
+            navVariant="default"
+            filterState={filterState}
+            showFilterToolbar
+            showMainRow={catalogBand}
+            showMainAlleChip={catalogBand}
             curatedMainToggle={isCuratedCollection}
-            onMainSelect={(category) =>
-              setSelectedCategory((prev) =>
-                prev === category ? '' : category,
-              )
-            }
+            mainInteraction={isCuratedCollection ? 'filter' : 'link'}
+            subInteraction={isCuratedCollection ? 'filter' : 'link'}
+            navSelectedCategory={navSelectedCategory}
+            navActiveMainCategory={navActiveMainResolved}
+            subHighlightActive={filterChipNav || !isSubCategoryPage}
             getMainHref={getCategoryUrl}
             getSubHref={(main, sub) => {
               if (isCuratedCollection) {
@@ -515,82 +442,21 @@ export default function Collection() {
                 )?.[0] ?? main;
               return `/collections/alle-${parentCat}/${sub}`;
             }}
-            subcategoriesFor={subcategoriesFor}
-            subHighlightActive={!isSubCategoryPage}
           />
         )}
 
-        {/* Filter Bar */}
-        <div className="mb-4">
-          <div className={FILTER_BAR_SHELL}>
-            <button
-              type="button"
-              onClick={() => setShowFilters(!showFilters)}
-              className="lg:hidden inline-flex items-center gap-2 text-sm text-foreground"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              Filter
-            </button>
+        {!showCatalogNav && (
+          <ProductCatalogBand
+            copy={miscBandCopy}
+            navVariant="default"
+            filterState={filterState}
+            showFilterToolbar
+            showMainRow={false}
+          />
+        )}
 
-            {/* Desktop Filters */}
-            <DesktopProductFilterRow
-              selectedPriceRange={selectedPriceRange}
-              selectedSize={selectedSize}
-              selectedColor={selectedColor}
-              availableSizes={availableSizes}
-              availableColors={availableColors}
-              onPriceChange={setSelectedPriceRange}
-              onSizeChange={setSelectedSize}
-              onColorChange={setSelectedColor}
-              onClear={() => {
-                setSelectedSize('');
-                setSelectedColor('');
-                setSelectedPriceRange('');
-              }}
-            />
-          </div>
-
-          {/* Product Count + Sort - separate line */}
-          <div className="flex items-center justify-between pt-2 pb-2">
-            <span className="font-body text-xs text-muted">
-              {sortedProducts.length}{' '}
-              {sortedProducts.length === 1 ? 'Produkt' : 'Produkte'}
-            </span>
-            <CustomSelect
-              value={sortBy}
-              onChange={setSortBy}
-              options={[
-                {value: 'default', label: 'Empfohlen'},
-                {value: 'price-asc', label: 'Preis: Niedrig → Hoch'},
-                {value: 'price-desc', label: 'Preis: Hoch → Niedrig'},
-                {value: 'newest', label: 'Neueste'},
-              ]}
-              className="w-[220px] max-w-[70vw]"
-            />
-          </div>
-        </div>
-
-        <MobileProductFilterDrawer
-          isOpen={showFilters}
-          onClose={() => setShowFilters(false)}
-          selectedPriceRange={selectedPriceRange}
-          selectedSize={selectedSize}
-          selectedColor={selectedColor}
-          availableSizes={availableSizes}
-          availableColors={availableColors}
-          onPriceChange={setSelectedPriceRange}
-          onSizeChange={setSelectedSize}
-          onColorChange={setSelectedColor}
-          onClear={() => {
-            setSelectedSize('');
-            setSelectedColor('');
-            setSelectedPriceRange('');
-          }}
-        />
-
-        {/* Product Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {sortedProducts.map((product: any, index: number) => (
+        <div className={`${ZEHN_HOMEPAGE_GRID_TOP} grid sm:grid-cols-2 lg:grid-cols-3 gap-3`}>
+          {displayProducts.map((product: any, index: number) => (
             <ProductItem
               key={product.id}
               product={product}
@@ -599,8 +465,7 @@ export default function Collection() {
           ))}
         </div>
 
-        {/* Empty State - Coming Soon */}
-        {sortedProducts.length === 0 && (
+        {displayProducts.length === 0 && (
           <div className="text-center py-8 sm:py-12">
             <div className="max-w-md mx-auto space-y-4">
               <div className="w-20 h-20 mx-auto bg-muted/20 rounded-full flex items-center justify-center">

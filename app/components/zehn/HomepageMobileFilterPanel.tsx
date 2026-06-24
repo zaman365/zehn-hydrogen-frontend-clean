@@ -131,3 +131,6 @@ export function HomepageMobileFilterPanel({
     </div>
   );
 }
+
+/** Shared mobile collapsible facet panel — alias for collection + homepage routes (REQ-0008). */
+export {HomepageMobileFilterPanel as ProductFilterMobilePanel};

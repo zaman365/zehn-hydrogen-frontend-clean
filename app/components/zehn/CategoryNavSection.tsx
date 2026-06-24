@@ -25,6 +25,7 @@ import {
   type CategoryNavVariant,
 } from '~/lib/category-nav-styles';
 import type {CategorySectionCopy, CategorySubRowHint} from '~/lib/category-section-copy';
+import {MAIN_ROW_ALLE_LABEL} from '~/lib/category-section-copy';
 import {cn} from '~/lib/utils';
 
 export type CategoryNavInteraction = 'filter' | 'link';
@@ -63,6 +64,10 @@ export type CategoryNavSectionProps = {
   showSubBottomSeparator?: boolean;
   /** Highlight active sub chip (false for sibling-only rows) */
   subHighlightActive?: boolean;
+  /** Collection pages — main-row Alle resets to full page catalog. */
+  showMainAlleChip?: boolean;
+  onMainAlleSelect?: () => void;
+  mainAlleLabel?: string;
   className?: string;
   menuRef?: Ref<HTMLDivElement>;
 };
@@ -105,6 +110,9 @@ export function CategoryNavSection({
   showSubAlleChip = false,
   showSubBottomSeparator = false,
   subHighlightActive = true,
+  showMainAlleChip = false,
+  onMainAlleSelect,
+  mainAlleLabel = MAIN_ROW_ALLE_LABEL,
   variant = 'default',
   className,
   menuRef,
@@ -200,6 +208,15 @@ export function CategoryNavSection({
 
       {showMainRow && (
         <div className={CATEGORY_NAV_CHIPS}>
+          {showMainAlleChip && (
+            <CategoryNavChip
+              variant="main"
+              active={!selectedCategory}
+              label={mainAlleLabel}
+              interaction="filter"
+              onSelect={() => onMainAlleSelect?.()}
+            />
+          )}
           {Array.from(mainCategories.keys()).map(renderMainChip)}
         </div>
       )}

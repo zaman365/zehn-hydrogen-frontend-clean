@@ -17,24 +17,26 @@ describe('category-nav sub row', () => {
     expect(css).not.toContain('category-nav-sub-tabs');
   });
 
-  it('homepage ProductGrid uses subRow presentation', () => {
+  it('homepage ProductCatalogBand uses subRow presentation', () => {
+    const band = readFile('app/components/zehn/ProductCatalogBand.tsx');
     const grid = readFile('app/components/zehn/ProductGrid.tsx');
-    expect(grid).toContain('subPresentation="subRow"');
-    expect(grid).toContain('subChipVariant="main"');
-    expect(grid).toContain('getCategorySubRowHint');
-    expect(grid).toContain('variant="homepage"');
-    expect(grid).toContain('showSubAlleChip');
-    expect(grid).toContain('showSubBottomSeparator');
-    expect(grid).toContain('CATEGORY_NAV_STACK_GAP');
-    expect(grid).toMatch(/selectedCategory === category \? '' : category/);
+    expect(band).toContain('subPresentation="subRow"');
+    expect(band).toContain('subChipVariant="main"');
+    expect(band).toContain('getCategorySubRowHint');
+    expect(grid).toContain('navVariant="homepage"');
+    expect(grid).toContain('ProductCatalogBand');
   });
 
   it('CategoryNavSubRow supports Alle chip and bottom separator', () => {
     const subRow = readFile('app/components/zehn/CategoryNavSubRow.tsx');
+    const band = readFile('app/components/zehn/ProductCatalogBand.tsx');
+    const subStyles = readFile('app/lib/category-nav-sub-styles.ts');
     expect(subRow).toContain('showAlleChip');
     expect(subRow).toContain('showBottomSeparator');
     expect(subRow).toContain('SUB_ROW_ALLE_LABEL');
     expect(subRow).toContain('CATEGORY_NAV_SUB_BOTTOM_DIVIDER');
+    expect(subStyles).toContain('CATEGORY_NAV_MAIN_BOTTOM_DIVIDER');
+    expect(band).toContain('showMainBottomDivider');
   });
 
   it('CategoryNavSection supports chips and subRow modes', () => {
@@ -50,6 +52,6 @@ describe('category-nav sub row', () => {
   it('getCategorySubRowHint returns mobile and desktop strings', () => {
     const hint = getCategorySubRowHint('shorts');
     expect(hint.mobile).toBe('Variante wählen');
-    expect(hint.desktop).toContain('Sommertag');
+    expect(hint.desktop).toContain('Cargo');
   });
 });

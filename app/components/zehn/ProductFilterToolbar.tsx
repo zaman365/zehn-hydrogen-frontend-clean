@@ -1,21 +1,20 @@
 /**
- * Homepage filter toolbar — mobile collapsible stack + desktop single row (ART-0040 / ART-0048).
+ * Catalog filter toolbar — mobile collapsible stack + desktop single row (ART-0040 / ART-0048).
+ * Shared by homepage ProductGrid and collection routes (REQ-0008).
  */
 import {DesktopProductFilterRow} from '~/components/zehn/DesktopProductFilterRow';
 import {HomepageMobileFilterPanel} from '~/components/zehn/HomepageMobileFilterPanel';
 import {ProductFilterActiveChips} from '~/components/zehn/ProductFilterActiveChips';
 import {ProductSortMetaRow} from '~/components/zehn/ProductSortMetaRow';
-import {useHomepageFilterStackOpen} from '~/hooks/useHomepageFilterStackOpen';
-import {ZEHN_HOMEPAGE_INSET_PY} from '~/lib/homepage-section-styles';
+import {useProductFilterStackOpen} from '~/hooks/useHomepageFilterStackOpen';
 import {
   FILTER_TOOLBAR_BAND_A_MOBILE,
   HOMEPAGE_FILTER_SEPARATOR,
-  HOMEPAGE_FILTER_TOOLBAR_DESKTOP,
-  HOMEPAGE_FILTER_TOOLBAR_DESKTOP_LEFT,
-  HOMEPAGE_FILTER_TOOLBAR_SHELL,
+  PRODUCT_FILTER_TOOLBAR_DESKTOP,
+  PRODUCT_FILTER_TOOLBAR_DESKTOP_ROW_PRIMARY,
+  PRODUCT_FILTER_TOOLBAR_SHELL,
   type ProductFilterKind,
 } from '~/lib/product-filter-ui';
-import {cn} from '~/lib/utils';
 
 export type ProductFilterToolbarProps = {
   selectedPriceRange: string;
@@ -48,7 +47,7 @@ export function ProductFilterToolbar({
   onClear,
   onRemoveChip,
 }: ProductFilterToolbarProps) {
-  const {open, toggle} = useHomepageFilterStackOpen(true);
+  const {open, toggle} = useProductFilterStackOpen(true);
 
   const filterRowProps = {
     selectedPriceRange,
@@ -71,7 +70,7 @@ export function ProductFilterToolbar({
   };
 
   return (
-    <div className={cn(HOMEPAGE_FILTER_TOOLBAR_SHELL, ZEHN_HOMEPAGE_INSET_PY)}>
+    <div className={PRODUCT_FILTER_TOOLBAR_SHELL}>
       <div className={FILTER_TOOLBAR_BAND_A_MOBILE}>
         <HomepageMobileFilterPanel
           open={open}
@@ -87,23 +86,20 @@ export function ProductFilterToolbar({
         />
       </div>
 
-      <div className={HOMEPAGE_FILTER_TOOLBAR_DESKTOP}>
-        <div className={HOMEPAGE_FILTER_TOOLBAR_DESKTOP_LEFT}>
+      <div className={PRODUCT_FILTER_TOOLBAR_DESKTOP}>
+        <div className={PRODUCT_FILTER_TOOLBAR_DESKTOP_ROW_PRIMARY}>
           <DesktopProductFilterRow
             {...filterRowProps}
             showClearButton={false}
           />
-          <ProductFilterActiveChips
-            {...chipProps}
-            className="flex-wrap lg:inline-flex"
+          <ProductSortMetaRow
+            productCount={productCount}
+            sortBy={sortBy}
+            onSortChange={onSortChange}
+            className="shrink-0"
           />
         </div>
-        <ProductSortMetaRow
-          productCount={productCount}
-          sortBy={sortBy}
-          onSortChange={onSortChange}
-          className="shrink-0"
-        />
+        <ProductFilterActiveChips {...chipProps} />
       </div>
     </div>
   );

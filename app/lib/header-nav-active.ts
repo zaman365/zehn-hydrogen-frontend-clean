@@ -2,12 +2,14 @@
  * Header / mobile drawer nav active-state helpers.
  * REQ-0008: exact match for leaf links; descendant match for accordion rows;
  * `all` ↔ `shop-all` root normalization via getCollectionRootSlug.
+ * BL-0017: chip snapshot overrides on catalog roots when filters change without URL.
  */
 import {
   ALLE_PARENT_MAP,
   getCategoryLabel,
   getCollectionRootSlug,
 } from '~/lib/category-map';
+import type {CatalogChipNavSnapshot} from '~/components/zehn/catalog-chip-nav-context';
 
 export type NavActiveMatchMode = 'exact' | 'descendant';
 
@@ -121,30 +123,120 @@ export function isNavCollectionRootActive(
 }
 
 /**
+ * Mobile top-level row (KOLLEKTION / NEUHEITEN) — chip root is sole active root when published.
+ */
+export function isMobileCatalogRootActive(
+  pathname: string,
+  menuUrl: string,
+  chip?: CatalogChipNavSnapshot | null,
+): boolean {
+  const menuRoot = getCollectionRootSlug(menuUrl);
+  if (chip && chip.source !== 'idle' && chip.rootSlug) {
+    return chip.rootSlug === menuRoot;
+  }
+  return isNavCollectionRootActive(pathname, menuUrl);
+}
+
+/**
+ * Section title for a menu panel — chip filter wins over stale pathname deep segments.
+ */
+export function resolveChipMenuOpenSection(
+  panelRootSlug: string,
+  chip?: CatalogChipNavSnapshot | null,
+): string | null {
+  if (
+    !chip ||
+    chip.source === 'idle' ||
+    chip.rootSlug !== panelRootSlug ||
+    !chip.activeMainCategory
+  ) {
+    return null;
+  }
+  return getCategoryLabel(chip.activeMainCategory);
+}
+
+/**
  * Derives which mobile collection accordion + section to open for the current route.
+ * Chip filter state wins over pathname when both share the same catalog root (BL-0017).
  */
 export function resolveMobileNavOpenState(
   pathname: string,
   menuEntries: NavMenuEntry[],
+  chip?: CatalogChipNavSnapshot | null,
 ): MobileNavOpenState {
   const parsed = parseCollectionNavPath(pathname);
-  if (!parsed.rootSlug) {
+  if (!parsed.rootSlug && (!chip || chip.source === 'idle')) {
     return {collectionMenuUrl: null, sectionTitle: null};
   }
 
+  const rootForMatch =
+    chip && chip.source !== 'idle' && chip.rootSlug
+      ? chip.rootSlug
+      : (parsed.rootSlug ?? chip?.rootSlug ?? null);
+
   let collectionMenuUrl: string | null = null;
-  for (const entry of menuEntries) {
-    if (isNavCollectionRootActive(pathname, entry.url)) {
-      collectionMenuUrl = entry.url;
-      break;
+  if (rootForMatch) {
+    for (const entry of menuEntries) {
+      if (getCollectionRootSlug(entry.url) === rootForMatch) {
+        collectionMenuUrl = entry.url;
+        break;
+      }
     }
   }
 
-  let sectionTitle: string | null = null;
-  if (parsed.alleParent && parsed.alleParent in ALLE_PARENT_MAP) {
-    const mainCategory = ALLE_PARENT_MAP[parsed.alleParent];
-    sectionTitle = getCategoryLabel(mainCategory);
+  const chipSection = rootForMatch
+    ? resolveChipMenuOpenSection(rootForMatch, chip)
+    : null;
+
+  let sectionTitle: string | null = chipSection;
+  if (
+    !sectionTitle &&
+    parsed.alleParent &&
+    parsed.alleParent in ALLE_PARENT_MAP &&
+    (!chip || chip.source === 'idle' || chip.rootSlug === parsed.rootSlug)
+  ) {
+    sectionTitle = getCategoryLabel(ALLE_PARENT_MAP[parsed.alleParent]);
   }
 
   return {collectionMenuUrl, sectionTitle};
+}
+
+/**
+ * Menu link active — chip filter is source of truth per catalog root (BL-0017).
+ */
+export function isCatalogMenuLinkActive(
+  pathname: string,
+  linkUrl: string,
+  mode: NavActiveMatchMode,
+  chip?: CatalogChipNavSnapshot | null,
+): boolean {
+  const linkParsed = parseCollectionNavPath(linkUrl);
+  if (!linkParsed.rootSlug || !linkParsed.alleParent) {
+    return isNavLinkActive(pathname, linkUrl, mode);
+  }
+
+  const chipMatchesLinkRoot =
+    chip &&
+    chip.source !== 'idle' &&
+    chip.rootSlug === linkParsed.rootSlug;
+
+  if (!chipMatchesLinkRoot) {
+    return isNavLinkActive(pathname, linkUrl, mode);
+  }
+
+  const sectionMain = ALLE_PARENT_MAP[linkParsed.alleParent];
+  if (!sectionMain) {
+    return isNavLinkActive(pathname, linkUrl, mode);
+  }
+
+  if (mode === 'descendant') {
+    return chip.activeMainCategory === sectionMain;
+  }
+
+  if (linkParsed.subHandle) {
+    return chip.selectedCategory === linkParsed.subHandle;
+  }
+
+  if (chip.activeMainCategory !== sectionMain) return false;
+  return !chip.selectedCategory || chip.selectedCategory === sectionMain;
 }
