@@ -202,6 +202,14 @@ export function resolveMobileNavOpenState(
 }
 
 /**
+ * Auto-expand mobile collection accordion only on real collection URLs.
+ * Chip-only homepage state must not pre-open Kollektion (BL-0017).
+ */
+export function shouldAutoExpandMobileAccordion(pathname: string): boolean {
+  return parseCollectionNavPath(pathname).rootSlug != null;
+}
+
+/**
  * Menu link active — chip filter is source of truth per catalog root (BL-0017).
  */
 export function isCatalogMenuLinkActive(

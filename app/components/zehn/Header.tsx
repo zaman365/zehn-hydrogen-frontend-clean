@@ -21,14 +21,13 @@ import {SearchModal} from './SearchModal';
 import {CategoryMenuPanel} from './CategoryMenuPanel';
 import {DesktopCategoryNavPopover} from './DesktopCategoryNavPopover';
 import {HeaderNavCountBadge} from './HeaderNavCountBadge';
+import {HeaderNavMobileLabeledRow} from './HeaderNavMobileLabeledRow';
 import {HeaderNavAccordionRow} from './HeaderNavAccordionRow';
 import {ZehnNavStaggerItem} from './ZehnNavStaggerItem';
 import {
   HeaderNavIcon,
   HeaderNavIconButton,
   HeaderNavLink,
-  HeaderNavMobileAction,
-  HeaderNavMobileRow,
 } from './HeaderNavItem';
 import {useWishlist} from '~/components/zehn/wishlist-context';
 import type {RootLoader} from '~/root';
@@ -54,6 +53,8 @@ import {
   isMobileCatalogRootActive,
   isNavCollectionRootActive,
   resolveMobileNavOpenState,
+  shouldAutoExpandMobileAccordion,
+  type MobileNavOpenState,
 } from '~/lib/header-nav-active';
 import {
   isCatalogFreshNavUrl,
@@ -378,6 +379,10 @@ export function Header({
   > | null>(null);
   const mobileMenuCloseFinishedRef = useRef(false);
   const wasMenuOpenRef = useRef(false);
+  const mobileAccordionHintRef = useRef<MobileNavOpenState>({
+    collectionMenuUrl: null,
+    sectionTitle: null,
+  });
   const {count: wishlistCount} = useWishlist();
   const {pathname} = useLocation();
   const chipSnapshot = useCatalogChipNav();
@@ -540,7 +545,19 @@ export function Header({
     setMobileShellTransitionMs(MOBILE_SHELL_COLLAPSE_MS);
     setIsMobileMenuShellExpanded(true);
     setMobileMenuPhase('open');
-  }, [cancelMobileMenuCloseTimers]);
+    wasMenuOpenRef.current = false;
+
+    const hint = mobileAccordionHintRef.current;
+    if (shouldAutoExpandMobileAccordion(pathname)) {
+      if (hint.collectionMenuUrl) {
+        setOpenMobileCollection(hint.collectionMenuUrl);
+      }
+      setOpenMobileSection(hint.sectionTitle);
+    } else {
+      setOpenMobileCollection(null);
+      setOpenMobileSection(null);
+    }
+  }, [cancelMobileMenuCloseTimers, pathname]);
 
   const finishCloseMobileMenu = useCallback(() => {
     if (mobileMenuCloseFinishedRef.current) return;
@@ -631,19 +648,13 @@ export function Header({
     return () => clearTimeout(timer);
   }, [categoryMenuPhase, finishCloseCategoryMenu]);
 
-  /** Keep inner section aligned with page chips even while menu is closed (BL-0017). */
+  /** Chip/pathname hint for manual accordion expand — never opens menu while closed. */
   useEffect(() => {
-    const resolved = resolveMobileNavOpenState(
+    mobileAccordionHintRef.current = resolveMobileNavOpenState(
       pathname,
       mobileNavMenuEntries,
       chipSnapshot,
     );
-    if (resolved.sectionTitle != null) {
-      setOpenMobileSection(resolved.sectionTitle);
-    }
-    if (resolved.collectionMenuUrl && chipSnapshot.source !== 'idle') {
-      setOpenMobileCollection(resolved.collectionMenuUrl);
-    }
   }, [chipSnapshot, mobileNavMenuEntries, pathname]);
 
   useEffect(() => {
@@ -654,20 +665,16 @@ export function Header({
 
     if (shouldFreezeMobileAccordion(mobileMenuPhase)) return;
 
+    if (!wasMenuOpenRef.current) {
+      wasMenuOpenRef.current = true;
+      return;
+    }
+
     const resolved = resolveMobileNavOpenState(
       pathname,
       mobileNavMenuEntries,
       chipSnapshot,
     );
-
-    if (!wasMenuOpenRef.current) {
-      if (resolved.collectionMenuUrl) {
-        setOpenMobileCollection(resolved.collectionMenuUrl);
-      }
-      setOpenMobileSection(resolved.sectionTitle);
-      wasMenuOpenRef.current = true;
-      return;
-    }
 
     // After in-menu navigation — align accordion to new catalog root (BL-0011).
     if (resolved.collectionMenuUrl) {
@@ -1033,11 +1040,19 @@ export function Header({
                             ? openMobileSection
                             : null
                         }
-                        onToggle={() =>
-                          setOpenMobileCollection((current) =>
-                            current === itemUrl ? null : itemUrl,
-                          )
-                        }
+                        onToggle={() => {
+                          setOpenMobileCollection((current) => {
+                            if (current === itemUrl) return null;
+                            const hint = mobileAccordionHintRef.current;
+                            if (
+                              hint.collectionMenuUrl === itemUrl &&
+                              hint.sectionTitle
+                            ) {
+                              setOpenMobileSection(hint.sectionTitle);
+                            }
+                            return itemUrl;
+                          });
+                        }}
                         onNavigate={closeMobileMenuOnNavigate}
                         primaryDomainUrl={primaryDomainUrl}
                         publicStoreDomain={publicStoreDomain}
@@ -1051,22 +1066,18 @@ export function Header({
                 total={mobileStaggerTotal}
                 phase={mobileMenuStaggerPhase}
               >
-                <HeaderNavMobileRow
+                <HeaderNavMobileLabeledRow
                   to="/wishlist"
                   active={pathname === '/wishlist'}
                   onClick={closeMobileMenuOnNavigate}
-                >
-                  <span className="relative mr-3">
-                    <Heart
-                      className={`w-4 h-4 ${
-                        wishlistCount > 0 ? 'fill-accent text-accent' : ''
-                      }`}
-                      strokeWidth={HEADER_NAV_ICON_STROKE}
-                    />
-                    <HeaderNavCountBadge count={wishlistCount} position="mobileRow" />
-                  </span>
-                  Wunschliste
-                </HeaderNavMobileRow>
+                  icon={Heart}
+                  iconClassName={
+                    wishlistCount > 0 ? 'fill-accent text-accent' : undefined
+                  }
+                  label="Wunschliste"
+                  count={wishlistCount}
+                  strokeWidth={HEADER_NAV_ICON_STROKE}
+                />
               </ZehnNavStaggerItem>
               {/* Mobile-only: Cart link */}
               <ZehnNavStaggerItem
@@ -1120,20 +1131,17 @@ function MobileMenuCartButtonInner({
   const count = useHeaderCartCount();
 
   return (
-    <HeaderNavMobileAction
+    <HeaderNavMobileLabeledRow
+      as="button"
       active={active}
       onClick={onClick}
       ariaLabel={count > 0 ? `Warenkorb, ${count} Artikel` : 'Warenkorb'}
-    >
-      <span className="relative mr-3">
-        <ShoppingBag
-          className={`w-4 h-4 ${count > 0 ? 'text-accent' : ''}`}
-          strokeWidth={HEADER_NAV_ICON_STROKE}
-        />
-        <HeaderNavCountBadge count={count} position="mobileRow" />
-      </span>
-      Warenkorb
-    </HeaderNavMobileAction>
+      icon={ShoppingBag}
+      iconClassName={count > 0 ? 'text-accent' : undefined}
+      label="Warenkorb"
+      count={count}
+      strokeWidth={HEADER_NAV_ICON_STROKE}
+    />
   );
 }
 
@@ -1150,19 +1158,16 @@ function MobileMenuCartButton({
   return (
     <Suspense
       fallback={
-        <HeaderNavMobileAction
+        <HeaderNavMobileLabeledRow
+          as="button"
           active={active}
           onClick={onClick}
           ariaLabel="Warenkorb"
-        >
-          <span className="relative mr-3">
-            <ShoppingBag
-              className="w-4 h-4"
-              strokeWidth={HEADER_NAV_ICON_STROKE}
-            />
-          </span>
-          Warenkorb
-        </HeaderNavMobileAction>
+          icon={ShoppingBag}
+          label="Warenkorb"
+          count={0}
+          strokeWidth={HEADER_NAV_ICON_STROKE}
+        />
       }
     >
       <Await resolve={cartPromise}>

@@ -89,11 +89,28 @@ export function cnHeaderNavCountBadge({
   return cn(HEADER_NAV_COUNT_BADGE, position, className);
 }
 
+/** Inline count pill — trailing end of mobile drawer labeled rows (no absolute anchor). */
+export const HEADER_NAV_COUNT_BADGE_INLINE =
+  'grid place-items-center size-4 shrink-0 rounded-full bg-accent text-accent-foreground ' +
+  `${HEADER_NAV_COUNT_BADGE_RING} font-semibold text-[10px] leading-none tabular-nums`;
+
+export function cnHeaderNavCountBadgeInline(className?: string) {
+  return cn(HEADER_NAV_COUNT_BADGE_INLINE, className);
+}
+
 /** Mobile drawer row — full-width with padded hover zone for ripple parity. */
 export const HEADER_NAV_MOBILE_ROW =
   'py-2 min-h-[44px] px-3 flex items-center gap-2 text-left w-full ' +
   'rounded-lg transition-colors duration-[400ms] ease-out ' +
   'hover:bg-foreground/[0.06] active:bg-accent/10';
+
+/** Drawer row with icon+label left and optional trailing count badge. */
+export const HEADER_NAV_MOBILE_ROW_WITH_TRAILING =
+  `${HEADER_NAV_MOBILE_ROW} justify-between gap-3`;
+
+/** Icon + label cluster inside a trailing-badge drawer row. */
+export const HEADER_NAV_MOBILE_LABELED_ROW_INNER =
+  'flex items-center gap-3 min-w-0';
 
 /** Accordion row — SHORTS, HOSEN (desktop dropdown + mobile nested). */
 export const HEADER_NAV_DROPDOWN_SECTION =

@@ -18,13 +18,16 @@ describe('header nav count badge', () => {
     expect(styles).toContain('grid place-items-center size-4');
     expect(styles).toContain('text-[10px]');
     expect(styles).toContain('cnHeaderNavCountBadge');
+    expect(styles).toContain('HEADER_NAV_COUNT_BADGE_INLINE');
+    expect(styles).toContain('HEADER_NAV_MOBILE_ROW_WITH_TRAILING');
   });
 
-  it('HeaderNavCountBadge supports icon and mobileRow position presets', () => {
+  it('HeaderNavCountBadge supports icon, mobileRow, and trailing presets', () => {
     const badge = readFile('app/components/zehn/HeaderNavCountBadge.tsx');
     expect(badge).toContain("position = 'icon'");
     expect(badge).toContain('mobileRow');
-    expect(badge).toContain('HEADER_NAV_COUNT_BADGE_POSITION_MOBILE_ROW');
+    expect(badge).toContain('trailing');
+    expect(badge).toContain('cnHeaderNavCountBadgeInline');
   });
 
   it('HeaderNavCountBadge uses pulse hook and hides at zero', () => {
@@ -33,10 +36,13 @@ describe('header nav count badge', () => {
     expect(badge).toContain('if (count <= 0) return null');
   });
 
-  it('Header uses HeaderNavCountBadge and optimistic cart count', () => {
+  it('Header uses labeled drawer rows and accordion hint ref', () => {
     const header = readFile('app/components/zehn/Header.tsx');
-    expect(header).toContain('HeaderNavCountBadge');
-    expect(header).toContain('position="mobileRow"');
+    const labeledRow = readFile('app/components/zehn/HeaderNavMobileLabeledRow.tsx');
+    expect(header).toContain('HeaderNavMobileLabeledRow');
+    expect(labeledRow).toContain('position="trailing"');
+    expect(header).toContain('mobileAccordionHintRef');
+    expect(header).toContain('shouldAutoExpandMobileAccordion');
     expect(header).toContain('overflow-visible');
     expect(header).toContain('useHeaderCartCount');
     expect(header).not.toContain('function CountBadge');
@@ -54,10 +60,10 @@ describe('header nav count badge', () => {
     expect(css).toContain('prefers-reduced-motion');
   });
 
-  it('zehn barrel exports HeaderNavCountBadge', () => {
+  it('zehn barrel exports HeaderNavCountBadge and labeled row', () => {
     const barrel = readFile('app/components/zehn/index.ts');
     expect(barrel).toContain('HeaderNavCountBadge');
-    expect(barrel).toContain('HeaderNavCountBadgeProps');
+    expect(barrel).toContain('HeaderNavMobileLabeledRow');
   });
 
   it('app.css imports header-nav-badge styles', () => {

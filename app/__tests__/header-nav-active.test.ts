@@ -5,6 +5,7 @@ import {
   isNavLinkActive,
   parseCollectionNavPath,
   resolveMobileNavOpenState,
+  shouldAutoExpandMobileAccordion,
 } from '~/lib/header-nav-active';
 import type {CatalogChipNavSnapshot} from '~/components/zehn/catalog-chip-nav-context';
 
@@ -114,6 +115,19 @@ describe('resolveMobileNavOpenState', () => {
       collectionMenuUrl: '/collections/bestseller',
       sectionTitle: 'SHORTS',
     });
+  });
+});
+
+describe('shouldAutoExpandMobileAccordion', () => {
+  it('returns false on homepage (chip sync must not pre-open)', () => {
+    expect(shouldAutoExpandMobileAccordion('/')).toBe(false);
+  });
+
+  it('returns true on collection URLs', () => {
+    expect(shouldAutoExpandMobileAccordion('/collections/bestseller')).toBe(
+      true,
+    );
+    expect(shouldAutoExpandMobileAccordion(CHINO_PATH)).toBe(true);
   });
 });
 
