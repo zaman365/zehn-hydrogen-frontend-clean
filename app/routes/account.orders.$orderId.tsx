@@ -14,11 +14,11 @@ const ORDER_DETAILS_QUERY = `#graphql
         amount
         currencyCode
       }
-      subtotalPrice {
+      subtotal {
         amount
         currencyCode
       }
-      totalShippingPrice {
+      totalShipping {
         amount
         currencyCode
       }
@@ -48,7 +48,7 @@ const ORDER_DETAILS_QUERY = `#graphql
             width
             height
           }
-          discountedTotalPrice {
+          currentTotalPrice {
             amount
             currencyCode
           }
@@ -149,12 +149,12 @@ export default function OrderDetails() {
                   <div className="text-right flex-shrink-0">
                     <p className="font-sans font-semibold text-foreground">
                       {fmt(
-                        item.discountedTotalPrice?.amount ?? item.price.amount,
+                        item.currentTotalPrice?.amount ?? item.price.amount,
                         item.price.currencyCode,
                       )}
                     </p>
-                    {item.discountedTotalPrice &&
-                      item.discountedTotalPrice.amount !== item.price.amount && (
+                    {item.currentTotalPrice &&
+                      item.currentTotalPrice.amount !== item.price.amount && (
                         <p className="font-sans text-sm text-foreground/50 line-through mt-0.5">
                           {fmt(item.price.amount, item.price.currencyCode)}
                         </p>
@@ -199,26 +199,26 @@ export default function OrderDetails() {
               Zusammenfassung
             </h2>
             <div className="space-y-2 font-sans text-sm">
-              {order.subtotalPrice && (
+              {order.subtotal && (
                 <div className="flex justify-between text-foreground/70">
                   <span>Zwischensumme</span>
                   <span>
                     {fmt(
-                      order.subtotalPrice.amount,
-                      order.subtotalPrice.currencyCode,
+                      order.subtotal.amount,
+                      order.subtotal.currencyCode,
                     )}
                   </span>
                 </div>
               )}
-              {order.totalShippingPrice && (
+              {order.totalShipping && (
                 <div className="flex justify-between text-foreground/70">
                   <span>Versand</span>
                   <span>
-                    {Number(order.totalShippingPrice.amount) === 0
+                    {Number(order.totalShipping.amount) === 0
                       ? 'Kostenlos'
                       : fmt(
-                          order.totalShippingPrice.amount,
-                          order.totalShippingPrice.currencyCode,
+                          order.totalShipping.amount,
+                          order.totalShipping.currencyCode,
                         )}
                   </span>
                 </div>
@@ -250,7 +250,7 @@ type LineItem = {
   quantity: number;
   price: {amount: string; currencyCode: string};
   image?: {url: string; altText?: string; width?: number; height?: number} | null;
-  discountedTotalPrice?: {amount: string; currencyCode: string} | null;
+  currentTotalPrice?: {amount: string; currencyCode: string} | null;
 };
 
 function FulfillmentBadge({status}: {status: string}) {

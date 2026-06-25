@@ -14,12 +14,19 @@ const graphqlConfig: IGraphQLConfig = {
         './*.{ts,tsx,js,jsx}',
         './app/**/*.{ts,tsx,js,jsx}',
         '!./app/graphql/**/*.{ts,tsx,js,jsx}',
+        '!./app/routes/account*.tsx',
+        '!./app/routes/account.*.tsx',
       ],
     },
 
-    // Customer Account project removed — customer-account GraphQL documents deleted
-
-    // Add your own GraphQL projects here for CMS, Shopify Admin API, etc.
+    // Customer Account API — account routes use context.customerAccount.query()
+    customerAccount: {
+      schema: getSchema('customer-account'),
+      documents: [
+        './app/routes/account*.tsx',
+        './app/routes/account.*.tsx',
+      ],
+    },
   },
 };
 
