@@ -5,7 +5,7 @@ import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
-import {useState, useCallback} from 'react';
+import {useCallback} from 'react';
 import {ShoppingBag} from 'lucide-react';
 import {ProductCatalogBand} from '~/components/zehn/ProductCatalogBand';
 import {ZEHN_HOMEPAGE_GRID_TOP} from '~/lib/homepage-section-styles';
@@ -77,9 +77,6 @@ export default function Collection() {
   const catalogFresh = Boolean(
     (locationState as CatalogFreshNavState | null)?.catalogFresh,
   );
-  /* Products always visible — no IntersectionObserver delay or category-change blank (BL-0006) */
-  const [isVisible] = useState<boolean>(true);
-
   const allProducts: FilterableProduct[] = products.nodes ?? [];
 
   const handleCatalogFreshConsumed = useCallback(() => {
@@ -131,7 +128,6 @@ export default function Collection() {
               product={product as FilterableProduct}
               loading={index < 8 ? 'eager' : undefined}
               index={index}
-              isVisible={isVisible}
             />
           ))}
         </div>
