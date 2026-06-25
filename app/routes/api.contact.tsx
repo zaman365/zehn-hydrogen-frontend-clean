@@ -19,7 +19,17 @@ const SUBJECT_MAP: Record<string, string> = {
   other: 'Sonstiges',
 };
 
-const RECIPIENT_EMAIL = 'nazibsayed31@gmail.com';
+const RECIPIENT_EMAIL = 'hello@zehn.store';
+
+/** Escape user-supplied strings before interpolation into the HTML email body. */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 export async function action({request, context}: ActionFunctionArgs) {
   if (request.method !== 'POST') {
@@ -114,22 +124,22 @@ export async function action({request, context}: ActionFunctionArgs) {
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
               <tr>
                 <td style="padding: 8px 12px; font-weight: bold; color: #555; width: 120px;">Name:</td>
-                <td style="padding: 8px 12px; color: #333;">${name.trim()}</td>
+                <td style="padding: 8px 12px; color: #333;">${escapeHtml(name.trim())}</td>
               </tr>
               <tr style="background-color: #f9f9f9;">
                 <td style="padding: 8px 12px; font-weight: bold; color: #555;">E-Mail:</td>
                 <td style="padding: 8px 12px; color: #333;">
-                  <a href="mailto:${email.trim()}" style="color: #e5a43a;">${email.trim()}</a>
+                  <a href="mailto:${escapeHtml(email.trim())}" style="color: #e5a43a;">${escapeHtml(email.trim())}</a>
                 </td>
               </tr>
               <tr>
                 <td style="padding: 8px 12px; font-weight: bold; color: #555;">Betreff:</td>
-                <td style="padding: 8px 12px; color: #333;">${subjectLabel}</td>
+                <td style="padding: 8px 12px; color: #333;">${escapeHtml(subjectLabel)}</td>
               </tr>
             </table>
             <div style="background-color: #f5f5f5; border-radius: 8px; padding: 16px; margin: 20px 0;">
               <h3 style="color: #555; margin-top: 0;">Nachricht:</h3>
-              <p style="color: #333; line-height: 1.6; white-space: pre-wrap;">${message.trim()}</p>
+              <p style="color: #333; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(message.trim())}</p>
             </div>
             <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px;">
               Diese Nachricht wurde über das Kontaktformular auf zehnfashion.de gesendet.

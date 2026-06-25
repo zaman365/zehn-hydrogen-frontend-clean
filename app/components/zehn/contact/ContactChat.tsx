@@ -358,7 +358,7 @@ function EmailFormPanel() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+    <form onSubmit={(e) => { void handleSubmit(e); }} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
       {status === 'error' && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/10 border border-accent/20">
           <AlertCircle className="w-4 h-4 text-accent flex-shrink-0" />
@@ -370,8 +370,9 @@ function EmailFormPanel() {
 
       {/* Name */}
       <div>
-        <label className="font-sans text-[13px] font-medium text-foreground mb-1 block">Name *</label>
+        <label htmlFor="chat-email-name" className="font-sans text-[13px] font-medium text-foreground mb-1 block">Name *</label>
         <input
+          id="chat-email-name"
           type="text"
           value={formData.name}
           onChange={(e) => handleChange('name', e.target.value)}
@@ -385,8 +386,9 @@ function EmailFormPanel() {
 
       {/* Email */}
       <div>
-        <label className="font-sans text-[13px] font-medium text-foreground mb-1 block">E-Mail *</label>
+        <label htmlFor="chat-email-email" className="font-sans text-[13px] font-medium text-foreground mb-1 block">E-Mail *</label>
         <input
+          id="chat-email-email"
           type="email"
           value={formData.email}
           onChange={(e) => handleChange('email', e.target.value)}
@@ -400,8 +402,9 @@ function EmailFormPanel() {
 
       {/* Subject */}
       <div>
-        <label className="font-sans text-[13px] font-medium text-foreground mb-1 block">Betreff *</label>
+        <label htmlFor="chat-email-subject" className="font-sans text-[13px] font-medium text-foreground mb-1 block">Betreff *</label>
         <select
+          id="chat-email-subject"
           value={formData.subject}
           onChange={(e) => handleChange('subject', e.target.value)}
           className={`w-full px-3 py-2.5 rounded-xl bg-background border font-sans text-body text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors ${
@@ -417,8 +420,9 @@ function EmailFormPanel() {
 
       {/* Message */}
       <div>
-        <label className="font-sans text-[13px] font-medium text-foreground mb-1 block">Nachricht *</label>
+        <label htmlFor="chat-email-message" className="font-sans text-[13px] font-medium text-foreground mb-1 block">Nachricht *</label>
         <textarea
+          id="chat-email-message"
           value={formData.message}
           onChange={(e) => handleChange('message', e.target.value)}
           placeholder="Wie können wir Ihnen helfen?"
@@ -473,11 +477,10 @@ export function ContactChat({initialOpen = false}: {initialOpen?: boolean}) {
   const [whatsappName, setWhatsappName] = useState('');
   const [whatsappMessage, setWhatsappMessage] = useState('');
 
-  // Allow parent to open the chat
+  // Allow parent to open the chat — functional setter avoids stale chatState closure
   useEffect(() => {
-    if (initialOpen && chatState === 'closed') {
-      setChatState('open');
-    }
+    if (!initialOpen) return;
+    setChatState((current) => (current === 'closed' ? 'open' : current));
   }, [initialOpen]);
 
   // Listen for custom event to open chat widget
@@ -600,7 +603,7 @@ export function ContactChat({initialOpen = false}: {initialOpen?: boolean}) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    sendMessage(inputValue);
+    void sendMessage(inputValue);
   };
 
   const handleEscalate = () => {
@@ -635,7 +638,7 @@ export function ContactChat({initialOpen = false}: {initialOpen?: boolean}) {
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
       setUserMessageCount((prev) => prev + 1);
     } else {
-      sendMessage(text);
+      void sendMessage(text);
     }
   };
 
@@ -854,10 +857,11 @@ export function ContactChat({initialOpen = false}: {initialOpen?: boolean}) {
                 </p>
                 
                 <div>
-                  <label className="font-sans text-[11px] font-medium text-foreground mb-0.5 block">
+                  <label htmlFor="whatsapp-name" className="font-sans text-[11px] font-medium text-foreground mb-0.5 block">
                     Name (Optional)
                   </label>
                   <input
+                    id="whatsapp-name"
                     type="text"
                     value={whatsappName}
                     onChange={(e) => setWhatsappName(e.target.value)}
@@ -867,10 +871,11 @@ export function ContactChat({initialOpen = false}: {initialOpen?: boolean}) {
                 </div>
 
                 <div className="flex-1 flex flex-col">
-                  <label className="font-sans text-[11px] font-medium text-foreground mb-0.5 block">
+                  <label htmlFor="whatsapp-message" className="font-sans text-[11px] font-medium text-foreground mb-0.5 block">
                     Nachricht *
                   </label>
                   <textarea
+                    id="whatsapp-message"
                     value={whatsappMessage}
                     onChange={(e) => setWhatsappMessage(e.target.value)}
                     placeholder="Ihre Nachricht..."

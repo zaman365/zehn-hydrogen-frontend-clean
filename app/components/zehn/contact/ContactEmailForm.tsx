@@ -207,7 +207,7 @@ export function ContactEmailForm() {
         {status === 'success' ? (
           <SuccessView onReset={handleReset} />
         ) : (
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
+          <form onSubmit={(e) => { void handleSubmit(e); }} noValidate className="space-y-5">
             {/* Name field */}
             <FormField label="Name" error={errors.name} required>
               <input
