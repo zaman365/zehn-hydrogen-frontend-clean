@@ -374,6 +374,7 @@ export function useProductCatalogFilters(options: UseProductCatalogFiltersOption
     routeSync?.collectionHandle,
     routeSync?.pathname,
     routeSync?.searchCategory,
+    routeSync,
     setSelectedCategory,
   ]);
 

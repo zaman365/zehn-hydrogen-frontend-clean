@@ -47,18 +47,20 @@ function BackToHomeLink() {
 function formatBody(body: string): React.ReactNode[] {
   const paragraphs = body.split('\n\n');
 
-  return paragraphs.map((paragraph, pIdx) => {
+  return paragraphs.map((paragraph) => {
+    const paragraphKey = `para-${paragraph.slice(0, 48)}`;
     // Check if paragraph contains bullet points
     if (paragraph.includes('• ')) {
       const items = paragraph.split('\n').filter(Boolean);
       return (
-        <ul key={pIdx} className="space-y-2 my-3">
-          {items.map((item, iIdx) => {
+        <ul key={paragraphKey} className="space-y-2 my-3">
+          {items.map((item) => {
             const isBullet = item.startsWith('• ');
             const text = isBullet ? item.slice(2) : item;
+            const itemKey = `item-${text.slice(0, 48)}`;
             return isBullet ? (
               <li
-                key={iIdx}
+                key={itemKey}
                 className="flex items-start gap-2 font-sans text-body-lg text-foreground/80"
               >
                 <span className="text-accent mt-1.5 flex-shrink-0" aria-hidden="true">
@@ -68,7 +70,7 @@ function formatBody(body: string): React.ReactNode[] {
               </li>
             ) : (
               <p
-                key={iIdx}
+                key={itemKey}
                 className="font-sans text-body-lg text-foreground/80"
               >
                 {item}
@@ -83,7 +85,7 @@ function formatBody(body: string): React.ReactNode[] {
     if (paragraph.includes('\n')) {
       return (
         <p
-          key={pIdx}
+          key={paragraphKey}
           className="font-sans text-body-lg text-foreground/80 whitespace-pre-line"
         >
           {paragraph}
@@ -92,7 +94,7 @@ function formatBody(body: string): React.ReactNode[] {
     }
 
     return (
-      <p key={pIdx} className="font-sans text-body-lg text-foreground/80">
+      <p key={paragraphKey} className="font-sans text-body-lg text-foreground/80">
         {paragraph}
       </p>
     );

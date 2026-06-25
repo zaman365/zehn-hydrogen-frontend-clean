@@ -109,7 +109,7 @@ describe('api.chat action — response contracts', () => {
     const mod = await import('../routes/api.chat');
     const request = new Request('https://example.com/api/chat', {method: 'GET'});
     const context = {env: {}, storefront: {query: async () => ({products: {nodes: []}})}} as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request, context, params: {}} as any);
     expect(response.status).toBe(405);
     const json = await response.json() as {content: string; error?: string};
@@ -125,7 +125,7 @@ describe('api.chat action — response contracts', () => {
       body: JSON.stringify({messages: []}),
     });
     const context = {env: {OPENROUTER_API_KEY: 'test-key'}, storefront: {query: async () => ({products: {nodes: []}})}} as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request, context, params: {}} as any);
     expect(response.status).toBe(400);
   });
@@ -139,7 +139,7 @@ describe('api.chat action — response contracts', () => {
     });
     /* No API key in env */
     const context = {env: {}, storefront: {query: async () => ({products: {nodes: []}})}} as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request, context, params: {}} as any);
     expect(response.status).toBe(500);
     const json = await response.json() as {content: string; error?: string};
@@ -169,7 +169,7 @@ describe('api.chat action — response contracts', () => {
       env: {OPENROUTER_API_KEY: 'test-key'},
       storefront: {query: async () => ({products: {nodes: []}})},
     } as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request, context, params: {}} as any);
     expect(response.status).toBe(200);
     const json = await response.json() as {content: string};
@@ -191,7 +191,7 @@ describe('api.chat action — response contracts', () => {
       env: {OPENROUTER_API_KEY: 'test-key'},
       storefront: {query: async () => ({products: {nodes: []}})},
     } as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request, context, params: {}} as any);
     expect(response.status).toBe(500);
 

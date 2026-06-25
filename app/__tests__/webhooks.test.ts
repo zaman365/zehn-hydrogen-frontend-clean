@@ -136,7 +136,7 @@ describe('verifyShopifyHmac — crypto behavior', () => {
       body: JSON.stringify({id: 1, handle: 'test-product'}),
     });
     const mockContext = {env: {SHOPIFY_WEBHOOK_SECRET: 'test-secret'}} as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request: mockRequest, context: mockContext, params: {}} as any);
     expect(response.status).toBe(401);
     cryptoSpy.mockRestore();
@@ -151,7 +151,7 @@ describe('webhooks action — response contracts', () => {
     const mod = await import('../routes/webhooks');
     const request = new Request('https://example.com/webhooks', {method: 'GET'});
     const context = {env: {}} as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request, context, params: {}} as any);
     expect(response.status).toBe(405);
   });
@@ -164,7 +164,7 @@ describe('webhooks action — response contracts', () => {
       body: '{}',
     });
     const context = {env: {}} as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request, context, params: {}} as any);
     expect(response.status).toBe(200);
     const json = await response.json() as {handled: boolean};
@@ -184,7 +184,7 @@ describe('webhooks action — response contracts', () => {
     });
     /* No SHOPIFY_WEBHOOK_SECRET — HMAC check skipped */
     const context = {env: {}} as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request, context, params: {}} as any);
     expect(response.status).toBe(200);
     const json = await response.json() as {received: boolean; topic: string; handle: string};
@@ -202,7 +202,7 @@ describe('webhooks action — response contracts', () => {
       body: JSON.stringify(payload),
     });
     const context = {env: {}} as unknown as Parameters<typeof mod.action>[0]['context'];
-    const response = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response =  
     await mod.action({request, context, params: {}} as any);
     expect(response.status).toBe(200);
     const json = await response.json() as {topic: string};

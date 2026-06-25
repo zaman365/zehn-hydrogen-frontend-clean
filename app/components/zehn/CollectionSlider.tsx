@@ -127,9 +127,9 @@ export function CollectionSlider({ collections }: CollectionSliderProps) {
 
             {/* Dots */}
             <div className="flex gap-2">
-              {collections.map((_, index) => (
+              {collections.map((collection, index) => (
                 <button
-                  key={index}
+                  key={collection.title}
                   type="button"
                   onClick={() => {
                     setCurrentIndex(index)

@@ -119,17 +119,19 @@ function SectionBlock({
   index: number;
 }) {
   // Convert newlines to proper paragraphs and handle bullet points
-  const formattedBody = body.split('\n\n').map((paragraph, pIdx) => {
+  const formattedBody = body.split('\n\n').map((paragraph) => {
+    const paragraphKey = `para-${paragraph.slice(0, 48)}`;
     // Check if paragraph contains bullet points
     if (paragraph.includes('• ')) {
       const items = paragraph.split('\n').filter(Boolean);
       return (
-        <ul key={pIdx} className="space-y-2 my-3">
-          {items.map((item, iIdx) => {
+        <ul key={paragraphKey} className="space-y-2 my-3">
+          {items.map((item) => {
             const text = item.startsWith('• ') ? item.slice(2) : item;
+            const itemKey = `item-${text.slice(0, 48)}`;
             return item.startsWith('• ') ? (
               <li
-                key={iIdx}
+                key={itemKey}
                 className="flex items-start gap-2 font-sans text-body-lg text-foreground/80"
               >
                 <span className="text-accent mt-1.5 flex-shrink-0">•</span>
@@ -137,7 +139,7 @@ function SectionBlock({
               </li>
             ) : (
               <p
-                key={iIdx}
+                key={itemKey}
                 className="font-sans text-body-lg text-foreground/80"
               >
                 {item}
@@ -152,7 +154,7 @@ function SectionBlock({
     if (paragraph.includes('\n')) {
       return (
         <p
-          key={pIdx}
+          key={paragraphKey}
           className="font-sans text-body-lg text-foreground/80 whitespace-pre-line"
         >
           {paragraph}
@@ -161,7 +163,7 @@ function SectionBlock({
     }
 
     return (
-      <p key={pIdx} className="font-sans text-body-lg text-foreground/80">
+      <p key={paragraphKey} className="font-sans text-body-lg text-foreground/80">
         {paragraph}
       </p>
     );

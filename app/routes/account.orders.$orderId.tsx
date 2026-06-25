@@ -124,9 +124,9 @@ export default function OrderDetails() {
           </h2>
           <div className="space-y-4">
             {order.lineItems.nodes.map(
-              (item: LineItem, index: number) => (
+              (item: LineItem) => (
                 <div
-                  key={index}
+                  key={`${item.title}-${item.quantity}-${item.price.amount}`}
                   className="flex gap-4 p-4 border border-border/50 rounded-xl bg-card"
                 >
                   {item.image && (

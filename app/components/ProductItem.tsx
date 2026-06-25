@@ -247,9 +247,9 @@ export function ProductItem({
           <>
             {colorSwatches.filter((colorValue: any) =>
               colorValue.swatch?.color || colorValue.swatch?.image?.previewImage?.url
-            ).map((colorValue: any, idx: number) => (
+            ).map((colorValue: any) => (
               <button
-                key={idx}
+                key={colorValue.name}
                 type="button"
                 className="w-[22px] h-[22px] rounded-full border-2 border-black/10 overflow-hidden hover:border-foreground hover:scale-110 hover:shadow-md transition-all duration-200 flex-shrink-0 relative group/swatch active:scale-105"
                 style={{backgroundColor: colorValue.swatch?.color || 'transparent'}}

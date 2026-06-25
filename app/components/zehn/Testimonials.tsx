@@ -1,9 +1,12 @@
 
-import { useEffect, useState, useRef } from "react"
+import { useCallback, useEffect, useState, useRef } from "react"
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react"
 import {ZehnStaticImage} from '~/components/zehn'
 
 // ZEHN Design System Spacing Tokens
+const TESTIMONIAL_SKELETON_KEYS = ['skeleton-a', 'skeleton-b', 'skeleton-c'] as const;
+const TESTIMONIAL_STAR_KEYS = ['star-1', 'star-2', 'star-3', 'star-4', 'star-5'] as const;
+
 const SPACING = {
   section: 'py-3',
   header: 'mb-8 sm:mb-10',
@@ -117,13 +120,13 @@ export function Testimonials({
 
   const totalSlides = Math.ceil(propTestimonials.length / cardsPerView)
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     setCurrentIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1))
-  }
+  }, [totalSlides])
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev === totalSlides - 1 ? 0 : prev + 1))
-  }
+  }, [totalSlides])
 
   const handleDotClick = (index: number) => {
     setCurrentIndex(index)
@@ -141,7 +144,7 @@ export function Testimonials({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentIndex, totalSlides])
+  }, [handleNext, handlePrevious])
 
   // Auto-play functionality
   useEffect(() => {
@@ -152,7 +155,7 @@ export function Testimonials({
     }, autoPlayInterval)
 
     return () => clearInterval(interval)
-  }, [autoPlay, isPaused, currentIndex, autoPlayInterval])
+  }, [autoPlay, isPaused, autoPlayInterval, handleNext])
 
   // Touch handlers for mobile swipe
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -191,8 +194,8 @@ export function Testimonials({
               <div className="h-8 bg-muted/20 rounded w-48 mx-auto"></div>
               <div className="h-12 bg-muted/20 rounded w-64 mx-auto"></div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-64 bg-muted/20 rounded-2xl"></div>
+                {TESTIMONIAL_SKELETON_KEYS.map((skeletonKey) => (
+                  <div key={skeletonKey} className="h-64 bg-muted/20 rounded-2xl"></div>
                 ))}
               </div>
             </div>
@@ -258,9 +261,11 @@ export function Testimonials({
                 role="region"
                 aria-label="Kundenstimmen-Karussell"
               >
-                {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+                {Array.from({ length: totalSlides }).map((_, slideIndex) => {
+                  const slideKey = propTestimonials[slideIndex * cardsPerView]?.id ?? `slide-${slideIndex}`;
+                  return (
                   <div
-                    key={slideIndex}
+                    key={slideKey}
                     className={`min-w-full flex ${SPACING.cardGap} px-1`}
                   >
                     {propTestimonials
@@ -275,8 +280,8 @@ export function Testimonials({
                         >
                           {/* Rating */}
                           <div className="flex gap-1 mb-4" role="img" aria-label={`${testimonial.rating} out of 5 stars`}>
-                            {[...Array(testimonial.rating)].map((_, i) => (
-                              <Star key={i} className="w-4 h-4 fill-accent text-accent" aria-hidden="true" />
+                            {TESTIMONIAL_STAR_KEYS.slice(0, testimonial.rating).map((starKey) => (
+                              <Star key={`${testimonial.id}-${starKey}`} className="w-4 h-4 fill-accent text-accent" aria-hidden="true" />
                             ))}
                           </div>
 
@@ -327,7 +332,8 @@ export function Testimonials({
                         </article>
                       ))}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -346,24 +352,27 @@ export function Testimonials({
 
               {/* Dot Indicators with proper touch targets */}
               <div className="flex gap-2" role="tablist" aria-label="Kundenstimmen-Folien">
-              {Array.from({ length: totalSlides }).map((_, index) => (
+              {Array.from({ length: totalSlides }).map((_, slideIndex) => {
+                const dotKey = propTestimonials[slideIndex * cardsPerView]?.id ?? `dot-${slideIndex}`;
+                return (
                 <button
-                  key={index}
-                  onClick={() => handleDotClick(index)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleDotClick(index)}
+                  key={dotKey}
+                  onClick={() => handleDotClick(slideIndex)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleDotClick(slideIndex)}
                   className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-                  aria-label={`Gehe zu Folie ${index + 1}`}
-                  aria-current={index === currentIndex ? 'true' : 'false'}
+                  aria-label={`Gehe zu Folie ${slideIndex + 1}`}
+                  aria-current={slideIndex === currentIndex ? 'true' : 'false'}
                   role="tab"
                   tabIndex={0}
                 >
                   <span className={`block rounded-full transition-all duration-300 ${
-                    index === currentIndex
+                    slideIndex === currentIndex
                       ? 'bg-accent w-8 h-2'
                       : 'bg-border hover:bg-accent/50 w-2 h-2'
                   }`} />
                 </button>
-              ))}
+                );
+              })}
               </div>
 
               {/* Next Arrow - Hidden on mobile, shown on desktop */}

@@ -1,5 +1,4 @@
-import React from 'react';
-import {useState} from 'react';
+import React, {useState} from 'react';
 import {ArrowRight, Check, Loader2, AlertCircle} from 'lucide-react';
 
 type SubscribeStatus = 'idle' | 'submitting' | 'success' | 'error';

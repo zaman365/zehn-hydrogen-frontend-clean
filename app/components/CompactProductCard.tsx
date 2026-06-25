@@ -159,9 +159,9 @@ export function CompactProductCard({
           {/* Color Swatches */}
           {colorSwatches.length > 0 && (
             <div className="flex items-center gap-1">
-              {colorSwatches.map((colorValue: any, index: number) => (
+              {colorSwatches.map((colorValue: any) => (
                 <ColorSwatch
-                  key={index}
+                  key={colorValue.name}
                   swatch={colorValue.swatch}
                   name={colorValue.name}
                   variantImage={colorValue.firstSelectableVariant?.image}

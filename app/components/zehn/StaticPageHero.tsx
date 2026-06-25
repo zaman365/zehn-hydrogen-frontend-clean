@@ -1,6 +1,5 @@
 import {Link} from 'react-router';
-import {ChevronRight} from 'lucide-react';
-import {
+import {ChevronRight,
   Scale,
   Shield,
   Cookie,

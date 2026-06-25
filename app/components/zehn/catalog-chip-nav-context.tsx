@@ -85,5 +85,6 @@ export function usePublishCatalogChipNav(snapshot: CatalogChipNavSnapshot): void
     snapshot.rootSlug,
     snapshot.selectedCategory,
     snapshot.source,
+    snapshot,
   ]);
 }
