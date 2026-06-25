@@ -121,10 +121,11 @@ export async function purgeStorefrontCache(
            * Hydrogen encodes the GraphQL body into the cache key URL as:
            *   encodeURIComponent('...' + JSON.stringify({query, variables: {handle: "slug", ...}}) + '...')
            * After encoding, "handle":"slug" becomes %22handle%22%3A%22slug%22.
-           * We search both the encoded and raw form for robustness across Hydrogen versions.
+           * Exact encoded match only — broad url.includes(handle) caused false positives
+           * on short handles (e.g. "sale" matching unrelated cache entries).
            */
           const encodedPattern = encodeURIComponent(`"handle":"${handle}"`);
-          return url.includes(encodedPattern) || url.includes(handle);
+          return url.includes(encodedPattern);
         });
 
         if (!matchesHandle) continue;
@@ -142,13 +143,6 @@ export async function purgeStorefrontCache(
         }
       }
 
-      if (result.purged > 0 || result.failed > 0) {
-        console.log('[cache-purge] purge complete', {
-          handles,
-          purged: result.purged,
-          failed: result.failed,
-        });
-      }
     } catch (err) {
       result.failed++;
       console.error('[cache-purge] purge failed', {handles, error: String(err)});

@@ -131,7 +131,7 @@ export async function action({request, context}: ActionFunctionArgs) {
     /* Phase 6: map topic → logical keys → handles → Workers Cache purge */
     const logicalKeys = getPurgeKeysForWebhook(topic, handle);
     const handles = extractHandlesFromPurgeKeys(logicalKeys);
-    console.log('[webhook] Cache purge initiated', {topic, handle, id: resourceId, logicalKeys});
+    console.warn('[webhook] Cache purge initiated', {topic, handle, id: resourceId, logicalKeys});
     /* waitUntil offloads async deletes past the 200 ack — avoids Shopify 5s timeout */
     await purgeStorefrontCache(handles, context.waitUntil ?? undefined);
   } catch (err) {
