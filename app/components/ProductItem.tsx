@@ -21,7 +21,6 @@ export function ProductItem({
   product,
   loading,
   index = 0,
-  isVisible = true,
 }: {
   product:
     | CollectionItemFragment
@@ -29,7 +28,6 @@ export function ProductItem({
     | RecommendedProductFragment;
   loading?: 'eager' | 'lazy';
   index?: number;
-  isVisible?: boolean;
 }) {
   const variantUrl = useVariantUrl(product.handle);
   const image = product.featuredImage;
@@ -148,10 +146,8 @@ export function ProductItem({
     <Link
       to={variantUrl}
       prefetch="intent"
-      className={`group block transition-all duration-500 ease-out ${
-        isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-      }`}
-      style={{transitionDelay: isEager ? '0ms' : `${index * 60}ms`, textDecoration: 'none'}}
+      className="group block"
+      style={{textDecoration: 'none'}}
     >
       <div
         className="bg-card rounded-3xl overflow-hidden boty-shadow boty-transition group-hover:scale-[1.02]"

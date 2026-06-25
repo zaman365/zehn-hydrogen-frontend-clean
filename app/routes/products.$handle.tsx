@@ -900,7 +900,6 @@ export default function Product() {
                         product={recommendedProduct}
                         loading="lazy"
                         index={index}
-                        isVisible={true}
                       />
                     </div>
                   )) : (

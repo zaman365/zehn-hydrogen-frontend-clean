@@ -82,7 +82,6 @@ function HomepageProductSlider({
               product={product as any}
               loading={index < 3 ? 'eager' : 'lazy'}
               index={index}
-              isVisible
             />
           </div>
         ))}
