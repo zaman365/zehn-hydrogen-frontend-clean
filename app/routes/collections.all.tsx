@@ -5,7 +5,7 @@ import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
-import {useState, useEffect, useRef, useCallback} from 'react';
+import {useState, useCallback} from 'react';
 import {ShoppingBag} from 'lucide-react';
 import {ProductCatalogBand} from '~/components/zehn/ProductCatalogBand';
 import {ZEHN_HOMEPAGE_GRID_TOP} from '~/lib/homepage-section-styles';
@@ -77,8 +77,8 @@ export default function Collection() {
   const catalogFresh = Boolean(
     (locationState as CatalogFreshNavState | null)?.catalogFresh,
   );
-  const [isVisible, setIsVisible] = useState<boolean>(false);
-  const gridRef = useRef<HTMLDivElement>(null);
+  /* Products always visible — no IntersectionObserver delay or category-change blank (BL-0006) */
+  const [isVisible] = useState<boolean>(true);
 
   const allProducts: FilterableProduct[] = products.nodes ?? [];
 
@@ -111,33 +111,6 @@ export default function Collection() {
 
   const {selectedCategory, displayProducts} = filterState;
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      {threshold: 0.1},
-    );
-
-    const gridElement = gridRef.current;
-    if (gridElement) {
-      observer.observe(gridElement);
-    }
-
-    return () => {
-      if (gridElement) {
-        observer.unobserve(gridElement);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    setIsVisible(false);
-    const timer = setTimeout(() => setIsVisible(true), 50);
-    return () => clearTimeout(timer);
-  }, [selectedCategory]);
 
   return (
     <div className="pt-3 sm:pt-6 lg:pt-12 pb-20">
@@ -151,10 +124,7 @@ export default function Collection() {
           curatedMainToggle
         />
 
-        <div
-          ref={gridRef}
-          className={`${ZEHN_HOMEPAGE_GRID_TOP} grid sm:grid-cols-2 lg:grid-cols-3 gap-3`}
-        >
+        <div className={`${ZEHN_HOMEPAGE_GRID_TOP} grid sm:grid-cols-2 lg:grid-cols-3 gap-3`}>
           {displayProducts.map((product, index) => (
             <ProductItem
               key={product.id}

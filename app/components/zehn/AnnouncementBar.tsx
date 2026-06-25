@@ -8,17 +8,8 @@ import {
 import {cn} from '~/lib/utils';
 
 export function AnnouncementBar() {
-  const [hasAnimated, setHasAnimated] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setHasAnimated(true);
-    }, 10);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -53,11 +44,8 @@ export function AnnouncementBar() {
   return (
     <div
       data-announcement-bar
-      className={`fixed top-0 left-0 right-0 z-[60] h-[26px] sm:h-[29px] text-white transition-all duration-500 ease-out ${
-        hasAnimated
-          ? 'opacity-100 translate-y-0'
-          : 'opacity-0 -translate-y-full'
-      } ${currentAnnouncement.bgColor}`}
+      /* Always visible — no entrance animation to prevent flash on hard refresh (BL-0006) */
+      className={`fixed top-0 left-0 right-0 z-[60] h-[26px] sm:h-[29px] text-white ${currentAnnouncement.bgColor}`}
     >
       <div className="w-full h-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-full items-center justify-center overflow-hidden relative max-w-[1400px] mx-auto">

@@ -195,6 +195,9 @@ export function Layout({children}: {children?: React.ReactNode}) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
+              /* Critical paint — body background before external CSS loads (BL-0006) */
+              :root { --color-background: #f4f4f5; }
+              body { background-color: #f4f4f5; }
               /* Critical animation utilities */
               .opacity-0 { opacity: 0; }
               .transition-all { transition-property: all; }

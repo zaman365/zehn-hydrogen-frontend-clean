@@ -1,4 +1,4 @@
-import {useState, useEffect, useRef, useCallback} from 'react';
+import {useEffect, useRef, useCallback} from 'react';
 import {ProductItem} from '~/components/ProductItem';
 import {ProductCatalogBand} from '~/components/zehn/ProductCatalogBand';
 import {
@@ -35,8 +35,6 @@ export function ProductGrid({
   jackenProducts = [],
   featuredSections = [],
 }: ProductGridProps) {
-  const [isVisible, setIsVisible] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -92,18 +90,12 @@ export function ProductGrid({
     };
   }, [scrollToSelectionAndProducts]);
 
+  /* Instant category swap — no animation delay to prevent blank-flash on chip click (BL-0006) */
   const applyCategorySelection = useCallback(
     (category: Category) => {
       if (category === selectedCategory) return;
-
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setSelectedCategory(category);
-        setTimeout(() => {
-          setIsTransitioning(false);
-          scrollToSelectionAndProducts();
-        }, 50);
-      }, 300);
+      setSelectedCategory(category);
+      setTimeout(() => scrollToSelectionAndProducts(), 0);
     },
     [scrollToSelectionAndProducts, selectedCategory, setSelectedCategory],
   );
@@ -138,35 +130,6 @@ export function ProductGrid({
       });
     }
   };
-
-  useEffect(() => {
-    const gridObserver = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      {threshold: 0.1},
-    );
-
-    const gridElement = gridRef.current;
-
-    if (gridElement) {
-      gridObserver.observe(gridElement);
-    }
-
-    return () => {
-      if (gridElement) {
-        gridObserver.unobserve(gridElement);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    setIsVisible(false);
-    const timer = setTimeout(() => setIsVisible(true), 50);
-    return () => clearTimeout(timer);
-  }, [selectedCategory]);
 
   return (
     <section className="w-full py-0 bg-background min-w-0 overflow-x-clip">
@@ -213,7 +176,6 @@ export function ProductGrid({
                         product={product as any}
                         loading={index < 4 ? 'eager' : 'lazy'}
                         index={index}
-                        isVisible={isVisible && !isTransitioning}
                       />
                     </div>
                   ))}
