@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+/* BL-0006: no entrance animation — tiles paint instantly */
 import { Link } from "react-router"
 import {ZehnStaticImage} from '~/components/zehn'
 
@@ -11,40 +11,15 @@ type CategoryTileProps = {
 }
 
 export function CategoryTiles({ tiles }: { tiles: CategoryTileProps[] }) {
-  const [isVisible, setIsVisible] = useState(false)
-  const sectionRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
-    }
-  }, [])
-
   return (
-    <section ref={sectionRef} className="w-full py-3 bg-background">
+    <section className="w-full py-3 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex overflow-x-auto gap-4 sm:gap-6 scrollbar-hide snap-x snap-mandatory scroll-smooth pb-4">
           {tiles.map((tile, index) => (
             <Link
               key={tile.title}
               to={tile.link}
-              className={`group relative aspect-square lg:aspect-auto lg:h-[450px] overflow-hidden rounded-lg flex-shrink-0 w-[280px] sm:w-[calc(40%-12px)] snap-start ${isVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`}
-              style={isVisible ? { animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' } : {}}
+              className="group relative aspect-square lg:aspect-auto lg:h-[450px] overflow-hidden rounded-lg flex-shrink-0 w-[280px] sm:w-[calc(40%-12px)] snap-start"
             >
               {/* ZehnStaticImage: skeleton+fade inside Link's overflow-hidden container;
                   Link itself is the responsive frame (aspect-square / fixed h-[450px] on lg).

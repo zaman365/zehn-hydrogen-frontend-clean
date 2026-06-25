@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { Link } from "react-router"
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
 import {ZehnStaticImage} from '~/components/zehn'
@@ -16,31 +16,8 @@ type CollectionSliderProps = {
 }
 
 export function CollectionSlider({ collections }: CollectionSliderProps) {
-  const [isVisible, setIsVisible] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const sectionRef = useRef<HTMLDivElement>(null)
   const sliderRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
-    }
-  }, [])
 
   const scroll = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
@@ -58,7 +35,7 @@ export function CollectionSlider({ collections }: CollectionSliderProps) {
   }
 
   return (
-    <section ref={sectionRef} className="w-full py-16 sm:py-20 lg:py-24 bg-zehn-platinum relative overflow-hidden">
+    <section className="w-full py-16 sm:py-20 lg:py-24 bg-zehn-platinum relative overflow-hidden">
       {/* Decorative background */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-20 right-20 w-96 h-96 bg-zehn-indigo rounded-full blur-3xl" />
@@ -68,16 +45,16 @@ export function CollectionSlider({ collections }: CollectionSliderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
-          <span className={`font-sans text-xs sm:text-sm tracking-[0.3em] uppercase text-muted mb-3 sm:mb-4 block ${isVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={isVisible ? { animationDelay: '0.1s', animationFillMode: 'forwards' } : {}}>
+          <span className="font-sans text-xs sm:text-sm tracking-[0.3em] uppercase text-muted mb-3 sm:mb-4 block">
             Explore Collections
           </span>
-          <h2 className={`font-sans text-3xl sm:text-4xl lg:text-5xl text-foreground mb-4 tracking-tight-4 ${isVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={isVisible ? { animationDelay: '0.3s', animationFillMode: 'forwards' } : {}}>
+          <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl text-foreground mb-4 tracking-tight-4">
             Curated for You
           </h2>
         </div>
 
         {/* Slider Container */}
-        <div className={`relative ${isVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={isVisible ? { animationDelay: '0.5s', animationFillMode: 'forwards' } : {}}>
+        <div className="relative">
           {/* Slider */}
           <div
             ref={sliderRef}

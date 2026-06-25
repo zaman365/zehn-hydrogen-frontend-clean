@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef } from "react"
 import { Link } from "react-router"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import {ZehnMediaFrame, ZehnStaticImage} from '~/components/zehn';
@@ -38,30 +38,7 @@ export function ProductSlider({
   products,
   viewAllLink
 }: ProductSliderProps) {
-  const [isVisible, setIsVisible] = useState(false)
-  const sectionRef = useRef<HTMLDivElement>(null)
   const sliderRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
-    }
-  }, [])
 
   const scroll = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
@@ -88,16 +65,16 @@ export function ProductSlider({
   }
 
   return (
-    <section ref={sectionRef} className="w-full py-12 sm:py-16 bg-background">
+    <section className="w-full py-12 sm:py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className={`font-sans text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground uppercase tracking-tight mb-2 ${isVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={isVisible ? { animationDelay: '0.1s', animationFillMode: 'forwards' } : {}}>
+            <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground uppercase tracking-tight mb-2">
               {title}
             </h2>
             {description && (
-              <p className={`font-sans text-sm sm:text-base text-muted ${isVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={isVisible ? { animationDelay: '0.2s', animationFillMode: 'forwards' } : {}}>
+              <p className="font-sans text-sm sm:text-base text-muted">
                 {description}
               </p>
             )}
@@ -125,7 +102,7 @@ export function ProductSlider({
         </div>
 
         {/* Slider */}
-        <div className={`relative ${isVisible ? 'animate-blur-in opacity-0' : 'opacity-0'} px-6 md:px-0`} style={isVisible ? { animationDelay: '0.3s', animationFillMode: 'forwards' } : {}}>
+        <div className="relative px-6 md:px-0">
           {/* Mobile Navigation - Floating Buttons */}
           <div className="flex md:hidden items-center gap-2 absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10">
             <button
@@ -212,7 +189,7 @@ export function ProductSlider({
 
         {/* View All Link */}
         {viewAllLink && (
-          <div className={`text-center mt-8 ${isVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={isVisible ? { animationDelay: '0.5s', animationFillMode: 'forwards' } : {}}>
+          <div className="text-center mt-8">
             <Link
               to={viewAllLink}
               className="inline-flex items-center justify-center bg-foreground text-background px-8 py-3 rounded-sm text-sm font-bold uppercase tracking-wider hover:bg-accent hover:text-accent-foreground transition-colors"

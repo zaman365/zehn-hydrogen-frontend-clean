@@ -371,7 +371,6 @@ export function Header({
   );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [hasAnimated, setHasAnimated] = useState(false);
   const desktopNavTriggersRef = useRef<HTMLDivElement>(null);
   const categoryMenuCloseTimerRef = useRef<ReturnType<
     typeof setTimeout
@@ -602,16 +601,6 @@ export function Header({
     beginCloseMobileMenu('navigate');
   }, [beginCloseMobileMenu]);
 
-  // Ensure animation only runs once per page load
-  useEffect(() => {
-    // Start animation immediately on mount
-    const timer = setTimeout(() => {
-      setHasAnimated(true);
-    }, 10);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   useEffect(
     () => () => {
       cancelCategoryMenuClose();
@@ -720,14 +709,12 @@ export function Header({
       {/* 3px breathing gap below announcement bar so navbar card visually floats */}
       <header className="fixed top-[29px] sm:top-[32px] left-0 right-0 z-50 font-sans bg-transparent">
         <nav
+          /* BL-0006: no entrance animation — nav paints instantly on hard refresh */
           className={cn(
-            'relative py-0 my-0 transition-all duration-600 ease-out',
+            'relative py-0 my-0',
             ZEHN_SITE_CONTENT_ROW,
             ZEHN_NAV_SURFACE,
             ZEHN_SURFACE_GLOW,
-            hasAnimated
-              ? 'opacity-100 scale-100 translate-y-0'
-              : 'opacity-0 scale-95 -translate-y-2',
           )}
           aria-label="Main"
         >

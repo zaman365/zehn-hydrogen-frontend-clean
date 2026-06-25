@@ -1,42 +1,12 @@
-
-import { useEffect, useRef, useState } from "react"
+/* BL-0006: no entrance animation — banner paints instantly */
 import { Shirt, Award, TrendingUp } from "lucide-react"
 import {ZehnStaticImage} from '~/components/zehn'
 
 export function CTABanner() {
-  const [isVisible, setIsVisible] = useState(false)
-  const bannerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (bannerRef.current) {
-      observer.observe(bannerRef.current)
-    }
-
-    return () => {
-      if (bannerRef.current) {
-        observer.unobserve(bannerRef.current)
-      }
-    }
-  }, [])
-
   return (
     <section className="w-full py-16 sm:py-20 lg:py-24 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div 
-          ref={bannerRef}
-          className={`rounded-2xl sm:rounded-3xl p-8 sm:p-12 lg:p-16 flex flex-col justify-center relative overflow-hidden min-h-[320px] sm:min-h-[400px] lg:min-h-[450px] transition-all duration-700 ease-out ${
-            isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-          }`}
-        >
+        <div className="rounded-2xl sm:rounded-3xl p-8 sm:p-12 lg:p-16 flex flex-col justify-center relative overflow-hidden min-h-[320px] sm:min-h-[400px] lg:min-h-[450px]">
           {/* ZehnStaticImage: skeleton+fade inside the banner's relative overflow-hidden container */}
           <ZehnStaticImage
             src="/images/bf965cf4-e728-4e72-ab1b-16b1cd8f1822.png"

@@ -86,12 +86,10 @@ export function Testimonials({
   autoPlay = false,
   autoPlayInterval = 5000
 }: TestimonialsProps = {}) {
-  const [isVisible, setIsVisible] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [touchStart, setTouchStart] = useState(0)
   const [touchEnd, setTouchEnd] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
-  const sectionRef = useRef<HTMLDivElement>(null)
   const sliderRef = useRef<HTMLDivElement>(null)
 
   // Determine cards per view based on screen size
@@ -115,27 +113,6 @@ export function Testimonials({
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
-    }
   }, [])
 
   const totalSlides = Math.ceil(propTestimonials.length / cardsPerView)
@@ -245,10 +222,6 @@ export function Testimonials({
     <section className={`w-full ${SPACING.section} bg-background`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
-          ref={sectionRef}
-          className={`transition-all duration-700 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onFocus={() => setIsPaused(true)}
