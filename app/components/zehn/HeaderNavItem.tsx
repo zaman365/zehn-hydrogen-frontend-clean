@@ -69,7 +69,8 @@ export const HeaderNavLink = forwardRef<HTMLAnchorElement, HeaderNavLinkProps>(
     );
   }
 
-  const {to, prefetch, onPointerDown: _onPointerDown, ...rest} = props;
+  /* Strip active from rest — prevents DOM leak active={false} on <a> via RippleButton spread (Prompt G) */
+  const {to, prefetch, onPointerDown: _onPointerDown, active: _active, ...rest} = props;
   return (
     <RippleButton
       ref={ref}

@@ -141,7 +141,8 @@ describe('ZehnStaticImage — behaviour contract', () => {
 
   it('LCP images use loading=eager and fetchPriority=high', () => {
     expect(img).toContain("loading={isLCP ? 'eager' : 'lazy'}");
-    expect(img).toContain("fetchPriority={isLCP ? 'high' : 'auto'}");
+    /* fetchpriority lowercase — React 18 warns on camelCase fetchPriority (Prompt G) */
+    expect(img).toContain("fetchpriority: 'high'");
   });
 
   it('uses native <img> (not Hydrogen Image)', () => {

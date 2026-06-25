@@ -89,7 +89,8 @@ export function ZehnStaticImage({
         src={src}
         alt={alt}
         loading={isLCP ? 'eager' : 'lazy'}
-        fetchPriority={isLCP ? 'high' : 'auto'}
+        /* fetchpriority lowercase — React 18 runtime warns on camelCase fetchPriority (Prompt G) */
+        {...(isLCP ? {fetchpriority: 'high' as const} : {})}
         {...props}
         onLoad={handleLoad}
         className={cn(
