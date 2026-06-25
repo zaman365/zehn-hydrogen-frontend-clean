@@ -1,6 +1,8 @@
 import {Link} from 'react-router';
 import {Money} from '@shopify/hydrogen';
 import {useState, useEffect, useMemo, useRef} from 'react';
+import {cn} from '~/lib/utils';
+import {useScrollEntry} from '~/hooks/useScrollEntry';
 import {ZehnMediaFrame, ZehnShopifyImage} from '~/components/zehn';
 import {ShoppingBag, Heart, ChevronLeft, ChevronRight} from 'lucide-react';
 import type {
@@ -20,6 +22,8 @@ import {
 export function ProductItem({
   product,
   loading,
+  priority,
+  isLCP,
   index = 0,
 }: {
   product:
@@ -27,6 +31,10 @@ export function ProductItem({
     | ProductItemFragment
     | RecommendedProductFragment;
   loading?: 'eager' | 'lazy';
+  /** Above-fold eager card — no opacity gate; skeleton pulse only until CDN paint. */
+  priority?: boolean;
+  /** First visible card only — fetchpriority high, no skeleton. */
+  isLCP?: boolean;
   index?: number;
 }) {
   const variantUrl = useVariantUrl(product.handle);
@@ -115,8 +123,13 @@ export function ProductItem({
     }
   }, [activeColorImageIndex, currentImageSet.length]);
 
-  // Above-the-fold images (eager) should show instantly without animation delay
+  // Resolve image tier: explicit props from resolveProductImageLoading, or loading+index fallback.
   const isEager = loading === 'eager';
+  const imagePriority = priority ?? isEager;
+  const imageIsLCP = isLCP ?? (isEager && index === 0);
+
+  // Above-fold cards (priority/LCP) are always visible; below-fold cards animate in on scroll.
+  const {ref: entryRef, entered} = useScrollEntry<HTMLDivElement>(imagePriority || imageIsLCP);
 
   const showColorCarouselControls = isCardHovered && currentImageSet.length > 1;
 
@@ -142,7 +155,14 @@ export function ProductItem({
   };
 
   return (
-    <>
+    <div
+      ref={entryRef}
+      className={cn(
+        'transition-[opacity,transform] duration-500 ease-out',
+        entered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+      )}
+      style={{transitionDelay: entered ? '0ms' : `${(index % 4) * 60}ms`}}
+    >
     <Link
       to={variantUrl}
       prefetch="intent"
@@ -168,7 +188,8 @@ export function ProductItem({
             <ZehnShopifyImage
               data={currentDisplayImage}
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-              isLCP={isEager}
+              priority={imagePriority}
+              isLCP={imageIsLCP}
             />
           )}
 
@@ -213,7 +234,7 @@ export function ProductItem({
             type="button"
             onClick={handleWishlistToggle}
             onPointerDown={handleWishlistPointerDown}
-            className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center lg:hover:bg-white transition-colors z-10"
+            className="absolute top-4 right-4 w-11 h-11 rounded-full overflow-hidden bg-white/80 backdrop-blur-sm flex items-center justify-center lg:hover:bg-white transition-colors z-10"
             aria-label={inWishlist ? 'Von Wunschliste entfernen' : 'Zur Wunschliste hinzufügen'}
           >
             <Heart
@@ -324,6 +345,6 @@ export function ProductItem({
       isOpen={showQuickAdd}
       onClose={() => setShowQuickAdd(false)}
     />
-  </>
+  </div>
   );
 }

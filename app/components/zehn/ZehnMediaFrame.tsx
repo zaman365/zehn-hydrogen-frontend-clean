@@ -4,7 +4,7 @@
  * Provides:
  *  - A `position: relative` box that enforces the chosen aspect ratio
  *  - `overflow-hidden` so child images/skeletons stay inside the frame
- *  - `bg-white` base so skeleton doesn't bleed on transparent backgrounds
+ *  - No opaque frame fill — pulse skeleton (ZEHN_MEDIA_SKELETON) is the loading surface
  *
  * Use with ZehnShopifyImage or ZehnStaticImage as children.
  * Overlay chrome (badges, floating action buttons) may be absolute children inside the frame.
@@ -25,7 +25,7 @@ export function ZehnMediaFrame({aspect, className, children}: ZehnMediaFrameProp
   return (
     <div
       className={cn(
-        'relative overflow-hidden bg-white',
+        'relative overflow-hidden',
         ZEHN_MEDIA_ASPECT[aspect],
         className,
       )}

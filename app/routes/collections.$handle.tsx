@@ -13,6 +13,10 @@ import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ProductItem} from '~/components/ProductItem';
+import {
+  resolveProductImageLoading,
+  ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT,
+} from '~/lib/zehn-product-image-loading';
 import type {ProductItemFragment} from 'storefrontapi.generated';
 import {useMemo} from 'react';
 import {ShoppingBag} from 'lucide-react';
@@ -460,13 +464,22 @@ export default function Collection() {
         )}
 
         <div className={`${ZEHN_HOMEPAGE_GRID_TOP} grid sm:grid-cols-2 lg:grid-cols-3 gap-3`}>
-          {displayProducts.map((product: any, index: number) => (
+          {displayProducts.map((product: any, index: number) => {
+            const imageLoad = resolveProductImageLoading('gridAboveFold', index, {
+              aboveFoldLimit: ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT,
+            });
+
+            return (
             <ProductItem
               key={product.id}
               product={product}
-              loading={index < 8 ? 'eager' : undefined}
+              loading={imageLoad.loading}
+              priority={imageLoad.priority}
+              isLCP={imageLoad.isLCP}
+              index={index}
             />
-          ))}
+            );
+          })}
         </div>
 
         {displayProducts.length === 0 && (

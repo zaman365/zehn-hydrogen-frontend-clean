@@ -2,6 +2,8 @@ import {Link} from 'react-router';
 import {Money} from '@shopify/hydrogen';
 import {ZehnMediaFrame, ZehnShopifyImage} from '~/components/zehn';
 import {useRef, useState} from 'react';
+import {cn} from '~/lib/utils';
+import {useScrollEntry} from '~/hooks/useScrollEntry';
 import {Heart} from 'lucide-react';
 import type {
   ProductItemFragment,
@@ -20,6 +22,9 @@ import {
 export function CompactProductCard({
   product,
   loading,
+  priority,
+  isLCP,
+  index = 0,
 }: {
   product:
     | CollectionItemFragment
@@ -27,6 +32,9 @@ export function CompactProductCard({
     | RecommendedProductFragment
     | PredictiveProductFragment;
   loading?: 'eager' | 'lazy';
+  priority?: boolean;
+  isLCP?: boolean;
+  index?: number;
 }) {
   const variantUrl = useVariantUrl(product.handle);
   const {toggleItem, isInWishlist} = useWishlist();
@@ -69,6 +77,12 @@ export function CompactProductCard({
 
   const inWishlist = isInWishlist(product.handle);
 
+  const isEager = loading === 'eager';
+  const imagePriority = priority ?? isEager;
+  const imageIsLCP = isLCP ?? (isEager && index === 0);
+
+  const {ref: entryRef, entered} = useScrollEntry<HTMLAnchorElement>(imagePriority || imageIsLCP);
+
   const toggleWishlistItem = () => {
     toggleItem({
       id: product.id,
@@ -103,13 +117,18 @@ export function CompactProductCard({
 
   return (
     <Link
+      ref={entryRef}
       to={variantUrl}
       prefetch="intent"
-      className="group block"
+      className={cn(
+        'group block transition-[opacity,transform] duration-500 ease-out',
+        entered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+      )}
+      style={{transitionDelay: entered ? '0ms' : `${(index % 4) * 60}ms`}}
     >
       <div className="bg-white rounded-lg overflow-hidden border border-black/10 hover:border-black/20 transition-colors">
         {/* Image frame — ZehnMediaFrame enforces 1:1; ZehnShopifyImage handles skeleton + fade */}
-        <ZehnMediaFrame aspect="square" className="bg-gray-100">
+        <ZehnMediaFrame aspect="square">
           {displayImage && (
             <ZehnShopifyImage
               key={displayImage.url}
@@ -117,7 +136,8 @@ export function CompactProductCard({
               alt={displayImage.altText || product.title}
               aspectRatio="1/1"
               sizes="200px"
-              isLCP={loading === 'eager'}
+              priority={imagePriority}
+              isLCP={imageIsLCP}
             />
           )}
           {/* Wishlist Heart */}
@@ -125,7 +145,7 @@ export function CompactProductCard({
             type="button"
             onClick={handleWishlistToggle}
             onPointerDown={handleWishlistPointerDown}
-            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center lg:hover:bg-white transition-colors z-10"
+            className="absolute top-2 right-2 w-8 h-8 rounded-full overflow-hidden bg-white/80 backdrop-blur-sm flex items-center justify-center lg:hover:bg-white transition-colors z-10"
             aria-label={inWishlist ? 'Von Wunschliste entfernen' : 'Zur Wunschliste hinzufügen'}
           >
             <Heart

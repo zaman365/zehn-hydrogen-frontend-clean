@@ -2,7 +2,7 @@
  * Shared catalog filter state — homepage ProductGrid + collection routes (REQ-0008).
  * Client-only facets; instant re-render without URL/query sync.
  */
-import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   isCatalogBandPath,
   isCatalogRootPath,
@@ -287,7 +287,8 @@ export function useProductCatalogFilters(options: UseProductCatalogFiltersOption
   onFreshConsumedRef.current =
     options.mode === 'collection' ? options.onCatalogFreshConsumed : undefined;
 
-  useLayoutEffect(() => {
+  /* Collection route → chip sync; useEffect avoids SSR useLayoutEffect warning on homepage (BL-0017). */
+  useEffect(() => {
     if (!routeSync) return;
 
     const {pathname, collectionHandle, catalogFresh, searchCategory} =
@@ -370,10 +371,6 @@ export function useProductCatalogFilters(options: UseProductCatalogFiltersOption
   }, [
     clearFacetState,
     mainCategories,
-    routeSync?.catalogFresh,
-    routeSync?.collectionHandle,
-    routeSync?.pathname,
-    routeSync?.searchCategory,
     routeSync,
     setSelectedCategory,
   ]);

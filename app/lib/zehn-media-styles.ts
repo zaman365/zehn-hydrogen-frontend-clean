@@ -23,10 +23,10 @@ export const ZEHN_MEDIA_SKELETON_FADE = 'transition-opacity duration-300' as con
 
 /**
  * Image fade-in after load.
- * Matches ProductItem.tsx: 700 ms + custom cubic ease for smooth reveal.
+ * 200 ms — fast enough to feel instant on cached images, smooth enough for network loads.
  */
 export const ZEHN_MEDIA_FADE_IN =
-  'transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]' as const;
+  'transition-opacity duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]' as const;
 
 /**
  * Aspect-ratio tokens derived from brand asset dimensions:

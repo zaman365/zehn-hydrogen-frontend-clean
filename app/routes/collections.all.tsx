@@ -4,6 +4,10 @@ import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
+import {
+  resolveProductImageLoading,
+  ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT,
+} from '~/lib/zehn-product-image-loading';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
 import {useCallback} from 'react';
 import {ShoppingBag} from 'lucide-react';
@@ -122,14 +126,22 @@ export default function Collection() {
         />
 
         <div className={`${ZEHN_HOMEPAGE_GRID_TOP} grid sm:grid-cols-2 lg:grid-cols-3 gap-3`}>
-          {displayProducts.map((product, index) => (
+          {displayProducts.map((product, index) => {
+            const imageLoad = resolveProductImageLoading('gridAboveFold', index, {
+              aboveFoldLimit: ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT,
+            });
+
+            return (
             <ProductItem
               key={product.id}
               product={product as FilterableProduct}
-              loading={index < 8 ? 'eager' : undefined}
+              loading={imageLoad.loading}
+              priority={imageLoad.priority}
+              isLCP={imageLoad.isLCP}
               index={index}
             />
-          ))}
+            );
+          })}
         </div>
 
         {displayProducts.length === 0 && (

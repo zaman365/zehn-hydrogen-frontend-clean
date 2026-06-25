@@ -5,6 +5,10 @@ import {Link, useNavigate} from 'react-router';
 import {SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
 import {CompactProductCard} from '~/components/CompactProductCard';
+import {
+  resolveProductImageLoading,
+  ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT,
+} from '~/lib/zehn-product-image-loading';
 import {useScrollLock} from '~/hooks/useScrollLock';
 import {ZEHN_SCROLL_EDGE} from '~/lib/zehn-scrollbar-styles';
 import {cn} from '~/lib/utils';
@@ -209,7 +213,13 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
                             </h3>
                             {/* Mobile: 2 cols, Tablet: 3 cols, Desktop: 4 cols */}
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                              {items.products.map((product) => {
+                              {items.products.map((product, index) => {
+                                const imageLoad = resolveProductImageLoading(
+                                  'gridAboveFold',
+                                  index,
+                                  {aboveFoldLimit: ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT},
+                                );
+
                                 return (
                                   <div
                                     key={product.id}
@@ -229,7 +239,10 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
                                   >
                                     <CompactProductCard
                                       product={product as any}
-                                      loading="lazy"
+                                      loading={imageLoad.loading}
+                                      priority={imageLoad.priority}
+                                      isLCP={imageLoad.isLCP}
+                                      index={index}
                                     />
                                   </div>
                                 );

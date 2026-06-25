@@ -103,7 +103,7 @@ export function Testimonials({
     return 3
   }
 
-  const [cardsPerView, setCardsPerView] = useState(getCardsPerView())
+  const [cardsPerView, setCardsPerView] = useState(1)
 
   useEffect(() => {
     // Set initial value on mount

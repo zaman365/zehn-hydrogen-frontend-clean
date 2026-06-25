@@ -1,23 +1,19 @@
 /**
  * ZehnShopifyImage — Hydrogen <Image> wrapper with pulse skeleton + fade-in (Phase 2).
  *
- * Skeleton behaviour:
- *  - Non-LCP: animate-pulse shown until onLoad fires; image fades in over 700 ms.
- *  - LCP (isLCP=true): no skeleton; image renders at full opacity immediately.
- *    Pass isLCP only for the first visible image on the page (hero, first product row).
+ * Loading tiers:
+ *  - default (lazy): pulse skeleton + opacity-0 until onLoad, then 200ms fade-in.
+ *  - priority: eager load, pulse skeleton until onLoad, opacity-100 immediately
+ *    (progressive CDN paint; no white flash from opacity gate).
+ *  - isLCP: eager + fetchpriority high, no skeleton, opacity-100 (one per page).
  *
- * `sizes` is required (not optional) — omitting it produces an uncropped full-res image
- * on every viewport, which wastes bandwidth and hurts LCP.
+ * Cached-image detection: useIsomorphicLayoutEffect checks img.complete on mount so
+ * browser-cached images skip the skeleton entirely without an SSR/hydration mismatch.
  *
- * @example
- * // Non-LCP product card image
- * <ZehnShopifyImage data={product.featuredImage} sizes="(min-width:1024px) 33vw, 50vw" />
- *
- * // LCP hero image (no skeleton, eager, high fetchPriority)
- * <ZehnShopifyImage data={hero.image} sizes="100vw" isLCP />
+ * `sizes` is required — omitting it wastes bandwidth and hurts LCP.
  */
 import {Image} from '@shopify/hydrogen';
-import {useState} from 'react';
+import {useLayoutEffect, useEffect, useRef, useState} from 'react';
 import {cn} from '~/lib/utils';
 import {
   ZEHN_MEDIA_SKELETON,
@@ -25,17 +21,32 @@ import {
   ZEHN_MEDIA_FADE_IN,
 } from '~/lib/zehn-media-styles';
 
+/**
+ * useLayoutEffect on client (runs before paint → no skeleton flash for cached images),
+ * useEffect on server (no-op → eliminates SSR "useLayoutEffect does nothing" warning).
+ */
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 /** Props derived from Hydrogen Image component (HydrogenImageProps not re-exported from @shopify/hydrogen). */
 type HydrogenImageBaseProps = React.ComponentPropsWithoutRef<typeof Image>;
+
+// Survives SPA navigation — cleared only on hard reload. Prevents navigation-back flash.
+const _loadedUrls = new Set<string>();
 
 export type ZehnShopifyImageProps = Omit<HydrogenImageBaseProps, 'sizes'> & {
   /** Required: responsive sizes string for Shopify CDN srcSet generation. */
   sizes: string;
   /**
-   * Mark true only for the LCP image (above-fold hero or first product card).
-   * Enables loading="eager" + fetchpriority="high" and disables skeleton.
+   * LCP candidate — eager + fetchpriority high, no skeleton.
+   * Pass only for the single above-fold hero or first grid card (index 0).
    */
   isLCP?: boolean;
+  /**
+   * Above-fold product card — eager load, skeleton until paint, no opacity gate.
+   * Use for horizontal sliders and first grid rows (not every eager card).
+   */
+  priority?: boolean;
   /** Extra classes for the <img> element (position, object-fit, etc.). */
   className?: string;
 };
@@ -43,20 +54,43 @@ export type ZehnShopifyImageProps = Omit<HydrogenImageBaseProps, 'sizes'> & {
 export function ZehnShopifyImage({
   sizes,
   isLCP = false,
+  priority = false,
   className,
   onLoad,
+  data,
   ...props
 }: ZehnShopifyImageProps) {
-  const [loaded, setLoaded] = useState(false);
+  // Derive before useState so the lazy initialiser can check the module-level cache.
+  const imageUrl =
+    data && typeof data === 'object' && 'url' in data
+      ? String((data as {url?: string}).url ?? '')
+      : '';
+
+  // Lazy init: already loaded in a previous render (navigation-back) → skip skeleton instantly.
+  const [loaded, setLoaded] = useState(() => Boolean(imageUrl && _loadedUrls.has(imageUrl)));
+  const frameRef = useRef<HTMLSpanElement>(null);
+
+  const eagerLoad = isLCP || priority;
+  const showImmediately = isLCP || priority;
+
+  // Check img.complete before browser paints — cached images skip skeleton with no flicker.
+  useIsomorphicLayoutEffect(() => {
+    const img = frameRef.current?.querySelector('img');
+    if (img?.complete && img.naturalWidth > 0) {
+      if (imageUrl) _loadedUrls.add(imageUrl);
+      setLoaded(true);
+    }
+  }, [imageUrl]);
 
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (imageUrl) _loadedUrls.add(imageUrl);
     setLoaded(true);
     onLoad?.(e);
   };
 
   return (
-    <>
-      {/* Pulse skeleton — hidden immediately for LCP images, fades out on load for others */}
+    <span ref={frameRef} className="contents">
+      {/* Pulse skeleton — omitted for LCP; fades out when image loads for priority/lazy */}
       {!isLCP && (
         <div
           aria-hidden="true"
@@ -70,18 +104,18 @@ export function ZehnShopifyImage({
 
       <Image
         sizes={sizes}
-        loading={isLCP ? 'eager' : 'lazy'}
+        data={data}
+        loading={eagerLoad ? 'eager' : 'lazy'}
         {...(isLCP ? {fetchpriority: 'high' as const} : {})}
         {...props}
         onLoad={handleLoad}
         className={cn(
           'absolute inset-0 w-full h-full object-cover object-center',
           ZEHN_MEDIA_FADE_IN,
-          /* LCP: always visible; non-LCP: fades in after load */
-          isLCP ? 'opacity-100' : loaded ? 'opacity-100' : 'opacity-0',
+          showImmediately ? 'opacity-100' : loaded ? 'opacity-100' : 'opacity-0',
           className,
         )}
       />
-    </>
+    </span>
   );
 }

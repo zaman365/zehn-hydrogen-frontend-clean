@@ -5,6 +5,12 @@
 import {describe, it, expect} from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  resolveProductImageLoading,
+  ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT,
+  ZEHN_HOMEPAGE_CATEGORY_GRID_ABOVE_FOLD_LIMIT,
+  ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT,
+} from '~/lib/zehn-product-image-loading';
 
 const ROOT = path.resolve(__dirname, '../..');
 
@@ -34,9 +40,9 @@ describe('zehn-media-styles — tokens', () => {
     expect(tokens).toContain('aspect-[4/5]');
   });
 
-  it('exports ZEHN_MEDIA_FADE_IN with 700ms cubic ease', () => {
+  it('exports ZEHN_MEDIA_FADE_IN with 200ms cubic ease (fast — no visible delay on cached images)', () => {
     expect(tokens).toContain('ZEHN_MEDIA_FADE_IN');
-    expect(tokens).toContain('duration-700');
+    expect(tokens).toContain('duration-200');
     expect(tokens).toContain('cubic-bezier');
   });
 
@@ -71,6 +77,10 @@ describe('ZehnMediaFrame — structure', () => {
     expect(frame).toContain('className');
   });
 
+  it('frame has no opaque white fill (skeleton is the loading surface)', () => {
+    expect(frame).not.toContain('bg-white');
+  });
+
   it('imports from zehn-media-styles (token co-location)', () => {
     expect(frame).toContain('zehn-media-styles');
   });
@@ -100,9 +110,20 @@ describe('ZehnShopifyImage — behaviour contract', () => {
     expect(img).toContain('ZEHN_MEDIA_FADE_IN');
   });
 
-  it('LCP images use loading=eager and fetchpriority=high', () => {
-    expect(img).toContain("loading={isLCP ? 'eager' : 'lazy'}");
+  it('LCP images use eager load and fetchpriority=high', () => {
+    expect(img).toContain('eagerLoad ? \'eager\' : \'lazy\'');
     expect(img).toContain("fetchpriority: 'high'");
+  });
+
+  it('priority prop enables showImmediately without fetchpriority high', () => {
+    expect(img).toContain('priority?: boolean');
+    expect(img).toContain('showImmediately = isLCP || priority');
+  });
+
+  it('detects cached complete images on mount (useLayoutEffect)', () => {
+    expect(img).toContain('useLayoutEffect');
+    expect(img).toContain('img?.complete');
+    expect(img).toContain('naturalWidth > 0');
   });
 
   it('wraps Hydrogen Image component', () => {
@@ -110,8 +131,9 @@ describe('ZehnShopifyImage — behaviour contract', () => {
     expect(img).toContain('<Image');
   });
 
-  it('default isLCP is false (no skeleton skipped by accident)', () => {
+  it('default isLCP and priority are false', () => {
     expect(img).toContain('isLCP = false');
+    expect(img).toContain('priority = false');
   });
 });
 
@@ -126,8 +148,8 @@ describe('ZehnStaticImage — behaviour contract', () => {
     expect(img).toContain("alt: string");
   });
 
-  it('skeleton rendered only when !isLCP', () => {
-    expect(img).toContain('!isLCP');
+  it('skeleton rendered only when not LCP/carousel', () => {
+    expect(img).toContain('!showImmediately');
     expect(img).toContain('ZEHN_MEDIA_SKELETON');
   });
 
@@ -139,8 +161,9 @@ describe('ZehnStaticImage — behaviour contract', () => {
     expect(img).toContain('ZEHN_MEDIA_FADE_IN');
   });
 
-  it('LCP images use loading=eager and fetchPriority=high', () => {
-    expect(img).toContain("loading={isLCP ? 'eager' : 'lazy'}");
+  it('LCP/carousel images use loading=eager; LCP gets fetchpriority high', () => {
+    expect(img).toContain("loading={eagerLoad ? 'eager' : 'lazy'}");
+    expect(img).toContain('carousel?: boolean');
     /* fetchpriority lowercase — React 18 warns on camelCase fetchPriority (Prompt G) */
     expect(img).toContain("fetchpriority: 'high'");
   });
@@ -167,8 +190,10 @@ describe('Phase 3 — ProductItem migration', () => {
     expect(src).toContain('sizes=');
   });
 
-  it('maps isEager to isLCP prop', () => {
-    expect(src).toContain('isLCP={isEager}');
+  it('splits priority and isLCP (not isEager → isLCP)', () => {
+    expect(src).toContain('priority={imagePriority}');
+    expect(src).toContain('isLCP={imageIsLCP}');
+    expect(src).not.toContain('isLCP={isEager}');
   });
 
   it('no longer contains manual imageLoaded state', () => {
@@ -226,6 +251,10 @@ describe('Phase 3 — Hero migration', () => {
 
   it('passes isLCP for first slide (LCP candidate)', () => {
     expect(src).toContain('isLCP={index === 0}');
+  });
+
+  it('passes carousel for all slides (eager, no lazy opacity gate)', () => {
+    expect(src).toContain('carousel');
   });
 
   it('disables skeleton pulse under frosted nav (static hero-fold bg)', () => {
@@ -397,6 +426,59 @@ describe('Phase 3 P2 — ZehnClubPage migration', () => {
 
   it('no longer uses raw <img> for logo', () => {
     expect(src).not.toContain('<img');
+  });
+});
+
+// ============================================================================
+// zehn-product-image-loading.ts — resolver contexts
+// ============================================================================
+describe('zehn-product-image-loading — resolveProductImageLoading', () => {
+  it('horizontalSlider: all cards eager + priority, never isLCP', () => {
+    expect(resolveProductImageLoading('horizontalSlider', 0)).toEqual({
+      loading: 'eager',
+      priority: true,
+      isLCP: false,
+    });
+    expect(resolveProductImageLoading('horizontalSlider', 5)).toEqual({
+      loading: 'eager',
+      priority: true,
+      isLCP: false,
+    });
+  });
+
+  it('gridAboveFold: first index is LCP; within limit gets priority', () => {
+    expect(resolveProductImageLoading('gridAboveFold', 0)).toEqual({
+      loading: 'eager',
+      priority: true,
+      isLCP: true,
+    });
+    expect(resolveProductImageLoading('gridAboveFold', 3)).toEqual({
+      loading: 'eager',
+      priority: true,
+      isLCP: false,
+    });
+  });
+
+  it('gridAboveFold: at and beyond limit is lazy', () => {
+    expect(resolveProductImageLoading('gridAboveFold', 8)).toEqual({
+      loading: 'lazy',
+      priority: false,
+      isLCP: false,
+    });
+  });
+
+  it('gridBelowFold: always lazy', () => {
+    expect(resolveProductImageLoading('gridBelowFold', 0)).toEqual({
+      loading: 'lazy',
+      priority: false,
+      isLCP: false,
+    });
+  });
+
+  it('exports above-fold limit constants', () => {
+    expect(ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT).toBe(8);
+    expect(ZEHN_HOMEPAGE_CATEGORY_GRID_ABOVE_FOLD_LIMIT).toBe(4);
+    expect(ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT).toBe(6);
   });
 });
 

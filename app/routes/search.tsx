@@ -5,6 +5,10 @@ import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {SearchResults} from '~/components/SearchResults';
 import {ProductItem} from '~/components/ProductItem';
 import {
+  resolveProductImageLoading,
+  ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT,
+} from '~/lib/zehn-product-image-loading';
+import {
   type RegularSearchReturn,
   type PredictiveSearchReturn,
   getEmptyPredictiveSearchResult,
@@ -282,13 +286,22 @@ export default function SearchPage() {
                 id="products"
                 className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"
               >
-                {sortedProducts.map((product: any, index: number) => (
+                {sortedProducts.map((product: any, index: number) => {
+                  const imageLoad = resolveProductImageLoading('gridAboveFold', index, {
+                    aboveFoldLimit: ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT,
+                  });
+
+                  return (
                   <ProductItem
                     key={product.id}
                     product={product}
-                    loading={index < 6 ? 'eager' : 'lazy'}
+                    loading={imageLoad.loading}
+                    priority={imageLoad.priority}
+                    isLCP={imageLoad.isLCP}
+                    index={index}
                   />
-                ))}
+                  );
+                })}
               </div>
             )}
 

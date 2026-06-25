@@ -11,6 +11,10 @@ import {ZEHN_HOMEPAGE_GRID_TOP} from '~/lib/homepage-section-styles';
 import {ZEHN_SITE_CONTENT_ROW} from '~/lib/site-content-row';
 import {cn} from '~/lib/utils';
 import {useProductCatalogFilters} from '~/hooks/useProductCatalogFilters';
+import {
+  resolveProductImageLoading,
+  ZEHN_HOMEPAGE_CATEGORY_GRID_ABOVE_FOLD_LIMIT,
+} from '~/lib/zehn-product-image-loading';
 
 type Category = string;
 
@@ -167,18 +171,26 @@ export function ProductGrid({
                   ref={gridRef}
                   className="flex min-w-0 max-w-full overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 scrollbar-hide snap-x snap-mandatory scroll-smooth pb-2 sm:pb-0 sm:overflow-visible"
                 >
-                  {displayProducts.map((product, index) => (
+                  {displayProducts.map((product, index) => {
+                    const imageLoad = resolveProductImageLoading('gridAboveFold', index, {
+                      aboveFoldLimit: ZEHN_HOMEPAGE_CATEGORY_GRID_ABOVE_FOLD_LIMIT,
+                    });
+
+                    return (
                     <div
                       key={`${selectedCategory}-${product.id}`}
                       className="homepage-product-card flex-shrink-0 w-[280px] sm:w-auto snap-start"
                     >
                       <ProductItem
                         product={product as any}
-                        loading={index < 4 ? 'eager' : 'lazy'}
+                        loading={imageLoad.loading}
+                        priority={imageLoad.priority}
+                        isLCP={imageLoad.isLCP}
                         index={index}
                       />
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="flex sm:hidden justify-center items-center mt-6 pb-2">

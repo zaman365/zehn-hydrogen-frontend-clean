@@ -95,7 +95,7 @@ export default function Account() {
             </div>
           ) : (
             <div className="space-y-4">
-              {orders.nodes.map((order: Order) => (
+              {orders.nodes.map((order) => (
                 <OrderCard key={order.id} order={order} />
               ))}
             </div>
@@ -110,8 +110,8 @@ type Order = {
   id: string;
   number: number;
   processedAt: string;
-  financialStatus: string;
-  fulfillmentStatus: string;
+  financialStatus?: string | null;
+  fulfillmentStatus?: string | null;
   totalPrice: {amount: string; currencyCode: string};
   lineItems: {nodes: Array<{title: string; quantity: number}>};
 };
@@ -158,7 +158,8 @@ function OrderCard({order}: {order: Order}) {
   );
 }
 
-function FulfillmentBadge({status}: {status: string}) {
+function FulfillmentBadge({status}: {status?: string | null}) {
+  const safeStatus = status ?? 'OPEN';
   const map: Record<string, {label: string; className: string}> = {
     FULFILLED: {
       label: 'Versendet',
@@ -190,8 +191,8 @@ function FulfillmentBadge({status}: {status: string}) {
     },
   };
 
-  const badge = map[status] ?? {
-    label: status,
+  const badge = map[safeStatus] ?? {
+    label: safeStatus,
     className: 'bg-foreground/10 text-foreground/70',
   };
 

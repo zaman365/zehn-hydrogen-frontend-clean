@@ -23,6 +23,9 @@
  *  Stagger entrance via CSS hero-reveal keyframes; re-triggered on each slide
  *  change via key={activeSlide} on the overlay wrapper (React unmount/remount).
  *  Subtitle cycles through brand phrases using useTextCycle — smooth CSS crossfade (client-only).
+ *
+ * Carousel images: all slides use ZehnStaticImage `carousel` (eager, no lazy opacity gate).
+ * Only slide 0 sets isLCP for fetchpriority; hidden slides must not use lazy loading.
  */
 import {useEffect, useState} from 'react';
 import {Sparkles} from 'lucide-react';
@@ -54,12 +57,14 @@ type HeroSlide = {
   objectPositionMobile?: string;
 };
 
+const HERO_FALLBACK_SRC = '/Hero Banner.png';
+
 const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'banner-slider-1',
     src: '/BANNER Slider 1.jpg',
     mobileSrc: '/BANNER Slider 1 - Mobile.jpg',
-    fallbackSrc: '/hero.png',
+    fallbackSrc: HERO_FALLBACK_SRC,
     alt: 'ZEHN premium fashion hero banner 1',
     objectPositionDesktop: 'center 0%',
   },
@@ -67,7 +72,7 @@ const HERO_SLIDES: HeroSlide[] = [
     id: 'banner-slider-2',
     src: '/BANNER Slider 2.jpg',
     mobileSrc: '/BANNER Slider 2 - Mobile.jpg',
-    fallbackSrc: '/hero.png',
+    fallbackSrc: HERO_FALLBACK_SRC,
     alt: 'ZEHN premium fashion hero banner 2',
     objectPositionDesktop: 'center 0%',
   },
@@ -75,7 +80,7 @@ const HERO_SLIDES: HeroSlide[] = [
     id: 'banner-slider-3',
     src: '/BANNER Slider 3.jpg',
     mobileSrc: '/BANNER Slider 3 - Mobile.jpg',
-    fallbackSrc: '/hero.png',
+    fallbackSrc: HERO_FALLBACK_SRC,
     alt: 'ZEHN premium fashion hero banner 3',
     objectPositionDesktop: 'center 0%',
   },
@@ -176,7 +181,7 @@ export function Hero() {
     return () => window.clearInterval(slideTimer);
   }, []);
 
-  /** Preload carousel assets so slides 1–2 never show loading skeleton under frosted nav. */
+  /** Eager preload — hidden carousel slides must be in cache before rotation (no lazy gate). */
   useEffect(() => {
     for (const slide of HERO_SLIDES) {
       for (const url of [slide.src, slide.mobileSrc]) {
@@ -185,6 +190,15 @@ export function Hero() {
       }
     }
   }, []);
+
+  const handleSlideImageError = (
+    event: React.SyntheticEvent<HTMLImageElement>,
+    fallbackSrc: string,
+  ) => {
+    if (event.currentTarget.dataset.fallbackApplied === 'true') return;
+    event.currentTarget.dataset.fallbackApplied = 'true';
+    event.currentTarget.src = fallbackSrc;
+  };
 
   return (
     <section data-homepage-hero>
@@ -201,7 +215,6 @@ export function Hero() {
                   : 'opacity-0 scale-[1.025]'
               }`}
             >
-              {/* Static skeleton only — pulse bleeds through frosted nav (bg-white/40) */}
               <ZehnStaticImage
                 src={slide.mobileSrc}
                 alt={slide.alt}
@@ -209,15 +222,14 @@ export function Hero() {
                 className="hero-slide-img hero-slide-img--mobile"
                 style={{objectPosition: slide.objectPositionMobile ?? HERO_OBJECT_POSITION_MOBILE}}
                 isLCP={index === 0}
+                carousel
                 skeletonPulse={false}
                 skeletonClassName="bg-[var(--hero-fold-bg)]"
                 width={1080}
                 height={1350}
-                onError={(event) => {
-                  if (event.currentTarget.dataset.fallbackApplied === 'true') return;
-                  event.currentTarget.dataset.fallbackApplied = 'true';
-                  event.currentTarget.src = slide.fallbackSrc;
-                }}
+                onError={(event) =>
+                  handleSlideImageError(event, slide.fallbackSrc)
+                }
               />
             </div>
           ))}
@@ -252,7 +264,6 @@ export function Hero() {
                   : 'opacity-0 scale-[1.025]'
               }`}
             >
-              {/* Static skeleton only — pulse bleeds through frosted nav (bg-white/40) */}
               <ZehnStaticImage
                 src={slide.src}
                 alt={slide.alt}
@@ -260,15 +271,14 @@ export function Hero() {
                 className="hero-slide-img hero-slide-img--desktop"
                 style={{objectPosition: slide.objectPositionDesktop ?? HERO_OBJECT_POSITION_DESKTOP}}
                 isLCP={index === 0}
+                carousel
                 skeletonPulse={false}
                 skeletonClassName="bg-[var(--hero-fold-bg)]"
                 width={3000}
                 height={1200}
-                onError={(event) => {
-                  if (event.currentTarget.dataset.fallbackApplied === 'true') return;
-                  event.currentTarget.dataset.fallbackApplied = 'true';
-                  event.currentTarget.src = slide.fallbackSrc;
-                }}
+                onError={(event) =>
+                  handleSlideImageError(event, slide.fallbackSrc)
+                }
               />
             </div>
           ))}

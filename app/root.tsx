@@ -182,6 +182,8 @@ export function Layout({children}: {children?: React.ReactNode}) {
   const nonce = useNonce();
   const data = useRouteLoaderData<RootLoader>('root');
   const metaPixelId = data?.metaPixelId;
+  /* Inline JSON-LD: omit nonce — browsers mask nonce in DOM ("") while useNonce() returns
+     the CSP value on hydrate; suppressHydrationWarning covers MiniOxygen dev edge (Prompt G). */
 
   return (
     <html lang="de" translate="no">
@@ -228,7 +230,7 @@ export function Layout({children}: {children?: React.ReactNode}) {
         ) : null}
         <script
           type="application/ld+json"
-          nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: JSON.stringify([
               {

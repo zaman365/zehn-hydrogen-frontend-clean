@@ -1,6 +1,7 @@
 import {useRef} from 'react';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {ProductItem} from '~/components/ProductItem';
+import {resolveProductImageLoading} from '~/lib/zehn-product-image-loading';
 
 export type HomepageProductSliderSection = {
   id: string;
@@ -73,18 +74,24 @@ function HomepageProductSlider({
         ref={sliderRef}
         className="flex min-w-0 max-w-full snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth scrollbar-hide pb-3"
       >
-        {products.map((product, index) => (
+        {products.map((product, index) => {
+          const imageLoad = resolveProductImageLoading('horizontalSlider', index);
+
+          return (
           <div
             key={`${section.id}-${product.id || product.handle}`}
             className="w-[240px] flex-shrink-0 snap-start sm:w-[280px]"
           >
             <ProductItem
               product={product as any}
-              loading={index < 3 ? 'eager' : 'lazy'}
+              loading={imageLoad.loading}
+              priority={imageLoad.priority}
+              isLCP={imageLoad.isLCP}
               index={index}
             />
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

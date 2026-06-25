@@ -3,7 +3,6 @@ export const PRODUCT_GRID_ITEM_FRAGMENT = `#graphql
     id
     handle
     title
-    description
     productType
     tags
     featuredImage {
@@ -13,7 +12,7 @@ export const PRODUCT_GRID_ITEM_FRAGMENT = `#graphql
       width
       height
     }
-    media(first: 50) {
+    media(first: 8) {
       nodes {
         ... on MediaImage {
           id
@@ -79,7 +78,7 @@ export const PRODUCT_GRID_ITEM_FRAGMENT = `#graphql
         }
       }
     }
-    variants(first: 50) {
+    variants(first: 15) {
       nodes {
         id
         availableForSale
@@ -129,129 +128,6 @@ export const PRODUCT_GRID_ITEM_FRAGMENT = `#graphql
   }
 ` as const;
 
-export const PRODUCT_GRID_QUERY = `#graphql
-  ${PRODUCT_GRID_ITEM_FRAGMENT}
-  query ProductGridQuery(
-    $country: CountryCode
-    $language: LanguageCode
-  ) @inContext(country: $country, language: $language) {
-    jeans: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:jeans OR product_type:jeans OR tag:denim OR product_type:denim") {
-      nodes {
-        ...ProductGridItem
-      }
-    }
-    cargo: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:cargo OR product_type:cargo OR tag:pant OR product_type:pant") {
-      nodes {
-        ...ProductGridItem
-      }
-    }
-    chino: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:chino OR product_type:chino") {
-      nodes {
-        ...ProductGridItem
-      }
-    }
-    shorts: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:shorts OR product_type:shorts") {
-      nodes {
-        ...ProductGridItem
-      }
-    }
-    tshirt: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:t-shirt OR product_type:t-shirt OR tag:tshirt OR product_type:tshirt") {
-      nodes {
-        ...ProductGridItem
-      }
-    }
-    polo: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:polo OR product_type:polo OR tag:shirt OR product_type:shirt") {
-      nodes {
-        ...ProductGridItem
-      }
-    }
-    jacket: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:jacket OR product_type:jacket") {
-      nodes {
-        ...ProductGridItem
-      }
-    }
-    poloCollection: collection(handle: "polo") {
-      id
-      handle
-      title
-      image {
-        url
-        altText
-        width
-        height
-      }
-    }
-    cargoCollection: collection(handle: "cargo") {
-      id
-      handle
-      title
-      image {
-        url
-        altText
-        width
-        height
-      }
-    }
-    chinoCollection: collection(handle: "chino") {
-      id
-      handle
-      title
-      image {
-        url
-        altText
-        width
-        height
-      }
-    }
-    jacketCollection: collection(handle: "jacket") {
-      id
-      handle
-      title
-      image {
-        url
-        altText
-        width
-        height
-      }
-    }
-    bestsellerCollection: collection(handle: "bestseller") {
-      id
-      handle
-      title
-      description
-      image {
-        url
-        altText
-        width
-        height
-      }
-    }
-    neuheitenCollection: collection(handle: "new-arrival") {
-      id
-      handle
-      title
-      description
-      image {
-        url
-        altText
-        width
-        height
-      }
-    }
-    saleCollection: collection(handle: "sale") {
-      id
-      handle
-      title
-      description
-      image {
-        url
-        altText
-        width
-        height
-      }
-    }
-  }
-` as const;
 
 export const NAVBAR_COLLECTIONS_QUERY = `#graphql
   query NavbarCollections($country: CountryCode, $language: LanguageCode)

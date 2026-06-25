@@ -123,10 +123,9 @@ export default function OrderDetails() {
             Artikel
           </h2>
           <div className="space-y-4">
-            {order.lineItems.nodes.map(
-              (item: LineItem) => (
+            {order.lineItems.nodes.map((item) => (
                 <div
-                  key={`${item.title}-${item.quantity}-${item.price.amount}`}
+                  key={`${item.title}-${item.quantity}-${item.price?.amount ?? item.currentTotalPrice?.amount ?? '0'}`}
                   className="flex gap-4 p-4 border border-border/50 rounded-xl bg-card"
                 >
                   {item.image && (
@@ -149,11 +148,12 @@ export default function OrderDetails() {
                   <div className="text-right flex-shrink-0">
                     <p className="font-sans font-semibold text-foreground">
                       {fmt(
-                        item.currentTotalPrice?.amount ?? item.price.amount,
-                        item.price.currencyCode,
+                        item.currentTotalPrice?.amount ?? item.price?.amount ?? '0',
+                        item.price?.currencyCode ?? order.totalPrice.currencyCode,
                       )}
                     </p>
                     {item.currentTotalPrice &&
+                      item.price &&
                       item.currentTotalPrice.amount !== item.price.amount && (
                         <p className="font-sans text-sm text-foreground/50 line-through mt-0.5">
                           {fmt(item.price.amount, item.price.currencyCode)}
@@ -161,8 +161,7 @@ export default function OrderDetails() {
                       )}
                   </div>
                 </div>
-              ),
-            )}
+            ))}
           </div>
         </section>
 
@@ -245,15 +244,8 @@ export default function OrderDetails() {
   );
 }
 
-type LineItem = {
-  title: string;
-  quantity: number;
-  price: {amount: string; currencyCode: string};
-  image?: {url: string; altText?: string; width?: number; height?: number} | null;
-  currentTotalPrice?: {amount: string; currencyCode: string} | null;
-};
-
-function FulfillmentBadge({status}: {status: string}) {
+function FulfillmentBadge({status}: {status?: string | null}) {
+  const safeStatus = status ?? 'OPEN';
   const map: Record<string, {label: string; className: string}> = {
     FULFILLED: {label: 'Versendet', className: 'bg-green-500/10 text-green-600'},
     IN_PROGRESS: {
@@ -279,8 +271,8 @@ function FulfillmentBadge({status}: {status: string}) {
     },
   };
 
-  const badge = map[status] ?? {
-    label: status,
+  const badge = map[safeStatus] ?? {
+    label: safeStatus,
     className: 'bg-foreground/10 text-foreground/70',
   };
 
@@ -293,7 +285,8 @@ function FulfillmentBadge({status}: {status: string}) {
   );
 }
 
-function FinancialBadge({status}: {status: string}) {
+function FinancialBadge({status}: {status?: string | null}) {
+  const safeStatus = status ?? 'PENDING';
   const map: Record<string, {label: string; className: string}> = {
     PAID: {label: 'Bezahlt', className: 'bg-green-500/10 text-green-600'},
     PENDING: {
@@ -314,8 +307,8 @@ function FinancialBadge({status}: {status: string}) {
     },
   };
 
-  const badge = map[status] ?? {
-    label: status,
+  const badge = map[safeStatus] ?? {
+    label: safeStatus,
     className: 'bg-foreground/10 text-foreground/70',
   };
 

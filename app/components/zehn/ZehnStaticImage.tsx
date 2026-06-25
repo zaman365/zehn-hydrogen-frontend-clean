@@ -6,8 +6,12 @@
  *  - Static marketing assets (SVGs, badges, editorial photos)
  *
  * Skeleton behaviour mirrors ZehnShopifyImage:
- *  - Non-LCP: animate-pulse until onLoad; fade-in 700 ms.
+ *  - Non-LCP: animate-pulse until onLoad; fade-in 200 ms.
  *  - LCP (isLCP=true): no skeleton; opacity-100 immediately.
+ *  - Carousel (carousel=true): eager load all hero slides; no lazy opacity gate on hidden slides.
+ *
+ * Cached-image detection: useIsomorphicLayoutEffect checks img.complete on mount so
+ * browser-cached hero/marketing images skip the skeleton without an SSR mismatch.
  *
  * @example
  * // Static marketing image with skeleton
@@ -18,7 +22,18 @@
  * // LCP hero slide (no skeleton)
  * <ZehnStaticImage src={slide.src} alt={slide.alt} isLCP />
  */
-import {useState} from 'react';
+import {useLayoutEffect, useEffect, useRef, useState} from 'react';
+
+/**
+ * useLayoutEffect on client (runs before paint → no skeleton flash for cached images),
+ * useEffect on server (no-op → avoids SSR "useLayoutEffect does nothing" warning).
+ */
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+// Survives SPA navigation — cleared only on hard reload. Prevents navigation-back flash.
+const _loadedSrcs = new Set<string>();
+
 import {cn} from '~/lib/utils';
 import {
   ZEHN_MEDIA_SKELETON,
@@ -41,6 +56,11 @@ export type ZehnStaticImageProps = Omit<
    */
   isLCP?: boolean;
   /**
+   * Hero carousel slide — eager loading, no skeleton, always visible once painted.
+   * Use with isLCP only on the first slide (fetchpriority high).
+   */
+  carousel?: boolean;
+  /**
    * When false, skeleton uses static fill (no animate-pulse).
    * Use under semi-transparent overlays (hero behind frosted nav).
    */
@@ -53,18 +73,34 @@ export function ZehnStaticImage({
   src,
   alt,
   isLCP = false,
+  carousel = false,
   skeletonPulse = true,
   skeletonClassName,
   className,
   onLoad,
   ...props
 }: ZehnStaticImageProps) {
-  const [loaded, setLoaded] = useState(false);
+  // Lazy init: already loaded in a previous render (navigation-back) → skip skeleton instantly.
+  const [loaded, setLoaded] = useState(() => _loadedSrcs.has(src));
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Check img.complete before browser paints — cached images skip skeleton with no flicker.
+  useIsomorphicLayoutEffect(() => {
+    const img = imgRef.current;
+    if (img?.complete && img.naturalWidth > 0) {
+      _loadedSrcs.add(src);
+      setLoaded(true);
+    }
+  }, [src]);
 
   const handleLoad: React.ReactEventHandler<HTMLImageElement> = (e) => {
+    _loadedSrcs.add(src);
     setLoaded(true);
     onLoad?.(e);
   };
+
+  const eagerLoad = isLCP || carousel;
+  const showImmediately = isLCP || carousel;
 
   const skeletonBase = skeletonPulse
     ? ZEHN_MEDIA_SKELETON
@@ -72,8 +108,8 @@ export function ZehnStaticImage({
 
   return (
     <>
-      {/* Pulse skeleton — omitted for LCP images (no flash), fades out on load for others */}
-      {!isLCP && (
+      {/* Pulse skeleton — omitted for LCP/carousel images */}
+      {!showImmediately && (
         <div
           aria-hidden="true"
           className={cn(
@@ -86,9 +122,10 @@ export function ZehnStaticImage({
       )}
 
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
-        loading={isLCP ? 'eager' : 'lazy'}
+        loading={eagerLoad ? 'eager' : 'lazy'}
         /* fetchpriority lowercase — React 18 runtime warns on camelCase fetchPriority (Prompt G) */
         {...(isLCP ? {fetchpriority: 'high' as const} : {})}
         {...props}
@@ -96,7 +133,7 @@ export function ZehnStaticImage({
         className={cn(
           'absolute inset-0 w-full h-full object-cover object-center',
           ZEHN_MEDIA_FADE_IN,
-          isLCP ? 'opacity-100' : loaded ? 'opacity-100' : 'opacity-0',
+          showImmediately ? 'opacity-100' : loaded ? 'opacity-100' : 'opacity-0',
           className,
         )}
       />

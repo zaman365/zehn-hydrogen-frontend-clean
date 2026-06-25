@@ -50,9 +50,8 @@ export function DesktopCategoryNavPopover({
           onPointerEnter={onPointerEnter}
           onPointerLeave={onPointerLeave}
           aria-hidden={categoryMenuPhase === 'closing'}
-          {...({
-            inert: categoryMenuPhase === 'closing' ? true : undefined,
-          } as object)}
+          /* React 18 — inert is a boolean HTML attr; empty string, not true (Prompt G). */
+          {...(categoryMenuPhase === 'closing' ? {inert: ''} : {})}
         >
           <div className={ZEHN_SURFACE_GLOW_BLEED}>
             <ZehnGlassPanel

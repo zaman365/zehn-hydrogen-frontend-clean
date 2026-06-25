@@ -6,7 +6,7 @@ import {
   createContext,
   useCallback,
   useContext,
-  useLayoutEffect,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -71,11 +71,11 @@ export function useCatalogChipNav(): CatalogChipNavSnapshot {
   return ctx?.snapshot ?? IDLE_SNAPSHOT;
 }
 
-/** Publish before paint so header menu reads current chip on same frame (BL-0017). */
+/** Publish after mount so SSR/hydration tree matches before header reads chip state (BL-0017). */
 export function usePublishCatalogChipNav(snapshot: CatalogChipNavSnapshot): void {
   const ctx = useContext(CatalogChipNavContext);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!ctx) return;
     ctx.publish(snapshot);
   }, [
