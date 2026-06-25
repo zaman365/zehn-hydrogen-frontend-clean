@@ -1385,7 +1385,7 @@ export type ProductGridQueryQuery = {
       >;
     }
   >;
-  newArrivalCollection?: StorefrontAPI.Maybe<
+  neuheitenCollection?: StorefrontAPI.Maybe<
     Pick<
       StorefrontAPI.Collection,
       'id' | 'handle' | 'title' | 'description'
@@ -1422,7 +1422,7 @@ export type NavbarCollectionsQuery = {
   shopAll?: StorefrontAPI.Maybe<
     Pick<StorefrontAPI.Collection, 'handle' | 'title'>
   >;
-  newArrival?: StorefrontAPI.Maybe<
+  neuheiten?: StorefrontAPI.Maybe<
     Pick<StorefrontAPI.Collection, 'handle' | 'title'>
   >;
 };
@@ -1441,6 +1441,363 @@ export type HomepageQueryQueryVariables = StorefrontAPI.Exact<{
 
 export type HomepageQueryQuery = {
   products: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        media: {
+          nodes: Array<
+            Pick<StorefrontAPI.MediaImage, 'id'> & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<
+              Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                firstSelectableVariant?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+                swatch?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                    image?: StorefrontAPI.Maybe<{
+                      previewImage?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.Image, 'url'>
+                      >;
+                    }>;
+                  }
+                >;
+              }
+            >;
+          }
+        >;
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'availableForSale' | 'title'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+            }
+          >;
+        };
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+            image?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      }
+    >;
+  };
+  summerProducts: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        media: {
+          nodes: Array<
+            Pick<StorefrontAPI.MediaImage, 'id'> & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<
+              Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                firstSelectableVariant?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+                swatch?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                    image?: StorefrontAPI.Maybe<{
+                      previewImage?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.Image, 'url'>
+                      >;
+                    }>;
+                  }
+                >;
+              }
+            >;
+          }
+        >;
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'availableForSale' | 'title'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+            }
+          >;
+        };
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+            image?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      }
+    >;
+  };
+  longPantsProducts: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        media: {
+          nodes: Array<
+            Pick<StorefrontAPI.MediaImage, 'id'> & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<
+              Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                firstSelectableVariant?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+                swatch?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                    image?: StorefrontAPI.Maybe<{
+                      previewImage?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.Image, 'url'>
+                      >;
+                    }>;
+                  }
+                >;
+              }
+            >;
+          }
+        >;
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'availableForSale' | 'title'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+            }
+          >;
+        };
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+            image?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      }
+    >;
+  };
+  transitionJacketsProducts: {
     nodes: Array<
       Pick<
         StorefrontAPI.Product,
@@ -1698,6 +2055,391 @@ export type HomepageQueryQuery = {
       };
     }
   >;
+  shortsCollection?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+      products: {
+        nodes: Array<
+          Pick<
+            StorefrontAPI.Product,
+            'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+          > & {
+            featuredImage?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+            media: {
+              nodes: Array<
+                Pick<StorefrontAPI.MediaImage, 'id'> & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                }
+              >;
+            };
+            priceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+              maxVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+            compareAtPriceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+            options: Array<
+              Pick<StorefrontAPI.ProductOption, 'name'> & {
+                optionValues: Array<
+                  Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                    firstSelectableVariant?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.ProductVariant,
+                        'id' | 'availableForSale'
+                      > & {
+                        image?: StorefrontAPI.Maybe<
+                          Pick<
+                            StorefrontAPI.Image,
+                            'url' | 'altText' | 'width' | 'height'
+                          >
+                        >;
+                        price: Pick<
+                          StorefrontAPI.MoneyV2,
+                          'amount' | 'currencyCode'
+                        >;
+                        compareAtPrice?: StorefrontAPI.Maybe<
+                          Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                        >;
+                        selectedOptions: Array<
+                          Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                        >;
+                      }
+                    >;
+                    swatch?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                        image?: StorefrontAPI.Maybe<{
+                          previewImage?: StorefrontAPI.Maybe<
+                            Pick<StorefrontAPI.Image, 'url'>
+                          >;
+                        }>;
+                      }
+                    >;
+                  }
+                >;
+              }
+            >;
+            variants: {
+              nodes: Array<
+                Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'title'
+                > & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                }
+              >;
+            };
+            selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+                image?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.Image,
+                    'url' | 'altText' | 'width' | 'height'
+                  >
+                >;
+                price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                compareAtPrice?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                >;
+                selectedOptions: Array<
+                  Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                >;
+              }
+            >;
+          }
+        >;
+      };
+    }
+  >;
+  shortsCollections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+        products: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.Product,
+              'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+            > & {
+              featuredImage?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              media: {
+                nodes: Array<
+                  Pick<StorefrontAPI.MediaImage, 'id'> & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'id' | 'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                  }
+                >;
+              };
+              priceRange: {
+                minVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+                maxVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+              };
+              compareAtPriceRange: {
+                minVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+              };
+              options: Array<
+                Pick<StorefrontAPI.ProductOption, 'name'> & {
+                  optionValues: Array<
+                    Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                      firstSelectableVariant?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.ProductVariant,
+                          'id' | 'availableForSale'
+                        > & {
+                          image?: StorefrontAPI.Maybe<
+                            Pick<
+                              StorefrontAPI.Image,
+                              'url' | 'altText' | 'width' | 'height'
+                            >
+                          >;
+                          price: Pick<
+                            StorefrontAPI.MoneyV2,
+                            'amount' | 'currencyCode'
+                          >;
+                          compareAtPrice?: StorefrontAPI.Maybe<
+                            Pick<
+                              StorefrontAPI.MoneyV2,
+                              'amount' | 'currencyCode'
+                            >
+                          >;
+                          selectedOptions: Array<
+                            Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                          >;
+                        }
+                      >;
+                      swatch?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.ProductOptionValueSwatch,
+                          'color'
+                        > & {
+                          image?: StorefrontAPI.Maybe<{
+                            previewImage?: StorefrontAPI.Maybe<
+                              Pick<StorefrontAPI.Image, 'url'>
+                            >;
+                          }>;
+                        }
+                      >;
+                    }
+                  >;
+                }
+              >;
+              variants: {
+                nodes: Array<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale' | 'title'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+              };
+              selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale'
+                > & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                }
+              >;
+            }
+          >;
+        };
+      }
+    >;
+  };
+  shortsProducts: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        media: {
+          nodes: Array<
+            Pick<StorefrontAPI.MediaImage, 'id'> & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<
+              Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                firstSelectableVariant?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+                swatch?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                    image?: StorefrontAPI.Maybe<{
+                      previewImage?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.Image, 'url'>
+                      >;
+                    }>;
+                  }
+                >;
+              }
+            >;
+          }
+        >;
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'availableForSale' | 'title'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+            }
+          >;
+        };
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+            image?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      }
+    >;
+  };
   hosenCollection?: StorefrontAPI.Maybe<
     Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
       products: {
@@ -1824,6 +2566,125 @@ export type HomepageQueryQuery = {
       };
     }
   >;
+  hosenProducts: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        media: {
+          nodes: Array<
+            Pick<StorefrontAPI.MediaImage, 'id'> & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<
+              Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                firstSelectableVariant?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+                swatch?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                    image?: StorefrontAPI.Maybe<{
+                      previewImage?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.Image, 'url'>
+                      >;
+                    }>;
+                  }
+                >;
+              }
+            >;
+          }
+        >;
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'availableForSale' | 'title'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+            }
+          >;
+        };
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+            image?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      }
+    >;
+  };
   hosenCollections: {
     nodes: Array<
       Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
@@ -1964,7 +2825,1162 @@ export type HomepageQueryQuery = {
       }
     >;
   };
-  newArrivalCollection?: StorefrontAPI.Maybe<
+  topsCollection?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+      products: {
+        nodes: Array<
+          Pick<
+            StorefrontAPI.Product,
+            'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+          > & {
+            featuredImage?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+            media: {
+              nodes: Array<
+                Pick<StorefrontAPI.MediaImage, 'id'> & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                }
+              >;
+            };
+            priceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+              maxVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+            compareAtPriceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+            options: Array<
+              Pick<StorefrontAPI.ProductOption, 'name'> & {
+                optionValues: Array<
+                  Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                    firstSelectableVariant?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.ProductVariant,
+                        'id' | 'availableForSale'
+                      > & {
+                        image?: StorefrontAPI.Maybe<
+                          Pick<
+                            StorefrontAPI.Image,
+                            'url' | 'altText' | 'width' | 'height'
+                          >
+                        >;
+                        price: Pick<
+                          StorefrontAPI.MoneyV2,
+                          'amount' | 'currencyCode'
+                        >;
+                        compareAtPrice?: StorefrontAPI.Maybe<
+                          Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                        >;
+                        selectedOptions: Array<
+                          Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                        >;
+                      }
+                    >;
+                    swatch?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                        image?: StorefrontAPI.Maybe<{
+                          previewImage?: StorefrontAPI.Maybe<
+                            Pick<StorefrontAPI.Image, 'url'>
+                          >;
+                        }>;
+                      }
+                    >;
+                  }
+                >;
+              }
+            >;
+            variants: {
+              nodes: Array<
+                Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'title'
+                > & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                }
+              >;
+            };
+            selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+                image?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.Image,
+                    'url' | 'altText' | 'width' | 'height'
+                  >
+                >;
+                price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                compareAtPrice?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                >;
+                selectedOptions: Array<
+                  Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                >;
+              }
+            >;
+          }
+        >;
+      };
+    }
+  >;
+  topsCollections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+        products: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.Product,
+              'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+            > & {
+              featuredImage?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              media: {
+                nodes: Array<
+                  Pick<StorefrontAPI.MediaImage, 'id'> & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'id' | 'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                  }
+                >;
+              };
+              priceRange: {
+                minVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+                maxVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+              };
+              compareAtPriceRange: {
+                minVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+              };
+              options: Array<
+                Pick<StorefrontAPI.ProductOption, 'name'> & {
+                  optionValues: Array<
+                    Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                      firstSelectableVariant?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.ProductVariant,
+                          'id' | 'availableForSale'
+                        > & {
+                          image?: StorefrontAPI.Maybe<
+                            Pick<
+                              StorefrontAPI.Image,
+                              'url' | 'altText' | 'width' | 'height'
+                            >
+                          >;
+                          price: Pick<
+                            StorefrontAPI.MoneyV2,
+                            'amount' | 'currencyCode'
+                          >;
+                          compareAtPrice?: StorefrontAPI.Maybe<
+                            Pick<
+                              StorefrontAPI.MoneyV2,
+                              'amount' | 'currencyCode'
+                            >
+                          >;
+                          selectedOptions: Array<
+                            Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                          >;
+                        }
+                      >;
+                      swatch?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.ProductOptionValueSwatch,
+                          'color'
+                        > & {
+                          image?: StorefrontAPI.Maybe<{
+                            previewImage?: StorefrontAPI.Maybe<
+                              Pick<StorefrontAPI.Image, 'url'>
+                            >;
+                          }>;
+                        }
+                      >;
+                    }
+                  >;
+                }
+              >;
+              variants: {
+                nodes: Array<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale' | 'title'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+              };
+              selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale'
+                > & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                }
+              >;
+            }
+          >;
+        };
+      }
+    >;
+  };
+  topsProducts: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        media: {
+          nodes: Array<
+            Pick<StorefrontAPI.MediaImage, 'id'> & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<
+              Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                firstSelectableVariant?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+                swatch?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                    image?: StorefrontAPI.Maybe<{
+                      previewImage?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.Image, 'url'>
+                      >;
+                    }>;
+                  }
+                >;
+              }
+            >;
+          }
+        >;
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'availableForSale' | 'title'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+            }
+          >;
+        };
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+            image?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      }
+    >;
+  };
+  jeansCollection?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+      products: {
+        nodes: Array<
+          Pick<
+            StorefrontAPI.Product,
+            'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+          > & {
+            featuredImage?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+            media: {
+              nodes: Array<
+                Pick<StorefrontAPI.MediaImage, 'id'> & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                }
+              >;
+            };
+            priceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+              maxVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+            compareAtPriceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+            options: Array<
+              Pick<StorefrontAPI.ProductOption, 'name'> & {
+                optionValues: Array<
+                  Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                    firstSelectableVariant?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.ProductVariant,
+                        'id' | 'availableForSale'
+                      > & {
+                        image?: StorefrontAPI.Maybe<
+                          Pick<
+                            StorefrontAPI.Image,
+                            'url' | 'altText' | 'width' | 'height'
+                          >
+                        >;
+                        price: Pick<
+                          StorefrontAPI.MoneyV2,
+                          'amount' | 'currencyCode'
+                        >;
+                        compareAtPrice?: StorefrontAPI.Maybe<
+                          Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                        >;
+                        selectedOptions: Array<
+                          Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                        >;
+                      }
+                    >;
+                    swatch?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                        image?: StorefrontAPI.Maybe<{
+                          previewImage?: StorefrontAPI.Maybe<
+                            Pick<StorefrontAPI.Image, 'url'>
+                          >;
+                        }>;
+                      }
+                    >;
+                  }
+                >;
+              }
+            >;
+            variants: {
+              nodes: Array<
+                Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'title'
+                > & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                }
+              >;
+            };
+            selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+                image?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.Image,
+                    'url' | 'altText' | 'width' | 'height'
+                  >
+                >;
+                price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                compareAtPrice?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                >;
+                selectedOptions: Array<
+                  Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                >;
+              }
+            >;
+          }
+        >;
+      };
+    }
+  >;
+  jeansCollections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+        products: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.Product,
+              'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+            > & {
+              featuredImage?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              media: {
+                nodes: Array<
+                  Pick<StorefrontAPI.MediaImage, 'id'> & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'id' | 'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                  }
+                >;
+              };
+              priceRange: {
+                minVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+                maxVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+              };
+              compareAtPriceRange: {
+                minVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+              };
+              options: Array<
+                Pick<StorefrontAPI.ProductOption, 'name'> & {
+                  optionValues: Array<
+                    Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                      firstSelectableVariant?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.ProductVariant,
+                          'id' | 'availableForSale'
+                        > & {
+                          image?: StorefrontAPI.Maybe<
+                            Pick<
+                              StorefrontAPI.Image,
+                              'url' | 'altText' | 'width' | 'height'
+                            >
+                          >;
+                          price: Pick<
+                            StorefrontAPI.MoneyV2,
+                            'amount' | 'currencyCode'
+                          >;
+                          compareAtPrice?: StorefrontAPI.Maybe<
+                            Pick<
+                              StorefrontAPI.MoneyV2,
+                              'amount' | 'currencyCode'
+                            >
+                          >;
+                          selectedOptions: Array<
+                            Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                          >;
+                        }
+                      >;
+                      swatch?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.ProductOptionValueSwatch,
+                          'color'
+                        > & {
+                          image?: StorefrontAPI.Maybe<{
+                            previewImage?: StorefrontAPI.Maybe<
+                              Pick<StorefrontAPI.Image, 'url'>
+                            >;
+                          }>;
+                        }
+                      >;
+                    }
+                  >;
+                }
+              >;
+              variants: {
+                nodes: Array<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale' | 'title'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+              };
+              selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale'
+                > & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                }
+              >;
+            }
+          >;
+        };
+      }
+    >;
+  };
+  jeansProducts: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        media: {
+          nodes: Array<
+            Pick<StorefrontAPI.MediaImage, 'id'> & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<
+              Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                firstSelectableVariant?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+                swatch?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                    image?: StorefrontAPI.Maybe<{
+                      previewImage?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.Image, 'url'>
+                      >;
+                    }>;
+                  }
+                >;
+              }
+            >;
+          }
+        >;
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'availableForSale' | 'title'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+            }
+          >;
+        };
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+            image?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      }
+    >;
+  };
+  jackenCollection?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+      products: {
+        nodes: Array<
+          Pick<
+            StorefrontAPI.Product,
+            'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+          > & {
+            featuredImage?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+            media: {
+              nodes: Array<
+                Pick<StorefrontAPI.MediaImage, 'id'> & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                }
+              >;
+            };
+            priceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+              maxVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+            compareAtPriceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+            options: Array<
+              Pick<StorefrontAPI.ProductOption, 'name'> & {
+                optionValues: Array<
+                  Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                    firstSelectableVariant?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.ProductVariant,
+                        'id' | 'availableForSale'
+                      > & {
+                        image?: StorefrontAPI.Maybe<
+                          Pick<
+                            StorefrontAPI.Image,
+                            'url' | 'altText' | 'width' | 'height'
+                          >
+                        >;
+                        price: Pick<
+                          StorefrontAPI.MoneyV2,
+                          'amount' | 'currencyCode'
+                        >;
+                        compareAtPrice?: StorefrontAPI.Maybe<
+                          Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                        >;
+                        selectedOptions: Array<
+                          Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                        >;
+                      }
+                    >;
+                    swatch?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                        image?: StorefrontAPI.Maybe<{
+                          previewImage?: StorefrontAPI.Maybe<
+                            Pick<StorefrontAPI.Image, 'url'>
+                          >;
+                        }>;
+                      }
+                    >;
+                  }
+                >;
+              }
+            >;
+            variants: {
+              nodes: Array<
+                Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'title'
+                > & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                }
+              >;
+            };
+            selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+                image?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.Image,
+                    'url' | 'altText' | 'width' | 'height'
+                  >
+                >;
+                price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                compareAtPrice?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                >;
+                selectedOptions: Array<
+                  Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                >;
+              }
+            >;
+          }
+        >;
+      };
+    }
+  >;
+  jackenCollections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+        products: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.Product,
+              'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+            > & {
+              featuredImage?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              media: {
+                nodes: Array<
+                  Pick<StorefrontAPI.MediaImage, 'id'> & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'id' | 'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                  }
+                >;
+              };
+              priceRange: {
+                minVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+                maxVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+              };
+              compareAtPriceRange: {
+                minVariantPrice: Pick<
+                  StorefrontAPI.MoneyV2,
+                  'amount' | 'currencyCode'
+                >;
+              };
+              options: Array<
+                Pick<StorefrontAPI.ProductOption, 'name'> & {
+                  optionValues: Array<
+                    Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                      firstSelectableVariant?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.ProductVariant,
+                          'id' | 'availableForSale'
+                        > & {
+                          image?: StorefrontAPI.Maybe<
+                            Pick<
+                              StorefrontAPI.Image,
+                              'url' | 'altText' | 'width' | 'height'
+                            >
+                          >;
+                          price: Pick<
+                            StorefrontAPI.MoneyV2,
+                            'amount' | 'currencyCode'
+                          >;
+                          compareAtPrice?: StorefrontAPI.Maybe<
+                            Pick<
+                              StorefrontAPI.MoneyV2,
+                              'amount' | 'currencyCode'
+                            >
+                          >;
+                          selectedOptions: Array<
+                            Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                          >;
+                        }
+                      >;
+                      swatch?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.ProductOptionValueSwatch,
+                          'color'
+                        > & {
+                          image?: StorefrontAPI.Maybe<{
+                            previewImage?: StorefrontAPI.Maybe<
+                              Pick<StorefrontAPI.Image, 'url'>
+                            >;
+                          }>;
+                        }
+                      >;
+                    }
+                  >;
+                }
+              >;
+              variants: {
+                nodes: Array<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale' | 'title'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+              };
+              selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale'
+                > & {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                }
+              >;
+            }
+          >;
+        };
+      }
+    >;
+  };
+  jackenProducts: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'description' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        media: {
+          nodes: Array<
+            Pick<StorefrontAPI.MediaImage, 'id'> & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<
+              Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                firstSelectableVariant?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                  }
+                >;
+                swatch?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.ProductOptionValueSwatch, 'color'> & {
+                    image?: StorefrontAPI.Maybe<{
+                      previewImage?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.Image, 'url'>
+                      >;
+                    }>;
+                  }
+                >;
+              }
+            >;
+          }
+        >;
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'availableForSale' | 'title'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+            }
+          >;
+        };
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+            image?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      }
+    >;
+  };
+  neuheitenCollection?: StorefrontAPI.Maybe<
     Pick<
       StorefrontAPI.Collection,
       'id' | 'handle' | 'title' | 'description'
@@ -3880,11 +5896,11 @@ interface GeneratedQueryTypes {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };
-  '#graphql\n  #graphql\n  fragment ProductGridItem on Product {\n    id\n    handle\n    title\n    description\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    media(first: 50) {\n      nodes {\n        ... on MediaImage {\n          id\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n        }\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    options {\n      name\n      optionValues {\n        name\n        firstSelectableVariant {\n          id\n          availableForSale\n          image {\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          compareAtPrice {\n            amount\n            currencyCode\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n        swatch {\n          color\n          image {\n            previewImage {\n              url\n            }\n          }\n        }\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        id\n        availableForSale\n        title\n        image {\n          url\n          altText\n          width\n          height\n        }\n        price {\n          amount\n          currencyCode\n        }\n        compareAtPrice {\n          amount\n          currencyCode\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    selectedOrFirstAvailableVariant {\n      id\n      availableForSale\n      image {\n        url\n        altText\n        width\n        height\n      }\n      price {\n        amount\n        currencyCode\n      }\n      compareAtPrice {\n        amount\n        currencyCode\n      }\n      selectedOptions {\n        name\n        value\n      }\n    }\n  }\n\n  query ProductGridQuery(\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    jeans: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:jeans OR product_type:jeans OR tag:denim OR product_type:denim") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    cargo: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:cargo OR product_type:cargo OR tag:pant OR product_type:pant") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    chino: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:chino OR product_type:chino") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    shorts: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:shorts OR product_type:shorts") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    tshirt: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:t-shirt OR product_type:t-shirt OR tag:tshirt OR product_type:tshirt") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    polo: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:polo OR product_type:polo OR tag:shirt OR product_type:shirt") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    jacket: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:jacket OR product_type:jacket") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    poloCollection: collection(handle: "polo") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    cargoCollection: collection(handle: "cargo") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    chinoCollection: collection(handle: "chino") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    jacketCollection: collection(handle: "jacket") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    bestsellerCollection: collection(handle: "bestseller") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    newArrivalCollection: collection(handle: "new-arrival") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    saleCollection: collection(handle: "sale") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n  }\n': {
+  '#graphql\n  #graphql\n  fragment ProductGridItem on Product {\n    id\n    handle\n    title\n    description\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    media(first: 50) {\n      nodes {\n        ... on MediaImage {\n          id\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n        }\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    options {\n      name\n      optionValues {\n        name\n        firstSelectableVariant {\n          id\n          availableForSale\n          image {\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          compareAtPrice {\n            amount\n            currencyCode\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n        swatch {\n          color\n          image {\n            previewImage {\n              url\n            }\n          }\n        }\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        id\n        availableForSale\n        title\n        image {\n          url\n          altText\n          width\n          height\n        }\n        price {\n          amount\n          currencyCode\n        }\n        compareAtPrice {\n          amount\n          currencyCode\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    selectedOrFirstAvailableVariant {\n      id\n      availableForSale\n      image {\n        url\n        altText\n        width\n        height\n      }\n      price {\n        amount\n        currencyCode\n      }\n      compareAtPrice {\n        amount\n        currencyCode\n      }\n      selectedOptions {\n        name\n        value\n      }\n    }\n  }\n\n  query ProductGridQuery(\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    jeans: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:jeans OR product_type:jeans OR tag:denim OR product_type:denim") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    cargo: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:cargo OR product_type:cargo OR tag:pant OR product_type:pant") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    chino: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:chino OR product_type:chino") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    shorts: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:shorts OR product_type:shorts") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    tshirt: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:t-shirt OR product_type:t-shirt OR tag:tshirt OR product_type:tshirt") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    polo: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:polo OR product_type:polo OR tag:shirt OR product_type:shirt") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    jacket: products(first: 20, sortKey: CREATED_AT, reverse: true, query: "tag:jacket OR product_type:jacket") {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    poloCollection: collection(handle: "polo") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    cargoCollection: collection(handle: "cargo") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    chinoCollection: collection(handle: "chino") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    jacketCollection: collection(handle: "jacket") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    bestsellerCollection: collection(handle: "bestseller") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    neuheitenCollection: collection(handle: "new-arrival") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    saleCollection: collection(handle: "sale") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n  }\n': {
     return: ProductGridQueryQuery;
     variables: ProductGridQueryQueryVariables;
   };
-  '#graphql\n  query NavbarCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    bestseller: collection(handle: "bestseller") {\n      handle\n      title\n    }\n    sale: collection(handle: "sale") {\n      handle\n      title\n    }\n    shopAll: collection(handle: "all") {\n      handle\n      title\n    }\n    newArrival: collection(handle: "new-arrival") {\n      handle\n      title\n    }\n  }\n': {
+  '#graphql\n  query NavbarCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    bestseller: collection(handle: "bestseller") {\n      handle\n      title\n    }\n    sale: collection(handle: "sale") {\n      handle\n      title\n    }\n    shopAll: collection(handle: "all") {\n      handle\n      title\n    }\n    neuheiten: collection(handle: "new-arrival") {\n      handle\n      title\n    }\n  }\n': {
     return: NavbarCollectionsQuery;
     variables: NavbarCollectionsQueryVariables;
   };
@@ -3892,7 +5908,7 @@ interface GeneratedQueryTypes {
     return: StoreRobotsQuery;
     variables: StoreRobotsQueryVariables;
   };
-  '#graphql\n  #graphql\n  fragment ProductGridItem on Product {\n    id\n    handle\n    title\n    description\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    media(first: 50) {\n      nodes {\n        ... on MediaImage {\n          id\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n        }\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    options {\n      name\n      optionValues {\n        name\n        firstSelectableVariant {\n          id\n          availableForSale\n          image {\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          compareAtPrice {\n            amount\n            currencyCode\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n        swatch {\n          color\n          image {\n            previewImage {\n              url\n            }\n          }\n        }\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        id\n        availableForSale\n        title\n        image {\n          url\n          altText\n          width\n          height\n        }\n        price {\n          amount\n          currencyCode\n        }\n        compareAtPrice {\n          amount\n          currencyCode\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    selectedOrFirstAvailableVariant {\n      id\n      availableForSale\n      image {\n        url\n        altText\n        width\n        height\n      }\n      price {\n        amount\n        currencyCode\n      }\n      compareAtPrice {\n        amount\n        currencyCode\n      }\n      selectedOptions {\n        name\n        value\n      }\n    }\n  }\n\n  query HomepageQuery(\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    products(first: 50, sortKey: CREATED_AT, reverse: true) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    poloCollection: collection(handle: "polo") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    bestsellerCollection: collection(handle: "bestseller") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: 50) {\n        nodes {\n          ...ProductGridItem\n        }\n      }\n    }\n    hosenCollection: collection(handle: "hosen") {\n      id\n      handle\n      title\n      products(first: 50) {\n        nodes {\n          ...ProductGridItem\n        }\n      }\n    }\n    hosenCollections: collections(first: 10, query: "title:hosen OR handle:hosen") {\n      nodes {\n        id\n        handle\n        title\n        products(first: 50) {\n          nodes {\n            ...ProductGridItem\n          }\n        }\n      }\n    }\n    newArrivalCollection: collection(handle: "new-arrival") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    saleCollection: collection(handle: "sale") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n  }\n': {
+  '#graphql\n  #graphql\n  fragment ProductGridItem on Product {\n    id\n    handle\n    title\n    description\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    media(first: 50) {\n      nodes {\n        ... on MediaImage {\n          id\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n        }\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    options {\n      name\n      optionValues {\n        name\n        firstSelectableVariant {\n          id\n          availableForSale\n          image {\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          compareAtPrice {\n            amount\n            currencyCode\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n        swatch {\n          color\n          image {\n            previewImage {\n              url\n            }\n          }\n        }\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        id\n        availableForSale\n        title\n        image {\n          url\n          altText\n          width\n          height\n        }\n        price {\n          amount\n          currencyCode\n        }\n        compareAtPrice {\n          amount\n          currencyCode\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    selectedOrFirstAvailableVariant {\n      id\n      availableForSale\n      image {\n        url\n        altText\n        width\n        height\n      }\n      price {\n        amount\n        currencyCode\n      }\n      compareAtPrice {\n        amount\n        currencyCode\n      }\n      selectedOptions {\n        name\n        value\n      }\n    }\n  }\n\n  query HomepageQuery(\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    products(first: 50, sortKey: CREATED_AT, reverse: true) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    summerProducts: products(\n      first: 50\n      sortKey: CREATED_AT\n      reverse: true\n      query: "tag:sommer OR tag:summer OR tag:shorts OR tag:short OR tag:bermuda OR tag:t-shirt OR tag:tshirt OR tag:polo OR tag:poloshirt OR product_type:shorts OR product_type:t-shirt OR product_type:tshirt OR product_type:polo OR product_type:poloshirt"\n    ) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    longPantsProducts: products(\n      first: 50\n      sortKey: CREATED_AT\n      reverse: true\n      query: "tag:langehose OR tag:lange-hose OR tag:hose OR tag:hosen OR tag:pants OR tag:cargo OR tag:cargohose OR tag:chino OR tag:chinohose OR tag:jeans OR tag:denim OR product_type:hose OR product_type:hosen OR product_type:pants OR product_type:cargo OR product_type:chino OR product_type:jeans OR product_type:denim"\n    ) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    transitionJacketsProducts: products(\n      first: 50\n      sortKey: CREATED_AT\n      reverse: true\n      query: "tag:übergangsjacke OR tag:übergangsjacken OR tag:uebergangsjacke OR tag:uebergangsjacken OR tag:transition OR tag:herbst OR tag:autumn OR product_type:übergangsjacke OR product_type:uebergangsjacke"\n    ) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    poloCollection: collection(handle: "polo") {\n      id\n      handle\n      title\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    bestsellerCollection: collection(handle: "bestseller") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: 50) {\n        nodes {\n          ...ProductGridItem\n        }\n      }\n    }\n    shortsCollection: collection(handle: "shorts") {\n      id\n      handle\n      title\n      products(first: 50) {\n        nodes {\n          ...ProductGridItem\n        }\n      }\n    }\n    shortsCollections: collections(first: 10, query: "title:shorts OR handle:shorts") {\n      nodes {\n        id\n        handle\n        title\n        products(first: 50) {\n          nodes {\n            ...ProductGridItem\n          }\n        }\n      }\n    }\n    shortsProducts: products(\n      first: 50\n      sortKey: CREATED_AT\n      reverse: true\n      query: "tag:shorts OR tag:short OR tag:bermuda OR tag:kurze OR tag:kurzehose OR product_type:shorts OR product_type:short OR product_type:bermuda OR product_type:kurze OR product_type:kurzehose"\n    ) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    hosenCollection: collection(handle: "hosen") {\n      id\n      handle\n      title\n      products(first: 50) {\n        nodes {\n          ...ProductGridItem\n        }\n      }\n    }\n    hosenProducts: products(\n      first: 50\n      sortKey: CREATED_AT\n      reverse: true\n      query: "tag:hose OR tag:hosen OR tag:pants OR tag:cargo OR tag:cargos OR tag:cargohose OR tag:chino OR tag:chinos OR tag:chinohose OR tag:jogging OR tag:jeans OR tag:jean OR tag:denim OR product_type:hose OR product_type:hosen OR product_type:pants OR product_type:cargo OR product_type:chino OR product_type:jogging OR product_type:jeans OR product_type:denim"\n    ) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    hosenCollections: collections(first: 10, query: "title:hosen OR handle:hosen") {\n      nodes {\n        id\n        handle\n        title\n        products(first: 50) {\n          nodes {\n            ...ProductGridItem\n          }\n        }\n      }\n    }\n    topsCollection: collection(handle: "tops") {\n      id\n      handle\n      title\n      products(first: 50) {\n        nodes {\n          ...ProductGridItem\n        }\n      }\n    }\n    topsCollections: collections(first: 10, query: "title:tops OR handle:tops") {\n      nodes {\n        id\n        handle\n        title\n        products(first: 50) {\n          nodes {\n            ...ProductGridItem\n          }\n        }\n      }\n    }\n    topsProducts: products(\n      first: 50\n      sortKey: CREATED_AT\n      reverse: true\n      query: "tag:top OR tag:tops OR tag:shirt OR tag:shirts OR tag:t-shirt OR tag:tshirt OR tag:polo OR tag:poloshirt OR product_type:top OR product_type:tops OR product_type:shirt OR product_type:t-shirt OR product_type:polo OR product_type:poloshirt"\n    ) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    jeansCollection: collection(handle: "jeans") {\n      id\n      handle\n      title\n      products(first: 50) {\n        nodes {\n          ...ProductGridItem\n        }\n      }\n    }\n    jeansCollections: collections(first: 10, query: "title:jeans OR handle:jeans") {\n      nodes {\n        id\n        handle\n        title\n        products(first: 50) {\n          nodes {\n            ...ProductGridItem\n          }\n        }\n      }\n    }\n    jeansProducts: products(\n      first: 50\n      sortKey: CREATED_AT\n      reverse: true\n      query: "tag:jeans OR tag:jean OR tag:denim OR product_type:jeans OR product_type:jean OR product_type:denim"\n    ) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    jackenCollection: collection(handle: "jacken") {\n      id\n      handle\n      title\n      products(first: 50) {\n        nodes {\n          ...ProductGridItem\n        }\n      }\n    }\n    jackenCollections: collections(first: 10, query: "title:jacken OR handle:jacken") {\n      nodes {\n        id\n        handle\n        title\n        products(first: 50) {\n          nodes {\n            ...ProductGridItem\n          }\n        }\n      }\n    }\n    jackenProducts: products(\n      first: 50\n      sortKey: CREATED_AT\n      reverse: true\n      query: "tag:jacke OR tag:jacken OR tag:jacket OR tag:jackets OR tag:winterjacke OR tag:winterjacken OR tag:übergangsjacke OR tag:uebergangsjacke OR tag:puffer OR product_type:jacke OR product_type:jacken OR product_type:jacket OR product_type:winterjacke OR product_type:übergangsjacke OR product_type:puffer"\n    ) {\n      nodes {\n        ...ProductGridItem\n      }\n    }\n    neuheitenCollection: collection(handle: "new-arrival") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n    saleCollection: collection(handle: "sale") {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n    }\n  }\n': {
     return: HomepageQueryQuery;
     variables: HomepageQueryQueryVariables;
   };
