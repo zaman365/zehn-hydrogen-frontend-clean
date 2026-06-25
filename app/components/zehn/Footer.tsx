@@ -176,7 +176,7 @@ function FooterBrandSection() {
         <h3 className="font-sans text-body tracking-[0.2em] uppercase text-primary-foreground font-medium mb-3">
           Newsletter
         </h3>
-        <form onSubmit={handleSubmit} className="relative">
+        <form onSubmit={(e) => { void handleSubmit(e); }} className="relative">
           <input
             type="email"
             value={email}

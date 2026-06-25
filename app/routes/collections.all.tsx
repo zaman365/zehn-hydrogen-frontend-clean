@@ -81,7 +81,7 @@ export default function Collection() {
 
   const handleCatalogFreshConsumed = useCallback(() => {
     if (!catalogFresh) return;
-    navigate(
+    void navigate(
       {
         pathname,
         search: searchParams.toString()

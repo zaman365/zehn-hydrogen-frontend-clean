@@ -52,7 +52,7 @@ export function Newsletter() {
             <Check className="w-5 h-5 text-accent" />
             <span className="font-sans text-body text-primary-foreground">Willkommen in der ZEHN-Familie!</span>
           </div>
-          <form onSubmit={handleSubmit} className={`flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-md mx-auto ${status === 'success' ? 'hidden' : ''}`}>
+          <form onSubmit={(e) => { void handleSubmit(e); }} className={`flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-md mx-auto ${status === 'success' ? 'hidden' : ''}`}>
             <input
               type="email"
               value={email}

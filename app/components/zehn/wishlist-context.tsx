@@ -199,7 +199,7 @@ export function WishlistProvider({
       }
     };
 
-    resolveAuth();
+    void resolveAuth();
   }, [isLoggedInPromise]);
 
   // Save to localStorage on change (skip initial load)

@@ -221,7 +221,7 @@ export default function AboutUs() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="font-sans text-[40px] sm:text-[56px] lg:text-[72px] leading-[0.95] text-foreground">
-              "Sei<br />Authentisch,<br />Sei Du<br />Selbst."
+              &ldquo;Sei<br />Authentisch,<br />Sei Du<br />Selbst.&rdquo;
             </div>
             <div>
               <p className="font-body text-base sm:text-lg text-foreground/90 leading-relaxed">

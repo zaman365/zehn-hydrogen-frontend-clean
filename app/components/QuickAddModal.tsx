@@ -306,14 +306,6 @@ export function QuickAddModal({isOpen, onClose, product}: QuickAddModalProps) {
     [],
   );
 
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) onClose();
-    },
-    [onClose],
-  );
-
-
   // ---------------------------------------------------------------------------
   // Render helpers
   // ---------------------------------------------------------------------------
@@ -431,13 +423,18 @@ export function QuickAddModal({isOpen, onClose, product}: QuickAddModalProps) {
         transition-opacity duration-300
         ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
       `}
-      onClick={handleBackdropClick}
       data-testid="quick-add-modal-backdrop"
     >
-      {/* Backdrop */}
+      {/* Backdrop — click target (keyboard: Escape handled globally or via close button) */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         aria-hidden="true"
+        onClick={() => onClose()}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+        }}
+        role="button"
+        tabIndex={-1}
       />
 
       {/* Modal card */}

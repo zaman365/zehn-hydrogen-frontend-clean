@@ -27,6 +27,7 @@ export default [
       '**/node_modules/',
       '**/build/',
       '**/dist/',
+      '**/Templates/',
       '**/*.graphql.d.ts',
       '**/*.graphql.ts',
       '**/*.generated.d.ts',
@@ -230,6 +231,12 @@ export default [
     files: ['**/*.test.*'],
     plugins: {
       jest,
+    },
+    /* Vitest test files — explicit version avoids detectJestVersion crash (no Jest pkg) */
+    settings: {
+      jest: {
+        version: 29,
+      },
     },
     languageOptions: {
       globals: {

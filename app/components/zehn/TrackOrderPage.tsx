@@ -207,7 +207,7 @@ function DeliveryTimes() {
           Lieferzeiten
         </h2>
       </div>
-      <ul className="space-y-2" role="list">
+      <ul className="space-y-2">
         {DELIVERY_TIMES.map((item) => (
           <li
             key={item.region}

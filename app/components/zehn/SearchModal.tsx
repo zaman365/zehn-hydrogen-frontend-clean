@@ -53,7 +53,7 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
 
   const handlePopularSearchClick = (term: string) => {
     // Navigate directly to search results page
-    navigate(`/search?q=${encodeURIComponent(term)}`);
+    void navigate(`/search?q=${encodeURIComponent(term)}`);
     onClose();
   };
 
@@ -66,7 +66,13 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
       {/* Backdrop with blur */}
       <div
         className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] transition-opacity duration-300"
+        role="button"
+        tabIndex={-1}
+        aria-label="Suche schließen"
         onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') onClose();
+        }}
         style={{
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
@@ -207,9 +213,18 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
                                 return (
                                   <div
                                     key={product.id}
+                                    role="button"
+                                    tabIndex={0}
                                     onClick={() => {
                                       closeSearch();
                                       onClose();
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        closeSearch();
+                                        onClose();
+                                      }
                                     }}
                                   >
                                     <CompactProductCard
@@ -228,7 +243,7 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
                     /* No Results */
                     <div className="text-center py-16">
                       <p className="text-base text-foreground/70 mb-2 font-sans">
-                        Keine Ergebnisse gefunden für "{searchQuery}"
+                        Keine Ergebnisse gefunden für &ldquo;{searchQuery}&rdquo;
                       </p>
                       <p className="text-sm text-foreground/40 font-sans">
                         Versuchen Sie es mit anderen Suchbegriffen

@@ -221,7 +221,7 @@ export function ZehnClubPage() {
           </div>
 
           <form
-              onSubmit={handleSubmit}
+              onSubmit={(e) => { void handleSubmit(e); }}
               className={`space-y-4 ${status === 'success' ? 'hidden' : ''}`}
               data-testid="club-register-form"
             >

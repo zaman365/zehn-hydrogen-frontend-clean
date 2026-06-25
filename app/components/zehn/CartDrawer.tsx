@@ -138,7 +138,6 @@ function CartDrawerContent({
               onClick={onClose}
               className={cnHeaderNavIconHost()}
               aria-label="Warenkorb schließen"
-              autoFocus
             >
               <X className="w-6 h-6" />
             </RippleButton>

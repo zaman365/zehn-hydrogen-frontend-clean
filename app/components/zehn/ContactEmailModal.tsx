@@ -14,14 +14,19 @@ export function ContactEmailModal({isOpen, onClose}: ContactEmailModalProps) {
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in duration-200"
+        role="button"
+        tabIndex={-1}
+        aria-label="Dialog schließen"
         onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') onClose();
+        }}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pointer-events-none">
         <div
-          className="bg-background rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 flex flex-col max-h-[98vh] sm:max-h-[90vh]"
-          onClick={(e) => e.stopPropagation()}
+          className="bg-background rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 flex flex-col max-h-[98vh] sm:max-h-[90vh] pointer-events-auto"
         >
           {/* Header */}
           <div className="bg-background border-b border-border/50 px-4 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between flex-shrink-0">

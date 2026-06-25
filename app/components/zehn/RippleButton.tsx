@@ -117,14 +117,16 @@ export const RippleButton = forwardRef<
   }
 
   if (props.as === 'anchor') {
-    const {as: _as, className: _c, onPointerDown: _p, ...anchorProps} = props;
+    const {as: _as, className: _c, onPointerDown: _p, children, ...anchorProps} = props;
     return (
       <a
         ref={setRef as Ref<HTMLAnchorElement>}
         className={hostClassName}
         onPointerDown={handlePointerDown}
         {...anchorProps}
-      />
+      >
+        {children}
+      </a>
     );
   }
 
