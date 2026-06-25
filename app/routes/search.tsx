@@ -176,16 +176,11 @@ export default function SearchPage() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Hero Header - ZEHN Style */}
         <div className="text-center mb-12">
-          <h1
-            className="font-sans text-2xl sm:text-3xl lg:text-4xl text-foreground mb-4 animate-blur-in opacity-0"
-            style={{animationDelay: '0.3s', animationFillMode: 'forwards'}}
-          >
+          {/* BL-0006: no entrance animation — heading paints frame-1 from SSR */}
+          <h1 className="font-sans text-2xl sm:text-3xl lg:text-4xl text-foreground mb-4">
             {term ? `Ergebnisse für "${term}"` : 'Finden Sie Ihren Stil'}
           </h1>
-          <p
-            className="font-body text-body lg:text-body-lg text-muted max-w-md mx-auto animate-blur-in opacity-0"
-            style={{animationDelay: '0.5s', animationFillMode: 'forwards'}}
-          >
+          <p className="font-body text-body lg:text-body-lg text-muted max-w-md mx-auto">
             {term
               ? `${totalResults} ${
                   totalResults === 1 ? 'Ergebnis' : 'Ergebnisse'

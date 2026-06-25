@@ -83,16 +83,23 @@ describe('webhooks route — module shape', () => {
     expect(src).toContain('handled: false');
   });
 
-  it('logs cache purge for products', () => {
-    expect(src).toContain("'[webhook] Product cache purge'");
+  it('imports purge helpers from storefront-cache-purge lib', () => {
+    expect(src).toContain("from '~/lib/storefront-cache-purge'");
+    expect(src).toContain('getPurgeKeysForWebhook');
+    expect(src).toContain('purgeStorefrontCache');
   });
 
-  it('logs cache purge for collections', () => {
-    expect(src).toContain("'[webhook] Collection cache purge'");
+  it('logs cache purge initiation', () => {
+    expect(src).toContain("'[webhook] Cache purge initiated'");
   });
 
   it('logs purge failures via console.error', () => {
     expect(src).toContain("console.error('[webhook] Cache purge failed'");
+  });
+
+  it('passes context.waitUntil for async purge', () => {
+    expect(src).toContain('context.waitUntil');
+    expect(src).toContain('purgeStorefrontCache');
   });
 
   it('returns 200 on successful webhook ack', () => {
@@ -200,6 +207,30 @@ describe('webhooks action — response contracts', () => {
     expect(response.status).toBe(200);
     const json = await response.json() as {topic: string};
     expect(json.topic).toBe('collections/delete');
+  });
+});
+
+// ============================================================================
+// Phase 6 — purge integration checks on webhooks.tsx source
+// ============================================================================
+describe('webhooks route — Phase 6 purge integration', () => {
+  it('calls getPurgeKeysForWebhook with topic and handle', () => {
+    expect(src).toContain('getPurgeKeysForWebhook(topic, handle)');
+  });
+
+  it('calls extractHandlesFromPurgeKeys on logical keys', () => {
+    expect(src).toContain('extractHandlesFromPurgeKeys(');
+  });
+
+  it('calls purgeStorefrontCache with handles and waitUntil', () => {
+    expect(src).toContain('purgeStorefrontCache(handles,');
+  });
+
+  it('still returns 200 on purge failure (Shopify never retries)', () => {
+    /* catch block should not rethrow */
+    expect(src).toContain("console.error('[webhook] Cache purge failed'");
+    /* Action still reaches the 200 return after the catch */
+    expect(src).toContain('received: true');
   });
 });
 

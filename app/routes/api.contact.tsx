@@ -1,9 +1,12 @@
 import type {ActionFunctionArgs} from 'react-router';
+import {checkRateLimit, getClientIp} from '~/lib/rate-limit';
+import type {ActionResult} from '~/lib/action-types';
 
 /**
  * API route to send contact form emails via Resend.
  * POST /api/contact
  *
+ * Rate limit: 5 requests per 15 minutes per IP (Workers Cache sliding window).
  * Emails are sent using Resend's REST API (https://resend.com)
  * Free tier: 100 emails/day, 3000/month
  */
@@ -21,8 +24,29 @@ const RECIPIENT_EMAIL = 'nazibsayed31@gmail.com';
 export async function action({request, context}: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return Response.json(
-      {success: false, error: 'Method not allowed'},
+      {success: false, error: 'Method not allowed'} satisfies ActionResult,
       {status: 405},
+    );
+  }
+
+  /* Rate limit: 5 requests per 15 min per IP — protects Resend free-tier quota */
+  const ip = getClientIp(request);
+  const rateLimit = await checkRateLimit(`contact:${ip}`, {
+    max: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    const retryAfterSec = Math.ceil((rateLimit.retryAfterMs ?? 0) / 1000);
+    return Response.json(
+      {
+        success: false,
+        error: `Zu viele Anfragen. Bitte warten Sie ${retryAfterSec} Sekunden.`,
+        status: 429,
+      } satisfies ActionResult,
+      {
+        status: 429,
+        headers: {'Retry-After': String(retryAfterSec)},
+      },
     );
   }
 
@@ -35,37 +59,34 @@ export async function action({request, context}: ActionFunctionArgs) {
     };
     const {name, email, subject, message} = body;
 
-    // Server-side validation
+    /* Server-side validation */
     if (!name?.trim() || !email?.trim() || !subject || !message?.trim()) {
       return Response.json(
-        {success: false, error: 'Alle Pflichtfelder müssen ausgefüllt werden.'},
+        {success: false, error: 'Alle Pflichtfelder müssen ausgefüllt werden.'} satisfies ActionResult,
         {status: 400},
       );
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return Response.json(
-        {success: false, error: 'Ungültige E-Mail-Adresse.'},
+        {success: false, error: 'Ungültige E-Mail-Adresse.'} satisfies ActionResult,
         {status: 400},
       );
     }
 
     if (message.trim().length < 10) {
       return Response.json(
-        {
-          success: false,
-          error: 'Nachricht muss mindestens 10 Zeichen lang sein.',
-        },
+        {success: false, error: 'Nachricht muss mindestens 10 Zeichen lang sein.'} satisfies ActionResult,
         {status: 400},
       );
     }
 
-    // Check for API key
+    /* Resend API key — required in production, set in Oxygen env */
     const apiKey = context.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.error('RESEND_API_KEY is not configured');
+      console.error('[api.contact] RESEND_API_KEY is not configured');
       return Response.json(
-        {success: false, error: 'E-Mail-Service ist nicht konfiguriert.'},
+        {success: false, error: 'E-Mail-Service ist nicht konfiguriert.'} satisfies ActionResult,
         {status: 500},
       );
     }
@@ -119,24 +140,20 @@ export async function action({request, context}: ActionFunctionArgs) {
     });
 
     if (resendResponse.ok) {
-      return Response.json({success: true});
+      return Response.json({success: true} satisfies ActionResult);
     }
 
-    // Log error for debugging
     const errorData = await resendResponse.text().catch(() => '');
-    console.error('Resend API error:', resendResponse.status, errorData);
+    console.error('[api.contact] Resend API error:', resendResponse.status, errorData);
 
     return Response.json(
-      {success: false, error: 'Fehler beim Senden der Nachricht.'},
+      {success: false, error: 'Fehler beim Senden der Nachricht.'} satisfies ActionResult,
       {status: 500},
     );
   } catch (error) {
-    console.error('Contact form error:', error);
+    console.error('[api.contact] Unexpected error:', error);
     return Response.json(
-      {
-        success: false,
-        error: 'Ein unerwarteter Fehler ist aufgetreten.',
-      },
+      {success: false, error: 'Ein unerwarteter Fehler ist aufgetreten.'} satisfies ActionResult,
       {status: 500},
     );
   }

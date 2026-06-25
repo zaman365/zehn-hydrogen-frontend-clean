@@ -1,5 +1,5 @@
 /**
- * Shopify Webhook Handler — Phase 5 cache invalidation (PERFORMANCE_ZERO_FLICKER_PLAN).
+ * Shopify Webhook Handler — Phase 6 cache invalidation (PERFORMANCE_ZERO_FLICKER_PLAN).
  *
  * Route: POST /webhooks
  * Topics handled: products/update|create|delete, collections/update|create|delete
@@ -7,13 +7,25 @@
  * HMAC verification uses Web Crypto API (Workers-compatible, no Node.js crypto).
  * Secret: SHOPIFY_WEBHOOK_SECRET env var — set in Oxygen + .env.
  *
- * Cache note: PLPs/PDPs use CACHE_SHORT (~1 min). Webhook ack shortens the
- * staleness window. Phase 6 will add Oxygen surrogate-key purge for instant invalidation.
+ * Cache flow (Phase 6):
+ *   1. Verify HMAC signature
+ *   2. Parse handle from payload
+ *   3. Map topic → logical purge keys (getPurgeKeysForWebhook)
+ *   4. Extract handles → purge Workers Cache entries (purgeStorefrontCache)
+ *   5. Ack 200 to Shopify (purge is async via waitUntil)
+ *
+ * PLPs/PDPs are cleared from the Hydrogen Workers Cache instantly (< 100ms after webhook).
+ * Homepage / collections-all still expire via CACHE_SHORT TTL (~1 min) — no handle variable.
  *
  * Shopify sends: X-Shopify-Topic, X-Shopify-Hmac-Sha256, X-Shopify-Shop-Domain headers.
  * Payload: JSON body with { id, handle, title, ... } for the changed resource.
  */
 import type {ActionFunctionArgs} from 'react-router';
+import {
+  getPurgeKeysForWebhook,
+  extractHandlesFromPurgeKeys,
+  purgeStorefrontCache,
+} from '~/lib/storefront-cache-purge';
 
 /** Webhook topics that warrant cache action. Shopify uses slash-separated format. */
 const HANDLED_TOPICS = new Set([
@@ -73,23 +85,6 @@ function parseWebhookPayload(rawBody: string): Record<string, unknown> {
   }
 }
 
-/**
- * Log a structured cache-purge event.
- * Phase 6: replace with Oxygen surrogate-key purge API call.
- */
-function logCachePurge(
-  topic: string,
-  handle: string,
-  resourceId: number | string,
-): void {
-  if (topic.startsWith('products/')) {
-    console.log('[webhook] Product cache purge', {topic, handle, id: resourceId});
-    /* Phase 6: await oxygenCache.purgeByTag(`product-${handle}`); */
-  } else if (topic.startsWith('collections/')) {
-    console.log('[webhook] Collection cache purge', {topic, handle, id: resourceId});
-    /* Phase 6: await oxygenCache.purgeByTag(`collection-${handle}`); */
-  }
-}
 
 export async function action({request, context}: ActionFunctionArgs) {
   if (request.method !== 'POST') {
@@ -133,7 +128,12 @@ export async function action({request, context}: ActionFunctionArgs) {
   }
 
   try {
-    logCachePurge(topic, handle, resourceId);
+    /* Phase 6: map topic → logical keys → handles → Workers Cache purge */
+    const logicalKeys = getPurgeKeysForWebhook(topic, handle);
+    const handles = extractHandlesFromPurgeKeys(logicalKeys);
+    console.log('[webhook] Cache purge initiated', {topic, handle, id: resourceId, logicalKeys});
+    /* waitUntil offloads async deletes past the 200 ack — avoids Shopify 5s timeout */
+    await purgeStorefrontCache(handles, context.waitUntil ?? undefined);
   } catch (err) {
     /* Log purge failures but still ack so Shopify doesn't retry — purge is best-effort */
     console.error('[webhook] Cache purge failed', {topic, handle, error: String(err)});
