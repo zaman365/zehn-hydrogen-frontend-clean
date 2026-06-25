@@ -29,8 +29,12 @@ export function CartLineItem({
 }) {
   const {id, merchandise} = line;
   const {product, title, image, selectedOptions} = merchandise;
-  const lineItemUrl = useVariantUrl(product.handle, selectedOptions);
+  // product may be undefined on optimistic lines if selectedVariant lacked product field
+  const lineItemUrl = useVariantUrl(product?.handle ?? '', selectedOptions);
   const {close} = useAside();
+  // Skip malformed optimistic lines (product missing = selectedVariant had no product field)
+  if (!product) return null;
+
   const lineItemChildren = childrenMap[id];
   const childrenLabelId = `cart-line-children-${id}`;
   const linePrice = line?.cost?.totalAmount;

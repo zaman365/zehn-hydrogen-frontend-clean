@@ -559,7 +559,15 @@ export function QuickAddModal({isOpen, onClose, product}: QuickAddModalProps) {
           <div className="mt-6">
             <AddToCartForm
               selectedVariantId={selectedVariantId}
-              selectedVariant={activeVariant as unknown as Record<string, unknown>}
+              selectedVariant={
+                activeVariant
+                  ? {
+                      ...activeVariant,
+                      // useOptimisticCart needs product.handle+title to build merchandise
+                      product: {handle: product.handle, title: product.title},
+                    }
+                  : undefined
+              }
               isAvailable={isAvailable}
               onClose={onClose}
               metaProduct={
