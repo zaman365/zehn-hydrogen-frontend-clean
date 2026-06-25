@@ -12,8 +12,13 @@
  *  CacheNone  (0s)   — user-specific or real-time data that must never be cached at the edge:
  *                       search results (user query), cart, account, checkout
  *
- * Webhook invalidation (Phase 5) will purge CacheLong PDP/collection entries on
- * PRODUCTS_UPDATE / COLLECTIONS_UPDATE so stale data stays off-edge.
+ * Webhook invalidation (Phase 5) — app/routes/webhooks.tsx:
+ *  PRODUCTS_UPDATE / products/create / products/delete
+ *    → affects: products.$handle.tsx (CACHE_SHORT), _index.tsx homepage grid (CACHE_SHORT)
+ *  COLLECTIONS_UPDATE / collections/create / collections/delete
+ *    → affects: collections.$handle.tsx (CACHE_SHORT), collections.all.tsx (CACHE_SHORT)
+ *  Header/footer menus (CACHE_LONG) are not affected by product/collection webhooks.
+ *  Phase 6: Oxygen surrogate-key purge API for instant invalidation (currently TTL-based).
  */
 
 import type {Storefront} from '@shopify/hydrogen';
