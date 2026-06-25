@@ -189,12 +189,13 @@ function CartDrawerContent({
                 return (
                   <div key={id} className="flex gap-4">
                     {/* Product Image — 96×96 container is the frame (relative overflow-hidden).
-                        ZehnShopifyImage provides skeleton+fade; bg-muted shows only when no image. */}
+                        priority=true: always in viewport when drawer opens, eager load, no opacity gate. */}
                     <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
                       {image ? (
                         <ZehnShopifyImage
                           data={image}
                           sizes="96px"
+                          priority
                         />
                       ) : (
                         <div className="w-full h-full bg-muted flex items-center justify-center">
@@ -280,17 +281,17 @@ function CartDrawerContent({
                       </div>
                     </div>
 
-                    {/* Price */}
+                    {/* Price — span not p: Money renders a div, div-in-p is invalid HTML */}
                     <div className="text-right">
                       {lineTotal && (
                         <div className="flex flex-col items-end gap-0.5">
-                          <p className={`font-sans font-medium ${isOnSale ? 'text-accent' : 'text-foreground'}`}>
+                          <span className={`font-sans font-medium ${isOnSale ? 'text-accent' : 'text-foreground'}`}>
                             <Money data={lineTotal} />
-                          </p>
+                          </span>
                           {compareAtTotal && (
-                            <p className="font-sans text-xs text-foreground/55 line-through decoration-foreground/40">
+                            <span className="block font-sans text-xs text-foreground/55 line-through decoration-foreground/40">
                               <Money data={compareAtTotal as any} />
-                            </p>
+                            </span>
                           )}
                         </div>
                       )}

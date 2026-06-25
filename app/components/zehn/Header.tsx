@@ -801,7 +801,7 @@ export function Header({
                     onMouseEnter={() =>
                       openDesktopCollectionMenu(shopAllMenuItem)
                     }
-                    onFocus={() => openDesktopCollectionMenu(shopAllMenuItem)}
+                    onFocus={(e) => { if (e.relatedTarget) openDesktopCollectionMenu(shopAllMenuItem); }}
                     onClick={closeCategoryMenu}
                   >
                     {DESKTOP_SHOP_ALL_NAV_LABEL}
@@ -822,7 +822,7 @@ export function Header({
                 const sharedLinkProps = {
                   active: isLinkActive,
                   onMouseEnter: () => openDesktopCollectionMenu(item),
-                  onFocus: () => openDesktopCollectionMenu(item),
+                  onFocus: (e: React.FocusEvent) => { if (e.relatedTarget) openDesktopCollectionMenu(item); },
                   onClick: closeCategoryMenu,
                 };
 
@@ -880,9 +880,10 @@ export function Header({
               })}
             </div>
 
-            {/* Desktop: Centered Logo (absolute) */}
-            <a
-              href="/"
+            {/* Desktop: Centered Logo — Link (not <a>) for SPA navigation, no full-page reload */}
+            <Link
+              to="/"
+              prefetch="intent"
               className="hidden lg:block absolute left-1/2 -translate-x-1/2 z-10"
             >
               <img
@@ -892,11 +893,11 @@ export function Header({
                 className="h-12 w-auto border-0 rounded-none"
                 style={{border: 'none', outline: 'none', borderRadius: '0'}}
               />
-            </a>
+            </Link>
 
-            {/* Mobile: Centered Logo (absolute positioning for true centering) */}
+            {/* Mobile: Centered Logo — prefetch="viewport" because touch has no hover (intent is dead on mobile) */}
             <div className="absolute left-1/2 -translate-x-1/2 lg:hidden">
-              <a href="/">
+              <Link to="/" prefetch="viewport">
                 <img
                   src="/Dark_Blue_Horizontal.png"
                   alt="ZEHN"
@@ -904,7 +905,7 @@ export function Header({
                   className="h-10 w-auto border-0 rounded-none"
                   style={{border: 'none', outline: 'none', borderRadius: '0'}}
                 />
-              </a>
+              </Link>
             </div>
 
             {/* Spacer - pushes right icons to the end (both mobile and desktop) */}
@@ -1180,21 +1181,20 @@ function MobileCartButtonInner({
   const isCartActive = active || count > 0;
 
   return (
-    <HeaderNavIconButton
-      active={isCartActive}
-      className="overflow-visible"
-      ariaLabel={count > 0 ? `Warenkorb, ${count} Artikel` : 'Warenkorb'}
-      onClick={onClick}
-    >
-      <span className="relative flex items-center justify-center">
+    <span className="relative inline-flex">
+      <HeaderNavIconButton
+        active={isCartActive}
+        ariaLabel={count > 0 ? `Warenkorb, ${count} Artikel` : 'Warenkorb'}
+        onClick={onClick}
+      >
         <ShoppingBag
           className={`w-5 h-5 ${count > 0 ? 'text-accent' : ''}`}
           strokeWidth={HEADER_NAV_ICON_STROKE}
           aria-hidden
         />
-        <HeaderNavCountBadge count={count} />
-      </span>
-    </HeaderNavIconButton>
+      </HeaderNavIconButton>
+      <HeaderNavCountBadge count={count} />
+    </span>
   );
 }
 
@@ -1231,22 +1231,21 @@ function WishlistHeaderIcon({pathname}: {pathname: string}) {
   const {count} = useWishlist();
   const isWishlistActive = pathname === '/wishlist' || count > 0;
   return (
-    <HeaderNavIconButton
-      as="link"
-      to="/wishlist"
-      className="overflow-visible"
-      active={isWishlistActive}
-      ariaLabel={count > 0 ? `Wunschliste, ${count} Artikel` : 'Wunschliste'}
-      title="Wunschliste"
-    >
-      <span className="relative flex items-center justify-center">
+    <span className="relative inline-flex">
+      <HeaderNavIconButton
+        as="link"
+        to="/wishlist"
+        active={isWishlistActive}
+        ariaLabel={count > 0 ? `Wunschliste, ${count} Artikel` : 'Wunschliste'}
+        title="Wunschliste"
+      >
         <Heart
           className={`w-5 h-5 ${count > 0 ? 'fill-accent text-accent' : ''}`}
           strokeWidth={HEADER_NAV_ICON_STROKE}
           aria-hidden
         />
-        <HeaderNavCountBadge count={count} />
-      </span>
-    </HeaderNavIconButton>
+      </HeaderNavIconButton>
+      <HeaderNavCountBadge count={count} />
+    </span>
   );
 }

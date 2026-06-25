@@ -13,6 +13,7 @@ import {
   useSelectedOptionInUrlParam,
   Image,
 } from '@shopify/hydrogen';
+import {ZehnShopifyImage} from '~/components/zehn';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
 import {AddToCartButton} from '~/components/AddToCartButton';
@@ -510,6 +511,10 @@ export default function Product() {
                         key={image.url || index}
                         src={image.url}
                         alt={image.altText || product.title}
+                        /* First image: LCP candidate — eager + high priority for fastest paint.
+                           Images 1-2: eager so swipe is instant. Rest: lazy (off-screen). */
+                        loading={index < 3 ? 'eager' : 'lazy'}
+                        {...(index === 0 ? {fetchpriority: 'high' as const} : {})}
                         className={`w-full aspect-[2/3] object-cover ${index === currentImageIndex ? 'block' : 'hidden'}`}
                       />
                     ) : null
@@ -577,9 +582,14 @@ export default function Product() {
                         >
                           {image && (
                             <img
-                              src={image.url}
+                              /* 160px = 2× retina of 80px rail width; Shopify CDN resizes via &width= */
+                              src={`${image.url}${image.url.includes('?') ? '&' : '?'}width=160`}
                               alt={image.altText || product.title}
+                              /* First 4 thumbnails visible in rail — eager load for instant switching. */
+                              loading={index < 4 ? 'eager' : 'lazy'}
                               className="w-full h-full object-cover"
+                              width={160}
+                              height={213}
                             />
                           )}
                         </button>
@@ -604,15 +614,17 @@ export default function Product() {
                   {displayImages.map((image, index) => (
                     <div
                       key={image?.id || index}
-                      className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                      className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${
                         index === currentImageIndex ? 'opacity-100' : 'opacity-0'
                       }`}
                     >
                       {image && (
-                        <Image
+                        <ZehnShopifyImage
                           data={image}
-                          className="object-cover w-full h-full"
-                          sizes="50vw"
+                          alt={image.altText || title}
+                          sizes="(min-width: 1024px) 50vw, 100vw"
+                          isLCP={index === 0}
+                          priority={index > 0 && index < 3}
                         />
                       )}
                     </div>
@@ -777,6 +789,8 @@ export default function Product() {
                             {
                               merchandiseId: selectedVariant.id,
                               quantity: 1,
+                              // selectedVariant required for useOptimisticCart immediate feedback
+                              selectedVariant,
                             },
                           ]
                         : []
@@ -1586,6 +1600,7 @@ function ProductDescriptionModal({
                         {
                           merchandiseId: selectedVariant.id,
                           quantity: 1,
+                          selectedVariant,
                         },
                       ]
                     : []

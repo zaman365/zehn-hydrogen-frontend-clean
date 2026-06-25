@@ -72,8 +72,8 @@ export const HEADER_NAV_COUNT_BADGE =
 export const HEADER_NAV_COUNT_BADGE_OVERFLOW =
   'min-w-[18px] px-0.5';
 
-/** Default offset for w-5 h-5 icons inside 44px icon hosts. */
-export const HEADER_NAV_COUNT_BADGE_POSITION = '-top-2 -right-2';
+/** Offset for w-5 h-5 icons in 44px icon host — stays within button bounding box. */
+export const HEADER_NAV_COUNT_BADGE_POSITION = 'top-1 right-1';
 
 /** Offset for w-4 h-4 icons in mobile drawer rows — sits above icon corner. */
 export const HEADER_NAV_COUNT_BADGE_POSITION_MOBILE_ROW = '-top-3 -right-3';

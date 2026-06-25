@@ -134,11 +134,14 @@ function isOptionValueAvailable(
 /** Inner component so we can use useEffect to track fetcher state. */
 function AddToCartForm({
   selectedVariantId,
+  selectedVariant,
   isAvailable,
   onClose,
   metaProduct,
 }: {
   selectedVariantId: string;
+  // selectedVariant required for useOptimisticCart immediate badge/drawer feedback
+  selectedVariant?: Record<string, unknown>;
   isAvailable: boolean;
   onClose: () => void;
   metaProduct?: MetaProductEvent;
@@ -149,7 +152,7 @@ function AddToCartForm({
     <CartForm
       route="/cart"
       inputs={{
-        lines: [{merchandiseId: selectedVariantId, quantity: 1}],
+        lines: [{merchandiseId: selectedVariantId, quantity: 1, selectedVariant}],
       }}
       action={CartForm.ACTIONS.LinesAdd}
     >
@@ -556,6 +559,7 @@ export function QuickAddModal({isOpen, onClose, product}: QuickAddModalProps) {
           <div className="mt-6">
             <AddToCartForm
               selectedVariantId={selectedVariantId}
+              selectedVariant={activeVariant as unknown as Record<string, unknown>}
               isAvailable={isAvailable}
               onClose={onClose}
               metaProduct={
