@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 import {CartDrawer} from './CartDrawer';
 import {SearchModal} from './SearchModal';
-import {CategoryMenuPanel} from './CategoryMenuPanel';
 import {DesktopCategoryNavPopover} from './DesktopCategoryNavPopover';
+import {CategoryMenuPanel} from './CategoryMenuPanel';
 import {HeaderNavCountBadge} from './HeaderNavCountBadge';
 import {HeaderNavMobileLabeledRow} from './HeaderNavMobileLabeledRow';
 import {HeaderNavAccordionRow} from './HeaderNavAccordionRow';
@@ -49,6 +49,7 @@ import {
 import {isNavPopoverPointerTarget} from '~/lib/header-nav-dropdown-styles';
 import {ZEHN_SITE_CONTENT_ROW} from '~/lib/site-content-row';
 import {cn} from '~/lib/utils';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {
   isMobileCatalogAccordionLabelActive,
   isNavCollectionRootActive,
@@ -200,6 +201,12 @@ const isShopAllMenuItem = ({
   return url === '/collections/all';
 };
 
+/**
+ * Mobile burger menu chip nav — main filter chips (toggle sub row) + sub link chips (navigate + close).
+ * Mirrors the collection page chip band inside the mobile drawer. Main chips with subs use local
+ * filter state so the sub row appears without navigating; no-sub mains and sub chips navigate directly.
+ * Active states sync from chipSnapshot (published by the current page's ProductCatalogBand).
+ */
 function MobileCollectionMenuSection({
   item,
   isOpen,
@@ -208,7 +215,6 @@ function MobileCollectionMenuSection({
   onNavigate,
   primaryDomainUrl,
   publicStoreDomain,
-  initialOpenSection = null,
 }: {
   item: MenuEntry;
   isOpen: boolean;
@@ -218,7 +224,6 @@ function MobileCollectionMenuSection({
   onNavigate: () => void;
   primaryDomainUrl?: string;
   publicStoreDomain?: string;
-  initialOpenSection?: string | null;
 }) {
   const {pathname} = useLocation();
   const chipSnapshot = useCatalogChipNav();
@@ -252,6 +257,7 @@ function MobileCollectionMenuSection({
         onToggle={onToggle}
         onNavigate={onNavigate}
         ariaControls={sectionId}
+        prefetch={resolveLinkPrefetch('nav')}
       />
       <div
         id={sectionId}
@@ -262,13 +268,12 @@ function MobileCollectionMenuSection({
         <div className="min-h-0 overflow-hidden">
           {showSubmenu && (
             <CategoryMenuPanel
-              key={`${sectionKey}-category-menu`}
+              className={HEADER_NAV_MOBILE_SUBMENU_INDENT}
               onNavigate={onNavigate}
               rootSourceUrl={url}
-              idPrefix={`mobile-${sectionKey}-category-section`}
-              interactionMode="toggleRow"
-              initialOpenSection={initialOpenSection}
-              className={cn(HEADER_NAV_MOBILE_SUBMENU_INDENT, 'flex flex-col gap-1')}
+              idPrefix={`mobile-${sectionKey}`}
+              interactionMode="splitRow"
+              staggerPhase="idle"
             />
           )}
         </div>
@@ -277,12 +282,15 @@ function MobileCollectionMenuSection({
   );
 }
 
-/** Chip-derived accordion section for desktop hover popover (BL-0017). */
+/**
+ * Chip-derived accordion section for desktop hover popover (BL-0017).
+ * Homepage chips ('homepage' source) must not pre-open dropdown sections in nav.
+ */
 function resolveDesktopCategoryInitialSection(
   itemUrl: string,
   chipSnapshot: CatalogChipNavSnapshot,
 ): string | null {
-  if (chipSnapshot.source === 'idle') return null;
+  if (chipSnapshot.source === 'idle' || chipSnapshot.source === 'homepage') return null;
   if (chipSnapshot.rootSlug !== getCollectionRootSlug(itemUrl)) return null;
   if (!chipSnapshot.activeMainCategory) return null;
   return getCategoryLabel(chipSnapshot.activeMainCategory);
@@ -366,9 +374,6 @@ export function Header({
   const [openMobileCollection, setOpenMobileCollection] = useState<
     string | null
   >(null);
-  const [openMobileSection, setOpenMobileSection] = useState<string | null>(
-    null,
-  );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const desktopNavTriggersRef = useRef<HTMLDivElement>(null);
@@ -556,10 +561,8 @@ export function Header({
       if (hint.collectionMenuUrl) {
         setOpenMobileCollection(hint.collectionMenuUrl);
       }
-      setOpenMobileSection(hint.sectionTitle);
     } else {
       setOpenMobileCollection(null);
-      setOpenMobileSection(null);
     }
   }, [cancelMobileMenuCloseTimers, pathname]);
 
@@ -570,7 +573,6 @@ export function Header({
     setMobileMenuPhase('idle');
     setIsMobileMenuShellExpanded(false);
     setOpenMobileCollection(null);
-    setOpenMobileSection(null);
   }, [cancelMobileMenuCloseTimers]);
 
   const beginCloseMobileMenu = useCallback(
@@ -674,7 +676,6 @@ export function Header({
     if (resolved.collectionMenuUrl) {
       setOpenMobileCollection(resolved.collectionMenuUrl);
     }
-    setOpenMobileSection(resolved.sectionTitle);
   }, [chipSnapshot, mobileMenuPhase, mobileNavMenuEntries, pathname]);
 
   useEffect(() => {
@@ -792,7 +793,7 @@ export function Header({
                 >
                   <HeaderNavLink
                     to={resolveCatalogNavTo(shopAllMenuUrl)}
-                    prefetch="intent"
+                    prefetch={resolveLinkPrefetch('nav')}
                     active={
                       isNavCollectionRootActive(pathname, shopAllMenuUrl) ||
                       (categoryMenuPhase === 'open' &&
@@ -870,7 +871,7 @@ export function Header({
                   >
                     <HeaderNavLink
                       to={resolveCatalogNavTo(url)}
-                      prefetch="intent"
+                      prefetch={resolveLinkPrefetch('nav')}
                       {...sharedLinkProps}
                     >
                       {item.title}
@@ -883,7 +884,7 @@ export function Header({
             {/* Desktop: Centered Logo — Link (not <a>) for SPA navigation, no full-page reload */}
             <Link
               to="/"
-              prefetch="intent"
+              prefetch={resolveLinkPrefetch('nav')}
               className="hidden lg:block absolute left-1/2 -translate-x-1/2 z-10"
             >
               <img
@@ -897,7 +898,7 @@ export function Header({
 
             {/* Mobile: Centered Logo — prefetch="viewport" because touch has no hover (intent is dead on mobile) */}
             <div className="absolute left-1/2 -translate-x-1/2 lg:hidden">
-              <Link to="/" prefetch="viewport">
+              <Link to="/" prefetch={resolveLinkPrefetch('nav')}>
                 <img
                   src="/Dark_Blue_Horizontal.png"
                   alt="ZEHN"
@@ -1028,23 +1029,10 @@ export function Header({
                           mobileMenuAccordionFrozen &&
                           openMobileCollection === itemUrl
                         }
-                        initialOpenSection={
-                          openMobileCollection === itemUrl
-                            ? openMobileSection
-                            : null
-                        }
                         onToggle={() => {
-                          setOpenMobileCollection((current) => {
-                            if (current === itemUrl) return null;
-                            const hint = mobileAccordionHintRef.current;
-                            if (
-                              hint.collectionMenuUrl === itemUrl &&
-                              hint.sectionTitle
-                            ) {
-                              setOpenMobileSection(hint.sectionTitle);
-                            }
-                            return itemUrl;
-                          });
+                          setOpenMobileCollection((current) =>
+                            current === itemUrl ? null : itemUrl,
+                          );
                         }}
                         onNavigate={closeMobileMenuOnNavigate}
                         primaryDomainUrl={primaryDomainUrl}

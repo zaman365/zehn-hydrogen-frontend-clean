@@ -1,4 +1,6 @@
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useRef} from 'react';
+import {createPortal} from 'react-dom';
+import {type FetcherWithComponents} from 'react-router';
 import {CartForm, Money} from '@shopify/hydrogen';
 import {X, Check, Loader2} from 'lucide-react';
 import {
@@ -131,7 +133,45 @@ function isOptionValueAvailable(
   );
 }
 
-/** Inner component so we can use useEffect to track fetcher state. */
+/**
+ * CartAddTracker – null-render sibling that detects fetcher state transitions
+ * via useRef + useEffect. Never calls setState during render (React 18 safe).
+ * Mirrors MetaCartAddTracker pattern from AddToCartButton.tsx.
+ */
+function CartAddTracker({
+  fetcher,
+  onAdded,
+  metaProduct,
+}: {
+  fetcher: FetcherWithComponents<any>;
+  onAdded: () => void;
+  metaProduct?: MetaProductEvent;
+}) {
+  const prevStateRef = useRef(fetcher.state);
+
+  useEffect(() => {
+    const wasSubmitting = prevStateRef.current !== 'idle';
+    const isNowIdle = fetcher.state === 'idle';
+    const hasData = Boolean(fetcher.data);
+    const noErrors = !fetcher.data?.errors?.length;
+
+    if (wasSubmitting && isNowIdle && hasData) {
+      if (noErrors && metaProduct) {
+        fireMetaAddToCart(metaProduct);
+      }
+      onAdded();
+    }
+
+    prevStateRef.current = fetcher.state;
+  }, [fetcher.state, fetcher.data, metaProduct, onAdded]);
+
+  return null;
+}
+
+/**
+ * AddToCartForm – wraps CartForm, delegates state-transition detection to
+ * CartAddTracker so zero setState calls happen inside the render prop.
+ */
 function AddToCartForm({
   selectedVariantId,
   selectedVariant,
@@ -140,13 +180,29 @@ function AddToCartForm({
   metaProduct,
 }: {
   selectedVariantId: string;
-  // selectedVariant required for useOptimisticCart immediate badge/drawer feedback
+  /** selectedVariant required for useOptimisticCart immediate badge/drawer feedback */
   selectedVariant?: Record<string, unknown>;
   isAvailable: boolean;
   onClose: () => void;
   metaProduct?: MetaProductEvent;
 }) {
   const [added, setAdded] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up close-delay timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const handleAdded = useCallback(() => {
+    setAdded(true);
+    timerRef.current = setTimeout(() => {
+      onClose();
+      setAdded(false);
+    }, 800);
+  }, [onClose]);
 
   return (
     <CartForm
@@ -158,56 +214,48 @@ function AddToCartForm({
     >
       {(fetcher) => {
         const isSubmitting = fetcher.state !== 'idle';
-
-        // Detect successful add: fetcher went from non-idle to idle with data
-        if (fetcher.state === 'idle' && fetcher.data && !added) {
-          if (!fetcher.data.errors?.length && metaProduct) {
-            fireMetaAddToCart(metaProduct);
-          }
-          setAdded(true);
-          setTimeout(() => {
-            onClose();
-            setAdded(false);
-          }, 800);
-        }
-
         return (
-          <button
-            type="submit"
-            disabled={!isAvailable || isSubmitting || !selectedVariantId || added}
-            className={`
-              w-full rounded-full py-4 font-sans text-sm uppercase tracking-wider
-              transition-all duration-200
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2
-              ${
-                added
-                  ? 'bg-green-600 text-white'
-                  : isAvailable && selectedVariantId
-                    ? 'bg-accent text-accent-foreground hover:bg-accent/90 active:scale-[0.98]'
-                    : 'bg-foreground/20 text-foreground/40 cursor-not-allowed'
-              }
-            `}
-            data-testid="quick-add-to-cart-button"
-          >
-            {added ? (
-              <span className="inline-flex items-center gap-2">
-                <Check className="w-4 h-4" aria-hidden="true" />
-                Hinzugefügt!
-              </span>
-            ) : isSubmitting ? (
-              <span className="inline-flex items-center gap-2">
-                <Loader2
-                  className="w-4 h-4 animate-spin"
-                  aria-hidden="true"
-                />
-                Wird hinzugefügt…
-              </span>
-            ) : !isAvailable ? (
-              'Ausverkauft'
-            ) : (
-              'In den Warenkorb'
-            )}
-          </button>
+          <>
+            {/* Tracker is a null render — no setState in render prop */}
+            <CartAddTracker
+              fetcher={fetcher}
+              onAdded={handleAdded}
+              metaProduct={metaProduct}
+            />
+            <button
+              type="submit"
+              disabled={!isAvailable || isSubmitting || !selectedVariantId || added}
+              className={`
+                w-full rounded-full py-4 font-sans text-sm uppercase tracking-wider
+                transition-all duration-200
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2
+                ${
+                  added
+                    ? 'bg-green-600 text-white'
+                    : isAvailable && selectedVariantId
+                      ? 'bg-accent text-accent-foreground hover:bg-accent/90 active:scale-[0.98]'
+                      : 'bg-foreground/20 text-foreground/40 cursor-not-allowed'
+                }
+              `}
+              data-testid="quick-add-to-cart-button"
+            >
+              {added ? (
+                <span className="inline-flex items-center gap-2">
+                  <Check className="w-4 h-4" aria-hidden="true" />
+                  Hinzugefügt!
+                </span>
+              ) : isSubmitting ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  Wird hinzugefügt…
+                </span>
+              ) : !isAvailable ? (
+                'Ausverkauft'
+              ) : (
+                'In den Warenkorb'
+              )}
+            </button>
+          </>
         );
       }}
     </CartForm>
@@ -428,16 +476,12 @@ export function QuickAddModal({isOpen, onClose, product}: QuickAddModalProps) {
       `}
       data-testid="quick-add-modal-backdrop"
     >
-      {/* Backdrop — click target (keyboard: Escape handled globally or via close button) */}
+      {/* Backdrop — click target only; aria-hidden valid because onMouseDown preventDefault stops focus transfer */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         aria-hidden="true"
-        onClick={() => onClose()}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') onClose();
-        }}
-        role="button"
-        tabIndex={-1}
+        onClick={onClose}
+        onMouseDown={(e) => e.preventDefault()}
       />
 
       {/* Modal card */}
@@ -588,5 +632,7 @@ export function QuickAddModal({isOpen, onClose, product}: QuickAddModalProps) {
     </div>
   );
 
-  return modalContent;
+  // Portal to document.body bypasses any parent CSS transform / stacking context
+  // (ProductItem has translate-y + scale transforms that break fixed positioning).
+  return createPortal(modalContent, document.body);
 }

@@ -106,12 +106,13 @@ function CartDrawerContent({
 
   return (
     <>
-      {/* Backdrop Overlay with blur */}
+      {/* Backdrop — aria-hidden valid because onMouseDown preventDefault stops focus transfer */}
       <div
         className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] ${
           closing ? 'animate-fade-out' : 'animate-fade-in'
         }`}
         onClick={onClose}
+        onMouseDown={(e) => e.preventDefault()}
         aria-hidden="true"
       />
 
@@ -392,11 +393,13 @@ function CartDrawerSkeleton({
   
   return (
     <>
+      {/* Backdrop — aria-hidden valid because onMouseDown preventDefault stops focus transfer */}
       <div
         className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] ${
           closing ? 'animate-fade-out' : 'animate-fade-in'
         }`}
         onClick={onClose}
+        onMouseDown={(e) => e.preventDefault()}
         aria-hidden="true"
       />
       <div

@@ -7,10 +7,12 @@ import {
   isRouteErrorResponse,
   useLocation,
   useNavigate,
+  data as routeData,
 } from 'react-router';
 import type {Route} from './+types/collections.$handle';
+import type {ClientLoaderFunctionArgs} from 'react-router';
+import {catalogClientLoader, catalogClientLoaderHydrate} from '~/lib/catalog-client-loader';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
-import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ProductItem} from '~/components/ProductItem';
 import {
@@ -35,7 +37,9 @@ import {
 } from '~/lib/category-map';
 import {shuffleWithSeed} from '~/lib/seeded-shuffle';
 import {CATALOG_QUERY} from '~/routes/collections.all';
-import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
+import {getCachePolicy, CACHE_CATALOG} from '~/lib/storefront-cache-policy';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {catalogShouldRevalidate} from '~/lib/route-revalidation';
 import {
   getCategorySectionCopy,
   resolveCategorySectionContext,
@@ -82,15 +86,22 @@ export const meta: Route.MetaFunction = ({data}) => {
   ];
 };
 
-export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
+export const shouldRevalidate = catalogShouldRevalidate;
 
-  // Await the critical data required to render initial state of the page
+export async function loader(args: Route.LoaderArgs) {
+  const deferredData = loadDeferredData(args);
   const criticalData = await loadCriticalData(args);
 
-  return {...deferredData, ...criticalData};
+  return routeData(
+    {...deferredData, ...criticalData},
+    {headers: getOxygenPageCacheHeaders('catalog')},
+  );
 }
+
+export async function clientLoader(args: ClientLoaderFunctionArgs) {
+  return catalogClientLoader<Awaited<ReturnType<typeof loader>>>(args);
+}
+clientLoader.hydrate = catalogClientLoaderHydrate;
 
 /**
  * Load data necessary for rendering content above the fold. This is the critical data
@@ -107,11 +118,30 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
     throw redirect('/collections');
   }
 
+  // shop-all: virtual root collection — loads the full product catalog
+  if (handle === 'shop-all') {
+    const {products} = await storefront.query(CATALOG_QUERY, {
+      variables: {first: 250},
+      cache: getCachePolicy(storefront, CACHE_CATALOG),
+    });
+    return {
+      collection: {
+        id: 'virtual-shop-all',
+        handle: 'shop-all',
+        title: 'Alle Produkte',
+        description: '',
+        seo: {title: 'Alle Produkte', description: ''},
+        image: null,
+        products: {nodes: products?.nodes ?? []},
+      },
+    };
+  }
+
   // alle-* handles (e.g. alle-shorts) show all products filtered by that category
   if (handle in ALLE_PARENT_MAP) {
     const {products} = await storefront.query(CATALOG_QUERY, {
       variables: {first: 250},
-      cache: getCachePolicy(storefront, CACHE_SHORT),
+      cache: getCachePolicy(storefront, CACHE_CATALOG),
     });
     const categoryLabel = getCategoryLabel(handle);
     return {
@@ -130,7 +160,7 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   const [{collection: initialCollection}] = await Promise.all([
     storefront.query(COLLECTION_QUERY, {
       variables: {handle, ...paginationVariables},
-      cache: getCachePolicy(storefront, CACHE_SHORT),
+      cache: getCachePolicy(storefront, CACHE_CATALOG),
     }),
   ]);
 
@@ -244,7 +274,7 @@ async function resolveCollectionHandle(
   for (const candidateHandle of handleCandidates) {
     const result = await storefront.query(COLLECTION_HANDLE_BY_HANDLE_QUERY, {
       variables: {handle: candidateHandle},
-      cache: getCachePolicy(storefront, CACHE_SHORT),
+      cache: getCachePolicy(storefront, CACHE_CATALOG),
     });
 
     const matchedHandle = result.collection?.handle;
@@ -256,7 +286,7 @@ async function resolveCollectionHandle(
   for (const term of searchTerms) {
     const result = await storefront.query(COLLECTION_HANDLE_FALLBACK_QUERY, {
       variables: {query: term},
-      cache: getCachePolicy(storefront, CACHE_SHORT),
+      cache: getCachePolicy(storefront, CACHE_CATALOG),
     });
 
     const matchedHandle = result.collections?.nodes?.[0]?.handle;
@@ -348,7 +378,7 @@ export default function Collection() {
     },
   });
 
-  const {selectedCategory, displayProducts, mainCategories, activeMainCategory} =
+  const {selectedCategory, displayProducts, mainCategories, activeMainCategory, showFacetToolbar} =
     filterState;
 
   const navActiveMain = useMemo(() => {
@@ -427,7 +457,7 @@ export default function Collection() {
             copy={categoryNavCopy}
             navVariant="default"
             filterState={filterState}
-            showFilterToolbar
+            showFilterToolbar={showFacetToolbar}
             showMainRow={catalogBand}
             showMainAlleChip={catalogBand}
             curatedMainToggle={isCuratedCollection}
@@ -439,7 +469,9 @@ export default function Collection() {
             getMainHref={getCategoryUrl}
             getSubHref={(main, sub) => {
               if (isCuratedCollection) {
-                return `/collections/${rootSlug}/alle-${main}/${sub}`;
+                // Canonical URL: curated collection + ?category= param keeps the product set scoped.
+                // subInteraction='filter' means clicks are in-memory; href is for accessibility/prefetch only.
+                return `/collections/${rootSlug}?category=${sub}`;
               }
               if (isMainCategoryPage) {
                 return `/collections/shop-all/alle-${effectiveHandle}/${sub}`;
@@ -465,7 +497,11 @@ export default function Collection() {
 
         <div className={`${ZEHN_HOMEPAGE_GRID_TOP} grid sm:grid-cols-2 lg:grid-cols-3 gap-3`}>
           {displayProducts.map((product: any, index: number) => {
-            const imageLoad = resolveProductImageLoading('gridAboveFold', index, {
+            const imageContext =
+              index < ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT
+                ? 'gridAboveFold'
+                : 'gridBelowFold';
+            const imageLoad = resolveProductImageLoading(imageContext, index, {
               aboveFoldLimit: ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT,
             });
 
@@ -490,10 +526,14 @@ export default function Collection() {
               </div>
               <div className="space-y-3">
                 <h3 className="font-sans text-h3 text-foreground">
-                  Coming Soon
+                  {selectedCategory
+                    ? `Keine ${getCategoryLabel(selectedCategory)} verfügbar`
+                    : 'Coming Soon'}
                 </h3>
                 <p className="font-sans text-body text-muted">
-                  {`Wir arbeiten daran, Ihnen tolle ${getCategoryLabel(collection.handle)} Produkte anzubieten. Bleiben Sie dran!`}
+                  {selectedCategory
+                    ? `In dieser Kollektion gibt es derzeit keine ${getCategoryLabel(selectedCategory)}.`
+                    : `Wir arbeiten daran, Ihnen tolle ${getCategoryLabel(collection.handle)} Produkte anzubieten. Bleiben Sie dran!`}
                 </p>
               </div>
             </div>

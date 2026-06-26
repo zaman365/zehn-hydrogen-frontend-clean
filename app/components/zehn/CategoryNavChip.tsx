@@ -3,6 +3,7 @@
  * Filter mode uses button; link mode uses React Router Link + prefetch intent.
  */
 import {RippleButton} from '~/components/zehn/RippleButton';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {
   CATEGORY_NAV_CHIP_HOST,
   CATEGORY_NAV_CHIP_HOVER,
@@ -20,6 +21,8 @@ export type CategoryNavChipProps = {
   interaction: 'filter' | 'link';
   onSelect?: () => void;
   href?: string;
+  /** True when this category has 0 products in the current route's data. */
+  isEmpty?: boolean;
 };
 
 export function CategoryNavChip({
@@ -29,6 +32,7 @@ export function CategoryNavChip({
   interaction,
   onSelect,
   href,
+  isEmpty = false,
 }: CategoryNavChipProps) {
   const stateClass =
     variant === 'main'
@@ -39,20 +43,31 @@ export function CategoryNavChip({
         ? CATEGORY_NAV_CHIP_SUB_ACTIVE
         : CATEGORY_NAV_CHIP_SUB;
 
+  const isDisabled = isEmpty && !active;
+
   const chipClass = cn(
     CATEGORY_NAV_CHIP_HOST,
     stateClass,
     !active && CATEGORY_NAV_CHIP_HOVER,
+    isDisabled && 'opacity-40 pointer-events-none',
   );
+
+  const tooltip = isDisabled
+    ? `Keine ${label} in dieser Kollektion verfügbar`
+    : undefined;
 
   if (interaction === 'link' && href) {
     return (
       <RippleButton
         as="link"
         to={href}
-        prefetch="intent"
+        prefetch={resolveLinkPrefetch('collection')}
         className={chipClass}
         aria-current={active ? 'page' : undefined}
+        aria-disabled={isDisabled || undefined}
+        tabIndex={isDisabled ? -1 : undefined}
+        onClick={isDisabled ? undefined : onSelect}
+        title={tooltip}
       >
         {label}
       </RippleButton>
@@ -63,8 +78,11 @@ export function CategoryNavChip({
     <RippleButton
       type="button"
       className={chipClass}
-      onClick={onSelect}
+      onClick={isDisabled ? undefined : onSelect}
       aria-pressed={active}
+      aria-disabled={isDisabled || undefined}
+      tabIndex={isDisabled ? -1 : undefined}
+      title={tooltip}
     >
       {label}
     </RippleButton>

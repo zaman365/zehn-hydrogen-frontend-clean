@@ -1,26 +1,18 @@
 import {redirect} from 'react-router';
-import {
-  getCategoryLabel,
-  ALLE_PARENT_MAP,
-  MAIN_CATEGORY_MAP,
-} from '~/lib/category-map';
-import {CATALOG_QUERY} from '~/routes/collections.all';
-import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
+import {ALLE_PARENT_MAP, MAIN_CATEGORY_MAP} from '~/lib/category-map';
 
-// Maps URL root slugs to Shopify collection handles (null = all products)
-const ROOT_HANDLE_MAP: Record<string, string | null> = {
-  'shop-all': null,
-  'neuheiten': 'new-arrival',
-  'bestseller': 'bestseller',
-  'sale': 'sale',
-};
+/** Known root slugs for this route — must match segment 1 of URL. */
+const KNOWN_ROOTS = new Set(['shop-all', 'neuheiten', 'bestseller', 'sale']);
 
+/**
+ * Three-segment leaf route — validates params then redirects to /collections/all?category={sub}.
+ * Always uses the full catalog so curated roots (neuheiten/bestseller/sale) never show
+ * an empty sub-category set. Eliminates the duplicate Shopify query (was 954 ms).
+ */
 export async function loader({
   params,
-  context,
 }: {
   params: Record<string, string | undefined>;
-  context: any;
 }) {
   const {root, parent, sub} = params;
 
@@ -28,7 +20,7 @@ export async function loader({
     !root ||
     !parent ||
     !sub ||
-    !(root in ROOT_HANDLE_MAP) ||
+    !KNOWN_ROOTS.has(root) ||
     !(parent in ALLE_PARENT_MAP)
   ) {
     throw redirect('/collections');
@@ -40,24 +32,12 @@ export async function loader({
     throw redirect(`/collections/${root}/${parent}`);
   }
 
-  const {products} = await context.storefront.query(CATALOG_QUERY, {
-    variables: {first: 250},
-    cache: getCachePolicy(context.storefront, CACHE_SHORT),
-  });
-
-  const categoryLabel = getCategoryLabel(sub);
-
-  return {
-    collection: {
-      id: `virtual-${root}-${parent}-${sub}`,
-      handle: `alle-${sub}`,
-      title: categoryLabel,
-      description: '',
-      seo: {title: categoryLabel, description: ''},
-      image: null,
-      products: {nodes: products?.nodes ?? []},
-    },
-  };
+  // For curated roots (sale/neuheiten/bestseller) stay on the curated collection so the
+  // product set reflects that root (e.g. only Sale items).  shop-all redirects to /collections/all
+  // (which maps to shop-all internally) so the full catalog chip filter works there too.
+  const targetBase =
+    root === 'shop-all' ? '/collections/all' : `/collections/${root}`;
+  throw redirect(`${targetBase}?category=${sub}`);
 }
 
 export {default} from '~/routes/collections.$handle';

@@ -1,7 +1,9 @@
-import {Link, useLoaderData} from 'react-router';
+import {Link, useLoaderData, data as routeData} from 'react-router';
 import {ChevronRight} from 'lucide-react';
 import type {Route} from './+types/pages.$handle';
 import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {staticShouldRevalidate} from '~/lib/route-revalidation';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {getStaticPage} from '~/lib/static-pages';
 import type {StaticPageData} from '~/lib/static-pages';
@@ -46,10 +48,15 @@ export const meta: Route.MetaFunction = ({data}) => {
   ];
 };
 
+export const shouldRevalidate = staticShouldRevalidate;
+
 export async function loader(args: Route.LoaderArgs) {
   const deferredData = loadDeferredData(args);
   const criticalData = await loadCriticalData(args);
-  return {...deferredData, ...criticalData};
+  return routeData(
+    {...deferredData, ...criticalData},
+    {headers: getOxygenPageCacheHeaders('static')},
+  );
 }
 
 /**

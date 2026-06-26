@@ -151,7 +151,7 @@ describe('isMobileCatalogAccordionLabelActive', () => {
     ).toBe(false);
   });
 
-  it('expanded on homepage uses chip-aware accent', () => {
+  it('expanded on homepage ignores homepage chip — label stays idle', () => {
     expect(
       isMobileCatalogAccordionLabelActive(
         '/',
@@ -159,7 +159,7 @@ describe('isMobileCatalogAccordionLabelActive', () => {
         homepageChip,
         true,
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('collapsed on collection URL uses pathname match', () => {

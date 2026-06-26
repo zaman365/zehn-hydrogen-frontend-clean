@@ -1,6 +1,8 @@
-import {useLoaderData, Link} from 'react-router';
+import {useLoaderData, Link, data as routeData} from 'react-router';
 import type {Route} from './+types/policies._index';
 import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {staticShouldRevalidate} from '~/lib/route-revalidation';
 import type {PoliciesQuery, PolicyItemFragment} from 'storefrontapi.generated';
 
 export const meta: Route.MetaFunction = () => {
@@ -12,6 +14,8 @@ export const meta: Route.MetaFunction = () => {
     },
   ];
 };
+
+export const shouldRevalidate = staticShouldRevalidate;
 
 export async function loader({context}: Route.LoaderArgs) {
   const data: PoliciesQuery = await context.storefront.query(POLICIES_QUERY, {
@@ -31,7 +35,10 @@ export async function loader({context}: Route.LoaderArgs) {
     throw new Response('Keine Richtlinien gefunden', {status: 404});
   }
 
-  return {policies};
+  return routeData(
+    {policies},
+    {headers: getOxygenPageCacheHeaders('static')},
+  );
 }
 
 export default function Policies() {

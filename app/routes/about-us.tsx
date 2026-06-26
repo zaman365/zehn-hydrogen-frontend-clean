@@ -1,5 +1,7 @@
-import {Link} from 'react-router';
+import {Link, data as routeData} from 'react-router';
 import type {Route} from './+types/about-us';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {staticShouldRevalidate} from '~/lib/route-revalidation';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -13,6 +15,13 @@ export const meta: Route.MetaFunction = () => {
     {name: 'twitter:card', content: 'summary'},
   ];
 };
+
+export const shouldRevalidate = staticShouldRevalidate;
+
+/** Static marketing page — Oxygen FPC via empty loader + static cache headers. */
+export async function loader() {
+  return routeData({}, {headers: getOxygenPageCacheHeaders('static')});
+}
 
 export default function AboutUs() {
   return (

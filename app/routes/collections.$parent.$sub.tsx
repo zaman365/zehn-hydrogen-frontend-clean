@@ -1,27 +1,23 @@
 import {redirect} from 'react-router';
-import {
-  getCategoryLabel,
-  ALLE_PARENT_MAP,
-  MAIN_CATEGORY_MAP,
-} from '~/lib/category-map';
-import {CATALOG_QUERY} from '~/routes/collections.all';
-import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
+import {ALLE_PARENT_MAP, MAIN_CATEGORY_MAP, resolveAlleCategory} from '~/lib/category-map';
 
-const ROOT_HANDLE_MAP: Record<string, string | null> = {
-  'shop-all': null,
-  neuheiten: 'new-arrival',
-  bestseller: 'bestseller',
-  sale: 'sale',
-};
+/** Known root slugs that map to curated Shopify collections. */
+const KNOWN_ROOTS = new Set(['shop-all', 'neuheiten', 'bestseller', 'sale']);
 
+/**
+ * Two-segment collection paths — both redirect to /collections/all with ?category= chip param:
+ *  • /collections/{root}/{alle-parent} — e.g. /collections/neuheiten/alle-jacken
+ *    → /collections/all?category={main}
+ *  • /collections/{alle-parent}/{sub}  — e.g. /collections/alle-hosen/cargohosen
+ *    → /collections/all?category={sub}
+ *
+ * Always targets /collections/all (full catalog) so curated roots (neuheiten/bestseller/sale)
+ * never show an empty sub-category set. Eliminates duplicate Shopify query on leaf nav.
+ */
 export async function loader({
   params,
-  context,
-  request,
 }: {
   params: Record<string, string | undefined>;
-  context: any;
-  request: Request;
 }) {
   const {parent, sub} = params;
 
@@ -29,24 +25,14 @@ export async function loader({
     throw redirect('/collections');
   }
 
-  if (parent in ROOT_HANDLE_MAP && sub in ALLE_PARENT_MAP) {
-    const {products} = await context.storefront.query(CATALOG_QUERY, {
-      variables: {first: 250},
-      cache: getCachePolicy(context.storefront, CACHE_SHORT),
-    });
-
-    const categoryLabel = getCategoryLabel(sub);
-    return {
-      collection: {
-        id: `virtual-${parent}-${sub}`,
-        handle: sub,
-        title: categoryLabel,
-        description: '',
-        seo: {title: categoryLabel, description: ''},
-        image: null,
-        products: {nodes: products?.nodes ?? []},
-      },
-    };
+  // /collections/{root}/{alle-parent} → chip pre-selected on same root
+  // Curated roots (sale/neuheiten/bestseller) keep their product set; shop-all goes to /collections/all.
+  if (KNOWN_ROOTS.has(parent) && sub in ALLE_PARENT_MAP) {
+    // resolveAlleCategory maps 'alle-jacken' → 'jacken'; pass the main category as chip
+    const categoryParam = resolveAlleCategory(sub) ?? sub;
+    const targetBase =
+      parent === 'shop-all' ? '/collections/all' : `/collections/${parent}`;
+    throw redirect(`${targetBase}?category=${categoryParam}`);
   }
 
   if (!(parent in ALLE_PARENT_MAP)) {
@@ -59,8 +45,8 @@ export async function loader({
     throw redirect(`/collections/${parent}`);
   }
 
-  const url = new URL(request.url);
-  throw redirect(`/collections/shop-all/${parent}/${sub}${url.search}`);
+  // /collections/{alle-parent}/{sub} → full catalog + chip pre-selected
+  throw redirect(`/collections/all?category=${sub}`);
 }
 
 export {default} from '~/routes/collections.$handle';

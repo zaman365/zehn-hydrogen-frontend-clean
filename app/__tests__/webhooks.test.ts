@@ -222,8 +222,13 @@ describe('webhooks route — Phase 6 purge integration', () => {
     expect(src).toContain('extractHandlesFromPurgeKeys(');
   });
 
-  it('calls purgeStorefrontCache with handles and waitUntil', () => {
+  it('calls purgeStorefrontCache with handles, waitUntil, and logicalKeys', () => {
     expect(src).toContain('purgeStorefrontCache(handles,');
+    expect(src).toContain('logicalKeys');
+  });
+
+  it('bumps catalog cache version after purge', () => {
+    expect(src).toContain('bumpCatalogCacheVersion');
   });
 
   it('still returns 200 on purge failure (Shopify never retries)', () => {
@@ -237,23 +242,23 @@ describe('webhooks route — Phase 6 purge integration', () => {
 // ============================================================================
 // storefront-cache-policy.ts — Phase 5 documentation update
 // ============================================================================
-describe('storefront-cache-policy — Phase 5 webhook documentation', () => {
+describe('storefront-cache-policy — Phase 7 webhook documentation', () => {
   const policySrc = read('app/lib/storefront-cache-policy.ts');
 
-  it('documents PRODUCTS_UPDATE webhook topic', () => {
-    expect(policySrc).toContain('PRODUCTS_UPDATE');
+  it('documents products/* webhook purge', () => {
+    expect(policySrc).toContain('products/*');
   });
 
-  it('documents COLLECTIONS_UPDATE webhook topic', () => {
-    expect(policySrc).toContain('COLLECTIONS_UPDATE');
+  it('documents collections/* webhook purge', () => {
+    expect(policySrc).toContain('collections/*');
   });
 
   it('references app/routes/webhooks.tsx', () => {
     expect(policySrc).toContain('app/routes/webhooks.tsx');
   });
 
-  it('notes Phase 6 Oxygen surrogate-key purge', () => {
-    expect(policySrc).toContain('Phase 6');
-    expect(policySrc).toContain('surrogate-key');
+  it('notes Phase 7 Oxygen full-page cache', () => {
+    expect(policySrc).toContain('Phase 7');
+    expect(policySrc).toContain('Oxygen-Cache-Control');
   });
 });

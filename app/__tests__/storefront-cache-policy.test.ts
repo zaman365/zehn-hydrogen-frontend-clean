@@ -52,98 +52,109 @@ describe('storefront-cache-policy — module shape', () => {
 });
 
 // ============================================================================
-// Homepage (_index.tsx) — CACHE_SHORT
+// Homepage (_index.tsx) — CACHE_CATALOG (Phase 7)
 // ============================================================================
-describe('_index.tsx — CACHE_SHORT applied', () => {
+describe('_index.tsx — CACHE_CATALOG applied', () => {
   const src = read('app/routes/_index.tsx');
 
-  it('imports getCachePolicy and CACHE_SHORT', () => {
+  it('imports getCachePolicy and CACHE_CATALOG', () => {
     expect(src).toContain('getCachePolicy');
-    expect(src).toContain('CACHE_SHORT');
+    expect(src).toContain('CACHE_CATALOG');
   });
 
   it('passes cache to HOMEPAGE_QUERY', () => {
-    expect(src).toContain('cache: getCachePolicy(storefront, CACHE_SHORT)');
+    expect(src).toContain('cache: getCachePolicy(storefront, CACHE_CATALOG)');
+  });
+
+  it('returns Oxygen page cache headers', () => {
+    expect(src).toContain('getOxygenPageCacheHeaders');
   });
 });
 
 // ============================================================================
-// collections.all.tsx — CACHE_SHORT
+// collections.all.tsx — CACHE_CATALOG
 // ============================================================================
-describe('collections.all.tsx — CACHE_SHORT applied', () => {
+describe('collections.all.tsx — CACHE_CATALOG applied', () => {
   const src = read('app/routes/collections.all.tsx');
 
-  it('imports getCachePolicy and CACHE_SHORT', () => {
+  it('imports getCachePolicy and CACHE_CATALOG', () => {
     expect(src).toContain('getCachePolicy');
-    expect(src).toContain('CACHE_SHORT');
+    expect(src).toContain('CACHE_CATALOG');
   });
 
   it('passes cache to CATALOG_QUERY', () => {
-    expect(src).toContain('cache: getCachePolicy(storefront, CACHE_SHORT)');
+    expect(src).toContain('cache: getCachePolicy(storefront, CACHE_CATALOG)');
   });
 });
 
 // ============================================================================
-// collections.$handle.tsx — CACHE_SHORT
+// collections.$handle.tsx — CACHE_CATALOG
 // ============================================================================
-describe('collections.$handle.tsx — CACHE_SHORT applied', () => {
+describe('collections.$handle.tsx — CACHE_CATALOG applied', () => {
   const src = read('app/routes/collections.$handle.tsx');
 
-  it('imports getCachePolicy and CACHE_SHORT', () => {
+  it('imports getCachePolicy and CACHE_CATALOG', () => {
     expect(src).toContain('getCachePolicy');
-    expect(src).toContain('CACHE_SHORT');
+    expect(src).toContain('CACHE_CATALOG');
   });
 
   it('passes cache to COLLECTION_QUERY', () => {
-    expect(src).toContain('cache: getCachePolicy(storefront, CACHE_SHORT)');
+    expect(src).toContain('cache: getCachePolicy(storefront, CACHE_CATALOG)');
   });
 });
 
 // ============================================================================
 // collections.$parent.$sub.tsx — CACHE_SHORT
 // ============================================================================
-describe('collections.$parent.$sub.tsx — CACHE_SHORT applied', () => {
+describe('collections.$parent.$sub.tsx — redirect-only loader', () => {
   const src = read('app/routes/collections.$parent.$sub.tsx');
 
-  it('imports getCachePolicy and CACHE_SHORT', () => {
-    expect(src).toContain('getCachePolicy');
-    expect(src).toContain('CACHE_SHORT');
+  it('uses redirect (no Shopify query — eliminates duplicate server call)', () => {
+    expect(src).toContain('redirect(');
+    // No Shopify storefront query — caching moved to /collections/all
+    expect(src).not.toContain('context.storefront.query');
   });
 
-  it('passes cache to CATALOG_QUERY', () => {
-    expect(src).toContain('cache: getCachePolicy(context.storefront, CACHE_SHORT)');
+  it('redirects to /collections/all with ?category= param', () => {
+    expect(src).toContain('/collections/all?category=');
   });
 });
 
 // ============================================================================
-// collections.$root.$parent.$sub.tsx — CACHE_SHORT
+// collections.$root.$parent.$sub.tsx — redirect-only loader
 // ============================================================================
-describe('collections.$root.$parent.$sub.tsx — CACHE_SHORT applied', () => {
+describe('collections.$root.$parent.$sub.tsx — redirect-only loader', () => {
   const src = read('app/routes/collections.$root.$parent.$sub.tsx');
 
-  it('imports getCachePolicy and CACHE_SHORT', () => {
-    expect(src).toContain('getCachePolicy');
-    expect(src).toContain('CACHE_SHORT');
+  it('uses redirect (no Shopify query — eliminates duplicate server call)', () => {
+    expect(src).toContain('redirect(');
+    // No Shopify storefront query — caching moved to /collections/all
+    expect(src).not.toContain('context.storefront.query');
   });
 
-  it('passes cache to CATALOG_QUERY', () => {
-    expect(src).toContain('cache: getCachePolicy(context.storefront, CACHE_SHORT)');
+  it('redirects to /collections/all with ?category= param', () => {
+    expect(src).toContain('/collections/all?category=');
   });
 });
 
 // ============================================================================
-// products.$handle.tsx — CACHE_SHORT (PDP + recommended)
+// products.$handle.tsx — CACHE_CATALOG (PDP + recommended)
 // ============================================================================
-describe('products.$handle.tsx — CACHE_SHORT applied', () => {
+describe('products.$handle.tsx — CACHE_CATALOG applied', () => {
   const src = read('app/routes/products.$handle.tsx');
 
-  it('imports getCachePolicy and CACHE_SHORT', () => {
+  it('imports getCachePolicy and CACHE_CATALOG', () => {
     expect(src).toContain('getCachePolicy');
-    expect(src).toContain('CACHE_SHORT');
+    expect(src).toContain('CACHE_CATALOG');
   });
 
   it('passes cache to PRODUCT_QUERY', () => {
-    expect(src).toContain('cache: getCachePolicy(storefront, CACHE_SHORT)');
+    expect(src).toContain('cache: getCachePolicy(storefront, CACHE_CATALOG)');
+  });
+
+  it('defers recommended products via promise', () => {
+    expect(src).toContain('recommendedProducts');
+    expect(src).toContain('<Await resolve={recommendedProducts}');
   });
 });
 

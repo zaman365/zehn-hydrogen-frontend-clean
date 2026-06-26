@@ -13,6 +13,7 @@ import {
   HEADER_NAV_MOBILE_LABELED_ROW_LABEL,
   HEADER_NAV_MOBILE_ROW,
 } from '~/lib/header-nav-styles';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {cn} from '~/lib/utils';
 
 type HeaderNavMobileLabeledRowBaseProps = {
@@ -108,7 +109,7 @@ export function HeaderNavMobileLabeledRow(
     );
   }
 
-  const {to, onClick, prefetch, replace, state, preventScrollReset, relative, viewTransition, discover} =
+  const {to, onClick, prefetch = resolveLinkPrefetch('nav'), replace, state, preventScrollReset, relative, viewTransition, discover} =
     props;
 
   return (

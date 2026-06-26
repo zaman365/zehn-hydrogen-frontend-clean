@@ -1,8 +1,10 @@
 /**
  * Shared category accordion — desktop hover popover + mobile drawer (BL-0017 / BL-0018).
  */
-import {useEffect, useState} from 'react';
-import {Link, useLocation} from 'react-router';
+import {useState} from 'react';
+import {useIsomorphicLayoutEffect} from '~/hooks/useIsomorphicLayoutEffect';
+import {useLocation} from 'react-router';
+import {ZehnLink} from './ZehnLink';
 import {ChevronDown} from 'lucide-react';
 import {HeaderNavAccordionRow} from './HeaderNavAccordionRow';
 import {ZehnNavStaggerItem} from './ZehnNavStaggerItem';
@@ -75,8 +77,8 @@ export function CategoryMenuPanel({
       ? (chipOpenSection ?? initialOpenSection ?? null)
       : (chipOpenSection ?? null);
 
-  /** Re-sync accordion when route or live chip filter changes (BL-0017). */
-  useEffect(() => {
+  /** Re-sync accordion before paint — prevents stale section flash when chip context updates (BL-0017). */
+  useIsomorphicLayoutEffect(() => {
     setOpenSection(resolvedOpenSection);
   }, [resolvedOpenSection]);
 
@@ -149,31 +151,38 @@ export function CategoryMenuPanel({
               >
                 <div className="min-h-0 overflow-hidden">
                   <div className={HEADER_NAV_DROPDOWN_SUBLIST}>
-                    <Link
+                    <ZehnLink
                       to={alleSectionUrl}
-                      prefetch="intent"
-                      onClick={onNavigate}
+                      tier="nav"
+                      onClick={() => {
+                        /* Blur before popover sets aria-hidden — prevents focus-in-aria-hidden warning */
+                        (document.activeElement as HTMLElement | null)?.blur();
+                        onNavigate?.();
+                      }}
                       className={cnHeaderNavDropdownLink({
                         active: linkActive(alleSectionUrl, 'exact'),
                       })}
                     >
                       Alle {section.title}
-                    </Link>
+                    </ZehnLink>
                     {section.items.map((item) => {
                       const itemUrl = `/collections/${rootSlug}/alle-${section.handle}/${item.handle}`;
                       return (
-                        <Link
+                        <ZehnLink
                           key={`${section.title}-${item.title}`}
                           to={itemUrl}
                           state={null}
-                          prefetch="intent"
-                          onClick={onNavigate}
+                          tier="nav"
+                          onClick={() => {
+                            (document.activeElement as HTMLElement | null)?.blur();
+                            onNavigate?.();
+                          }}
                           className={cnHeaderNavDropdownLink({
                             active: linkActive(itemUrl, 'exact'),
                           })}
                         >
                           {item.title}
-                        </Link>
+                        </ZehnLink>
                       );
                     })}
                   </div>

@@ -5,11 +5,12 @@
  * Signal-orange ripple on click; CSS shine on host (.cta-shine-host).
  * Spec: Docs/project-idea/RIPPLE_BUTTON_EFFECT.md — shine is CSS-only (no hydration risk).
  *
- * Navigation: prefetch="intent" preloads route data on hover → near-instant transition.
+ * Navigation: resolveLinkPrefetch() — viewport on touch, intent on desktop hover.
  */
 import type {ReactNode} from 'react';
 import type {LinkProps} from 'react-router';
 import {RippleButton} from '~/components/zehn/RippleButton';
+import {resolveLinkPrefetch, type ZehnPrefetchTier} from '~/lib/link-prefetch';
 import {
   CTA_SHINE_BUTTON_BASE,
   CTA_SHINE_BUTTON_TEXT,
@@ -22,19 +23,21 @@ export type CtaShineButtonProps = {
   /** Typography, sizing, and spacing on the link. */
   className?: string;
   prefetch?: LinkProps['prefetch'];
+  prefetchTier?: ZehnPrefetchTier;
 };
 
 export function CtaShineButton({
   to,
   children,
   className,
-  prefetch = 'intent',
+  prefetch,
+  prefetchTier = 'cta',
 }: CtaShineButtonProps) {
   return (
     <RippleButton
       as="link"
       to={to}
-      prefetch={prefetch}
+      prefetch={prefetch ?? resolveLinkPrefetch(prefetchTier)}
       className={cn(CTA_SHINE_BUTTON_BASE, CTA_SHINE_BUTTON_TEXT, className)}
     >
       {children}

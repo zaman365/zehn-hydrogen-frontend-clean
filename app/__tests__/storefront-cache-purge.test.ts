@@ -63,6 +63,12 @@ describe('storefront-cache-purge — module shape', () => {
     expect(src).toContain('"handle":"');
   });
 
+  it('accepts logicalKeys for homepage/catalog signature purge', () => {
+    expect(src).toContain('logicalKeys');
+    expect(src).toContain('STOREFRONT_QUERY_SIGNATURES');
+    expect(src).toContain('urlMatchesLogicalKey');
+  });
+
   it('catches and logs errors without throwing', () => {
     expect(src).toContain('console.error');
     expect(src).toContain('[cache-purge]');

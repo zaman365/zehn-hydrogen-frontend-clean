@@ -1,6 +1,7 @@
 /* BL-0006: no entrance animation — tiles paint instantly */
 import { Link } from "react-router"
 import {ZehnStaticImage} from '~/components/zehn'
+import {resolveLinkPrefetch} from '~/lib/link-prefetch'
 
 type CategoryTileProps = {
   title: string
@@ -19,6 +20,7 @@ export function CategoryTiles({ tiles }: { tiles: CategoryTileProps[] }) {
             <Link
               key={tile.title}
               to={tile.link}
+              prefetch={resolveLinkPrefetch('collection')}
               className="group relative aspect-square lg:aspect-auto lg:h-[450px] overflow-hidden rounded-lg flex-shrink-0 w-[280px] sm:w-[calc(40%-12px)] snap-start"
             >
               {/* ZehnStaticImage: skeleton+fade inside Link's overflow-hidden container;

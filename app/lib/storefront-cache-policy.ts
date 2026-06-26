@@ -4,21 +4,17 @@
  * Single source of truth for all route cache strategies.
  * Import the relevant constant in each loader and pass to storefront.query({ cache: ... }).
  *
- * Decision rules (aligned with TECH_STACK_ANALYSIS.md §Caching):
- *  CacheLong  (24h)  — content that never changes without a Shopify Admin edit:
- *                       header/footer menus, static pages, policies, blog articles, robots
- *  CacheShort (1min) — content a merchant may update during a business day:
- *                       homepage product lists, collection PLPs, PDPs
+ * Decision rules (Phase 7 — aligned with TECH_STACK_ANALYSIS.md §Caching):
+ *  CacheLong  (24h)  — commerce + static content; invalidated via webhook purge (Phase 7D):
+ *                       PDP, PLP, homepage, collections/all, blog, policies, robots
+ *  CacheShort (1min) — legacy tier; kept for tests; commerce routes migrated to CACHE_LONG
  *  CacheNone  (0s)   — user-specific or real-time data that must never be cached at the edge:
  *                       search results (user query), cart, account, checkout
  *
- * Webhook invalidation (Phase 5) — app/routes/webhooks.tsx:
- *  PRODUCTS_UPDATE / products/create / products/delete
- *    → affects: products.$handle.tsx (CACHE_SHORT), _index.tsx homepage grid (CACHE_SHORT)
- *  COLLECTIONS_UPDATE / collections/create / collections/delete
- *    → affects: collections.$handle.tsx (CACHE_SHORT), collections.all.tsx (CACHE_SHORT)
- *  Header/footer menus (CACHE_LONG) are not affected by product/collection webhooks.
- *  Phase 6: Oxygen surrogate-key purge API for instant invalidation (currently TTL-based).
+ * Webhook invalidation — app/routes/webhooks.tsx + storefront-cache-purge.ts:
+ *  products/*    → purge by handle + HomepageQuery + Catalog signatures + version bump
+ *  collections/* → purge by handle + Catalog signature + version bump
+ *  HTML pages    → Oxygen-Cache-Control SWR via oxygen-page-cache.ts (Phase 7A)
  */
 
 import type {Storefront} from '@shopify/hydrogen';
@@ -30,10 +26,13 @@ import type {Storefront} from '@shopify/hydrogen';
 export const CACHE_LONG = 'long' as const;
 
 /**
- * CacheShort — ~1 min edge cache.
- * Use for: homepage, collection PLPs, PDPs, recommended products.
+ * CacheShort — ~1 min edge cache (legacy).
+ * Commerce routes use CACHE_LONG + webhook purge (Phase 7).
  */
 export const CACHE_SHORT = 'short' as const;
+
+/** Commerce catalog routes — same 24 h Workers Cache as static content; webhook invalidates. */
+export const CACHE_CATALOG = CACHE_LONG;
 
 /**
  * CacheNone — no edge cache (always fresh).

@@ -172,6 +172,7 @@ export function ProductGrid({
                   className="flex min-w-0 max-w-full overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 scrollbar-hide snap-x snap-mandatory scroll-smooth pb-2 sm:pb-0 sm:overflow-visible"
                 >
                   {displayProducts.map((product, index) => {
+                    /* Horizontal mobile snap row — all visible cards use gridAboveFold (first snap only). */
                     const imageLoad = resolveProductImageLoading('gridAboveFold', index, {
                       aboveFoldLimit: ZEHN_HOMEPAGE_CATEGORY_GRID_ABOVE_FOLD_LIMIT,
                     });

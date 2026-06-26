@@ -1,5 +1,5 @@
-import {Link} from 'react-router';
 import {useState} from 'react';
+import {ZehnLink} from './ZehnLink';
 import {
   Instagram,
   Facebook,
@@ -299,12 +299,13 @@ function FooterLinkColumn({
                   <ExternalLink className="w-3 h-3 opacity-60" />
                 </a>
               ) : (
-                <Link
+                <ZehnLink
                   to={link.href}
+                  tier="cta"
                   className="font-sans text-body text-primary-foreground/70 hover:text-accent transition-all duration-300 inline-block py-1"
                 >
                   {link.label}
-                </Link>
+                </ZehnLink>
               )}
             </li>
           ))}

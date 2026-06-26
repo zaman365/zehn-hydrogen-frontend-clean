@@ -70,6 +70,8 @@ export type CategoryNavSectionProps = {
   mainAlleLabel?: string;
   className?: string;
   menuRef?: Ref<HTMLDivElement>;
+  /** Per-category product count — chips with 0 products are rendered faded with tooltip. */
+  categoryCounts?: Map<string, number>;
 };
 
 function isMainActive(
@@ -116,6 +118,7 @@ export function CategoryNavSection({
   variant = 'default',
   className,
   menuRef,
+  categoryCounts,
 }: CategoryNavSectionProps) {
   const isHomepage = variant === 'homepage';
   const titleTypo = isHomepage
@@ -137,6 +140,7 @@ export function CategoryNavSection({
     const label = getCategoryLabel(category);
     const interaction =
       mainInteraction === 'link' && getMainHref ? 'link' : 'filter';
+    const isEmpty = categoryCounts ? (categoryCounts.get(category) ?? 0) === 0 : false;
 
     return (
       <CategoryNavChip
@@ -147,6 +151,7 @@ export function CategoryNavSection({
         interaction={interaction}
         href={getMainHref?.(category)}
         onSelect={() => onMainSelect?.(category)}
+        isEmpty={isEmpty}
       />
     );
   };
@@ -158,6 +163,7 @@ export function CategoryNavSection({
     const mainForHref = subParent || activeMainCategory;
     const interaction =
       subInteraction === 'link' && getSubHref ? 'link' : 'filter';
+    const isEmpty = categoryCounts ? (categoryCounts.get(subcategory) ?? 0) === 0 : false;
 
     return (
       <CategoryNavChip
@@ -168,6 +174,7 @@ export function CategoryNavSection({
         interaction={interaction}
         href={getSubHref?.(mainForHref, subcategory)}
         onSelect={() => onSubSelect?.(subcategory)}
+        isEmpty={isEmpty}
       />
     );
   };
@@ -234,6 +241,7 @@ export function CategoryNavSection({
           onSelect={onSubSelect}
           getSubHref={getSubHref}
           subHighlightActive={subHighlightActive}
+          categoryCounts={categoryCounts}
         />
       )}
 

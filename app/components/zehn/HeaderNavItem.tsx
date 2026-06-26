@@ -16,6 +16,7 @@ import {
   HEADER_NAV_MOBILE_ROW,
 } from '~/lib/header-nav-styles';
 import {cn} from '~/lib/utils';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 
 type HeaderNavLinkBaseProps = {
   active?: boolean;
@@ -70,7 +71,7 @@ export const HeaderNavLink = forwardRef<HTMLAnchorElement, HeaderNavLinkProps>(
   }
 
   /* Strip active from rest — prevents DOM leak active={false} on <a> via RippleButton spread (Prompt G) */
-  const {to, prefetch, onPointerDown: _onPointerDown, active: _active, ...rest} = props;
+  const {to, prefetch = resolveLinkPrefetch('nav'), onPointerDown: _onPointerDown, active: _active, ...rest} = props;
   return (
     <RippleButton
       ref={ref}
@@ -130,7 +131,7 @@ export function HeaderNavIconButton(props: HeaderNavIconButtonProps) {
   });
 
   if (props.as === 'link') {
-    const {to, prefetch, onClick} = props;
+    const {to, prefetch = resolveLinkPrefetch('nav'), onClick} = props;
     return (
       <RippleButton
         as="link"

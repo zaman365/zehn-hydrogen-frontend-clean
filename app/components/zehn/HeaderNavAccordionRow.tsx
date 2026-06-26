@@ -12,6 +12,7 @@ import {
   HEADER_NAV_ICON_SIZE,
   HEADER_NAV_ICON_STROKE,
 } from '~/lib/header-nav-styles';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {cn} from '~/lib/utils';
 
 export type HeaderNavAccordionRowProps = {
@@ -33,7 +34,7 @@ export function HeaderNavAccordionRow({
   onToggle,
   onNavigate,
   ariaControls,
-  prefetch = 'intent',
+  prefetch = resolveLinkPrefetch('nav'),
 }: HeaderNavAccordionRowProps) {
   const rowActive = isRouteActive || isOpen;
 

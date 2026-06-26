@@ -12,10 +12,12 @@
  *
  * Scope and limitations:
  * - Purge by handle: reliably clears PDP (products.$handle) and PLP collection pages.
- * - Homepage / collections-all "catch-all" entries have no handle variable — they expire
- *   via CACHE_SHORT TTL (~1 min). This is acceptable and noted in the purge result.
+ * - Homepage / collections-all purged by GraphQL operation signature (Phase 7D).
  * - Purge is best-effort: failures are logged, never thrown; Shopify always gets 200.
  * - waitUntil offloads deletes past the webhook ack so Shopify's 5s timeout isn't hit.
+ * - Oxygen HTML FPC is NOT in caches.open('hydrogen') — only GraphQL subrequests are.
+ *   HTML edge cache uses Oxygen-Cache-Control (see oxygen-page-cache.ts); open tabs refresh
+ *   via bumpCatalogCacheVersion + useCatalogCacheRevalidation (focus/pageshow/60s poll).
  *
  * Hydrogen cache key format (from @shopify/hydrogen/src/storefront.ts):
  *   cacheKey = [storefrontApiUrl, requestMethod, cacheKeyHeader, graphqlBody]
@@ -70,6 +72,29 @@ export function getPurgeKeysForWebhook(topic: string, handle: string): string[] 
 
 const HYDROGEN_CACHE_NAME = 'hydrogen';
 
+/** GraphQL operation names embedded in Hydrogen cache key URLs — Phase 7D signature purge. */
+export const STOREFRONT_QUERY_SIGNATURES = {
+  HOMEPAGE: 'HomepageQuery',
+  CATALOG: 'query Catalog',
+  COLLECTION: 'query Collection',
+  PRODUCT: 'query Product',
+  RECOMMENDED: 'query RecommendedProducts',
+} as const;
+
+function urlMatchesQuerySignature(url: string, signature: string): boolean {
+  return url.includes(encodeURIComponent(signature)) || url.includes(signature);
+}
+
+function urlMatchesLogicalKey(url: string, logicalKey: string): boolean {
+  if (logicalKey === PURGE_KEYS.HOMEPAGE) {
+    return urlMatchesQuerySignature(url, STOREFRONT_QUERY_SIGNATURES.HOMEPAGE);
+  }
+  if (logicalKey === PURGE_KEYS.COLLECTIONS_ALL) {
+    return urlMatchesQuerySignature(url, STOREFRONT_QUERY_SIGNATURES.CATALOG);
+  }
+  return false;
+}
+
 /**
  * Purge Workers Cache entries related to the given resource handles.
  *
@@ -83,21 +108,23 @@ const HYDROGEN_CACHE_NAME = 'hydrogen';
 export async function purgeStorefrontCache(
   handles: string[],
   waitUntil?: (p: Promise<unknown>) => void,
+  logicalKeys: string[] = [],
 ): Promise<PurgeResult> {
+  const allLogicalKeys = [...new Set([...handles, ...logicalKeys])];
   const optimisticResult: PurgeResult = {
     purged: 0,
     failed: 0,
-    logicalKeys: handles,
+    logicalKeys: allLogicalKeys,
     purgedUrls: [],
   };
 
-  if (handles.length === 0) return optimisticResult;
+  if (handles.length === 0 && logicalKeys.length === 0) return optimisticResult;
 
   const doPurge = async (): Promise<PurgeResult> => {
     const result: PurgeResult = {
       purged: 0,
       failed: 0,
-      logicalKeys: handles,
+      logicalKeys: allLogicalKeys,
       purgedUrls: [],
     };
 
@@ -115,20 +142,18 @@ export async function purgeStorefrontCache(
 
       for (const req of allRequests) {
         const url = req.url;
+
         const matchesHandle = handles.some((handle) => {
           if (!handle) return false;
-          /*
-           * Hydrogen encodes the GraphQL body into the cache key URL as:
-           *   encodeURIComponent('...' + JSON.stringify({query, variables: {handle: "slug", ...}}) + '...')
-           * After encoding, "handle":"slug" becomes %22handle%22%3A%22slug%22.
-           * Exact encoded match only — broad url.includes(handle) caused false positives
-           * on short handles (e.g. "sale" matching unrelated cache entries).
-           */
           const encodedPattern = encodeURIComponent(`"handle":"${handle}"`);
           return url.includes(encodedPattern);
         });
 
-        if (!matchesHandle) continue;
+        const matchesSignature = logicalKeys.some((key) =>
+          urlMatchesLogicalKey(url, key),
+        );
+
+        if (!matchesHandle && !matchesSignature) continue;
 
         try {
           const deleted = await cache.delete(req);

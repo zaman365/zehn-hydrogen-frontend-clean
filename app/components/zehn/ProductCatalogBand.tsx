@@ -104,6 +104,7 @@ export function ProductCatalogBand({
     setSelectedSize,
     setSelectedColor,
     setSortBy,
+    categoryCounts,
   } = filterState;
 
   const navMain = navActiveMainCategory ?? activeMainCategory;
@@ -186,6 +187,7 @@ export function ProductCatalogBand({
           subcategoriesFor={navMain}
           subPresentation="subRow"
           subChipVariant="main"
+          categoryCounts={categoryCounts}
           subRowHint={
             navMain ? getCategorySubRowHint(navMain) : undefined
           }

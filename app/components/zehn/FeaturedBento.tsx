@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { ArrowRight } from 'lucide-react';
 import {ZehnStaticImage} from '~/components/zehn';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 
 interface BentoItem {
   id: string;
@@ -82,6 +83,7 @@ export function FeaturedBento() {
             <Link
               key={item.id}
               to={item.link}
+              prefetch={resolveLinkPrefetch('collection')}
               className={`group relative overflow-hidden rounded-2xl ${
                 // Mobile: Show only first 4 items in 2x2 grid
                 index >= 4 ? 'hidden md:block' : ''

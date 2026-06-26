@@ -32,6 +32,8 @@ export type CategoryNavSubRowProps = {
   onSelect?: (slug: string) => void;
   getSubHref?: (mainSlug: string, subSlug: string) => string;
   subHighlightActive?: boolean;
+  /** Per-category product count — chips with 0 products are rendered faded with tooltip. */
+  categoryCounts?: Map<string, number>;
 };
 
 export function CategoryNavSubRow({
@@ -46,6 +48,7 @@ export function CategoryNavSubRow({
   onSelect,
   getSubHref,
   subHighlightActive = true,
+  categoryCounts,
 }: CategoryNavSubRowProps) {
   const subs = Array.from(subcategories);
 
@@ -54,21 +57,25 @@ export function CategoryNavSubRow({
   const chipInteraction =
     interaction === 'link' && getSubHref ? 'link' : 'filter';
 
-  const renderChip = (slug: string, label: string, isActive: boolean) => (
-    <CategoryNavChip
-      key={slug}
-      variant={chipVariant}
-      active={isActive}
-      label={label}
-      interaction={chipInteraction}
-      href={
-        chipInteraction === 'link' && getSubHref
-          ? getSubHref(parentSlug, slug)
-          : undefined
-      }
-      onSelect={() => onSelect?.(slug)}
-    />
-  );
+  const renderChip = (slug: string, label: string, isActive: boolean) => {
+    const isEmpty = categoryCounts ? (categoryCounts.get(slug) ?? 0) === 0 : false;
+    return (
+      <CategoryNavChip
+        key={slug}
+        variant={chipVariant}
+        active={isActive}
+        label={label}
+        interaction={chipInteraction}
+        href={
+          chipInteraction === 'link' && getSubHref
+            ? getSubHref(parentSlug, slug)
+            : undefined
+        }
+        onSelect={() => onSelect?.(slug)}
+        isEmpty={isEmpty}
+      />
+    );
+  };
 
   return (
     <div className={CATEGORY_NAV_SUB_ROW}>

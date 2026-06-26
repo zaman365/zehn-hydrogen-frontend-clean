@@ -1,7 +1,9 @@
-import {Link, useLoaderData} from 'react-router';
+import {Link, useLoaderData, data as routeData} from 'react-router';
 import type {Route} from './+types/blogs.$blogHandle.$articleHandle';
+import {ZehnShopifyImage} from '~/components/zehn';
 import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
-import {Image} from '@shopify/hydrogen';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {staticShouldRevalidate} from '~/lib/route-revalidation';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ChevronRight} from 'lucide-react';
 
@@ -40,14 +42,15 @@ export const meta: Route.MetaFunction = ({data}) => {
   ];
 };
 
+export const shouldRevalidate = staticShouldRevalidate;
+
 export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
+  return routeData(
+    {...deferredData, ...criticalData},
+    {headers: getOxygenPageCacheHeaders('static')},
+  );
 }
 
 /**
@@ -157,7 +160,12 @@ export default function Article() {
       {image && (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
           <div className="rounded-2xl overflow-hidden shadow-lg">
-            <Image data={image} sizes="(min-width: 1024px) 56rem, 90vw" loading="eager" className="w-full" />
+            <ZehnShopifyImage
+              data={image}
+              sizes="(min-width: 1024px) 56rem, 90vw"
+              isLCP
+              className="w-full"
+            />
           </div>
         </div>
       )}

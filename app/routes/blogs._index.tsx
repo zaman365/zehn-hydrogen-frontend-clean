@@ -1,9 +1,13 @@
 import {
   Link,
   useLoaderData,
+  data as routeData,
 } from 'react-router';
 import type {Route} from './+types/blogs._index';
 import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {staticShouldRevalidate} from '~/lib/route-revalidation';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import type {BlogsQuery} from 'storefrontapi.generated';
@@ -26,14 +30,15 @@ export const meta: Route.MetaFunction = () => {
   ];
 };
 
+export const shouldRevalidate = staticShouldRevalidate;
+
 export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
+  return routeData(
+    {...deferredData, ...criticalData},
+    {headers: getOxygenPageCacheHeaders('static')},
+  );
 }
 
 /**
@@ -105,7 +110,7 @@ export default function Blogs() {
             {({node: blog}) => (
               <Link
                 key={blog.handle}
-                prefetch="intent"
+                prefetch={resolveLinkPrefetch('cta')}
                 to={`/blogs/${blog.handle}`}
                 className="group block rounded-2xl bg-card border border-border/10 overflow-hidden hover:shadow-lg transition-all duration-300"
               >

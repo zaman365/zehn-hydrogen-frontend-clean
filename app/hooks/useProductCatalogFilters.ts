@@ -3,6 +3,7 @@
  * Client-only facets; instant re-render without URL/query sync.
  */
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useIsomorphicLayoutEffect} from '~/hooks/useIsomorphicLayoutEffect';
 import {
   isCatalogBandPath,
   isCatalogRootPath,
@@ -208,6 +209,8 @@ export function useProductCatalogFilters(options: UseProductCatalogFiltersOption
 
   const showFacetToolbar = useMemo(() => {
     if (options.mode === 'collection') {
+      // Hide toolbar when the selected category has no products (empty chip was clicked)
+      if (selectedCategory && categoryProducts.length === 0) return false;
       return options.alwaysShowFacetToolbar ?? true;
     }
 
@@ -215,7 +218,7 @@ export function useProductCatalogFilters(options: UseProductCatalogFiltersOption
     return options.hideFacetsForCategory
       ? !options.hideFacetsForCategory(selectedCategory)
       : selectedCategory !== 'bestseller';
-  }, [hasSelectedCategory, options, selectedCategory]);
+  }, [hasSelectedCategory, options, selectedCategory, categoryProducts]);
 
   const handleMainSelect = useCallback(
     (category: Category) => {
@@ -287,12 +290,24 @@ export function useProductCatalogFilters(options: UseProductCatalogFiltersOption
   onFreshConsumedRef.current =
     options.mode === 'collection' ? options.onCatalogFreshConsumed : undefined;
 
-  /* Collection route → chip sync; useEffect avoids SSR useLayoutEffect warning on homepage (BL-0017). */
-  useEffect(() => {
-    if (!routeSync) return;
+  // Stable ref so the effect can read the latest routeSync without it being a dep.
+  // routeSync is an inline object literal in route components → new reference every render →
+  // using it as a dep would fire the effect every render → resetToFreshCatalog() on every chip click.
+  const routeSyncRef = useRef(routeSync);
+  routeSyncRef.current = routeSync;
 
-    const {pathname, collectionHandle, catalogFresh, searchCategory} =
-      routeSync;
+  // Primitive deps: effect fires only when the route actually changes, not on every render.
+  const rsPathname = routeSync?.pathname ?? null;
+  const rsHandle = routeSync?.collectionHandle ?? null;
+  const rsFresh = routeSync?.catalogFresh ?? false;
+  const rsSearchCategory = routeSync?.searchCategory ?? null;
+
+  /* Collection route → chip sync; useIsomorphicLayoutEffect runs before paint → no stale-state flash (BL-0017). */
+  useIsomorphicLayoutEffect(() => {
+    const rs = routeSyncRef.current;
+    if (!rs) return;
+
+    const {pathname, collectionHandle, catalogFresh, searchCategory} = rs;
     const parsed = parseCollectionNavPath(pathname);
     const catalogRoot = parsed.rootSlug;
     const isRoot = isCatalogRootPath(pathname);
@@ -371,9 +386,31 @@ export function useProductCatalogFilters(options: UseProductCatalogFiltersOption
   }, [
     clearFacetState,
     mainCategories,
-    routeSync,
+    rsPathname,
+    rsHandle,
+    rsFresh,
+    rsSearchCategory,
     setSelectedCategory,
   ]);
+
+  // Stable reference — from loader data, changes only on navigation (not on every render).
+  const baseProducts = options.mode === 'collection' ? options.baseProducts : null;
+
+  /**
+   * Per-category product count for the base product set of this route.
+   * undefined on homepage (no dimming needed); stable dep avoids recompute every render.
+   */
+  const categoryCounts = useMemo<Map<string, number> | undefined>(() => {
+    if (!baseProducts) return undefined;
+    const counts = new Map<string, number>();
+    for (const [main, subs] of mainCategories) {
+      counts.set(main, baseProducts.filter((p) => productMatchesCategory(p, main)).length);
+      for (const sub of subs) {
+        counts.set(sub, baseProducts.filter((p) => productMatchesCategory(p, sub)).length);
+      }
+    }
+    return counts;
+  }, [mainCategories, baseProducts]);
 
   return {
     mainCategories,
@@ -399,6 +436,7 @@ export function useProductCatalogFilters(options: UseProductCatalogFiltersOption
     handleMainAlleSelect,
     handleRemoveChip,
     handleClearFacets,
+    categoryCounts,
   };
 }
 

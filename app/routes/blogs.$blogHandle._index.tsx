@@ -1,10 +1,14 @@
 import {
   Link,
   useLoaderData,
+  data as routeData,
 } from 'react-router';
 import type {Route} from './+types/blogs.$blogHandle._index';
 import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
-import {Image, getPaginationVariables} from '@shopify/hydrogen';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {staticShouldRevalidate} from '~/lib/route-revalidation';
+import {getPaginationVariables} from '@shopify/hydrogen';
+import {ZehnShopifyImage} from '~/components/zehn';
 import type {ArticleItemFragment} from 'storefrontapi.generated';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
@@ -28,14 +32,15 @@ export const meta: Route.MetaFunction = ({data}) => {
   ];
 };
 
+export const shouldRevalidate = staticShouldRevalidate;
+
 export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
+  return routeData(
+    {...deferredData, ...criticalData},
+    {headers: getOxygenPageCacheHeaders('static')},
+  );
 }
 
 /**
@@ -158,12 +163,12 @@ function ArticleItem({
     >
       {article.image && (
         <div className="aspect-[3/2] overflow-hidden">
-          <Image
-            alt={article.image.altText || article.title}
-            aspectRatio="3/2"
+          <ZehnShopifyImage
             data={article.image}
-            loading={loading}
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            width={640}
+            height={427}
+            loading={loading}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         </div>

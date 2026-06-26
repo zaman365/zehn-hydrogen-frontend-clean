@@ -1,6 +1,14 @@
 import type {Route} from './+types/collections.all';
-import {useLoaderData, useSearchParams, useLocation, useNavigate} from 'react-router';
-import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
+import type {ClientLoaderFunctionArgs} from 'react-router';
+import {useLoaderData, useSearchParams, useLocation, useNavigate, data as routeData} from 'react-router';
+import {getCachePolicy, CACHE_CATALOG} from '~/lib/storefront-cache-policy';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {catalogShouldRevalidate} from '~/lib/route-revalidation';
+import {
+  catalogClientLoader,
+  catalogClientLoaderHydrate,
+} from '~/lib/catalog-client-loader';
+import {getCategoryLabel} from '~/lib/category-map';
 
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
@@ -48,10 +56,20 @@ export const meta: Route.MetaFunction = () => {
   ];
 };
 
+export const shouldRevalidate = catalogShouldRevalidate;
+
+export async function clientLoader(args: ClientLoaderFunctionArgs) {
+  return catalogClientLoader<Awaited<ReturnType<typeof loader>>>(args);
+}
+clientLoader.hydrate = catalogClientLoaderHydrate;
+
 export async function loader(args: Route.LoaderArgs) {
   const deferredData = loadDeferredData(args);
   const criticalData = await loadCriticalData(args);
-  return {...deferredData, ...criticalData};
+  return routeData(
+    {...deferredData, ...criticalData},
+    {headers: getOxygenPageCacheHeaders('catalog')},
+  );
 }
 
 async function loadCriticalData({context, request}: Route.LoaderArgs) {
@@ -63,7 +81,7 @@ async function loadCriticalData({context, request}: Route.LoaderArgs) {
   const [{products}] = await Promise.all([
     storefront.query(CATALOG_QUERY, {
       variables: {...paginationVariables},
-      cache: getCachePolicy(storefront, CACHE_SHORT),
+      cache: getCachePolicy(storefront, CACHE_CATALOG),
     }),
   ]);
   return {products};
@@ -110,7 +128,7 @@ export default function Collection() {
     onCatalogFreshConsumed: handleCatalogFreshConsumed,
   });
 
-  const {selectedCategory, displayProducts} = filterState;
+  const {selectedCategory, displayProducts, showFacetToolbar} = filterState;
 
 
   return (
@@ -120,14 +138,18 @@ export default function Collection() {
           pageContext="shop-all"
           navVariant="default"
           filterState={filterState}
-          showFilterToolbar
+          showFilterToolbar={showFacetToolbar}
           showMainAlleChip
           curatedMainToggle
         />
 
         <div className={`${ZEHN_HOMEPAGE_GRID_TOP} grid sm:grid-cols-2 lg:grid-cols-3 gap-3`}>
           {displayProducts.map((product, index) => {
-            const imageLoad = resolveProductImageLoading('gridAboveFold', index, {
+            const imageContext =
+              index < ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT
+                ? 'gridAboveFold'
+                : 'gridBelowFold';
+            const imageLoad = resolveProductImageLoading(imageContext, index, {
               aboveFoldLimit: ZEHN_COLLECTION_GRID_ABOVE_FOLD_LIMIT,
             });
 
@@ -152,12 +174,14 @@ export default function Collection() {
               </div>
               <div className="space-y-3">
                 <h3 className="font-sans text-h3 text-foreground">
-                  Coming Soon
+                  {selectedCategory
+                    ? `Keine ${getCategoryLabel(selectedCategory)} verfügbar`
+                    : 'Coming Soon'}
                 </h3>
                 <p className="font-sans text-body text-muted">
                   {selectedCategory
-                    ? `Wir arbeiten daran, Ihnen tolle ${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Produkte anzubieten. Bleiben Sie dran!`
-                    : 'Keine Produkte in dieser Kategorie gefunden.'}
+                    ? `Derzeit sind keine ${getCategoryLabel(selectedCategory)} Produkte verfügbar.`
+                    : 'Wir arbeiten daran, Ihnen tolle Produkte anzubieten. Bleiben Sie dran!'}
                 </p>
               </div>
             </div>

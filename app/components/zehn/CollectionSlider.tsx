@@ -2,6 +2,7 @@ import { useRef, useState } from "react"
 import { Link } from "react-router"
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
 import {ZehnStaticImage} from '~/components/zehn'
+import {resolveLinkPrefetch} from '~/lib/link-prefetch'
 
 type CollectionSlide = {
   title: string
@@ -101,6 +102,7 @@ export function CollectionSlider({ collections }: CollectionSliderProps) {
                       {/* CTA */}
                       <Link
                         to={collection.link}
+                        prefetch={resolveLinkPrefetch('nav')}
                         className="group inline-flex items-center justify-center gap-3 bg-foreground text-background px-8 py-4 rounded-full font-sans font-medium text-sm sm:text-base tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-foreground/30 shadow-lg"
                       >
                         <span>Explore Collection</span>

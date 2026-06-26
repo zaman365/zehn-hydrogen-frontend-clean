@@ -14,8 +14,8 @@
  *   4. Extract handles → purge Workers Cache entries (purgeStorefrontCache)
  *   5. Ack 200 to Shopify (purge is async via waitUntil)
  *
- * PLPs/PDPs are cleared from the Hydrogen Workers Cache instantly (< 100ms after webhook).
- * Homepage / collections-all still expire via CACHE_SHORT TTL (~1 min) — no handle variable.
+ * PLPs/PDPs + homepage/catalog queries cleared from Workers Cache instantly.
+ * Catalog cache version bump signals open tabs to revalidate on focus.
  *
  * Shopify sends: X-Shopify-Topic, X-Shopify-Hmac-Sha256, X-Shopify-Shop-Domain headers.
  * Payload: JSON body with { id, handle, title, ... } for the changed resource.
@@ -26,6 +26,7 @@ import {
   extractHandlesFromPurgeKeys,
   purgeStorefrontCache,
 } from '~/lib/storefront-cache-purge';
+import {bumpCatalogCacheVersion} from '~/lib/catalog-cache-version';
 
 /** Webhook topics that warrant cache action. Shopify uses slash-separated format. */
 const HANDLED_TOPICS = new Set([
@@ -132,8 +133,8 @@ export async function action({request, context}: ActionFunctionArgs) {
     const logicalKeys = getPurgeKeysForWebhook(topic, handle);
     const handles = extractHandlesFromPurgeKeys(logicalKeys);
     console.warn('[webhook] Cache purge initiated', {topic, handle, id: resourceId, logicalKeys});
-    /* waitUntil offloads async deletes past the 200 ack — avoids Shopify 5s timeout */
-    await purgeStorefrontCache(handles, context.waitUntil ?? undefined);
+    await purgeStorefrontCache(handles, context.waitUntil ?? undefined, logicalKeys);
+    context.waitUntil?.(bumpCatalogCacheVersion());
   } catch (err) {
     /* Log purge failures but still ack so Shopify doesn't retry — purge is best-effort */
     console.error('[webhook] Cache purge failed', {topic, handle, error: String(err)});

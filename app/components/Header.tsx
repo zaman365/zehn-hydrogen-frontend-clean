@@ -1,5 +1,6 @@
 import {Suspense} from 'react';
 import {Await, NavLink, useAsyncValue} from 'react-router';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {
   type CartViewPayload,
   useAnalytics,
@@ -26,7 +27,7 @@ export function Header({
   const {shop, menu} = header;
   return (
     <header className="header">
-      <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
+      <NavLink prefetch={resolveLinkPrefetch('nav')} to="/" style={activeLinkStyle} end>
         <strong>{shop.name}</strong>
       </NavLink>
       <HeaderMenu
@@ -60,7 +61,7 @@ export function HeaderMenu({
         <NavLink
           end
           onClick={close}
-          prefetch="intent"
+          prefetch={resolveLinkPrefetch('nav')}
           style={activeLinkStyle}
           to="/"
         >
@@ -83,7 +84,7 @@ export function HeaderMenu({
             end
             key={item.id}
             onClick={close}
-            prefetch="intent"
+            prefetch={resolveLinkPrefetch('nav')}
             style={activeLinkStyle}
             to={url}
           >
@@ -102,7 +103,7 @@ function HeaderCtas({
   return (
     <nav className="header-ctas" role="navigation">
       <HeaderMenuMobileToggle />
-      <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
+      <NavLink prefetch={resolveLinkPrefetch('nav')} to="/account" style={activeLinkStyle}>
         <Suspense fallback="Anmelden">
           <Await resolve={isLoggedIn} errorElement="Anmelden">
             {(isLoggedIn) => (isLoggedIn ? 'Konto' : 'Anmelden')}

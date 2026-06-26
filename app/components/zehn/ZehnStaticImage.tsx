@@ -22,18 +22,15 @@
  * // LCP hero slide (no skeleton)
  * <ZehnStaticImage src={slide.src} alt={slide.alt} isLCP />
  */
-import {useLayoutEffect, useEffect, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
+import {useIsomorphicLayoutEffect} from '~/hooks/useIsomorphicLayoutEffect';
 
-/**
- * useLayoutEffect on client (runs before paint → no skeleton flash for cached images),
- * useEffect on server (no-op → avoids SSR "useLayoutEffect does nothing" warning).
- */
-const useIsomorphicLayoutEffect =
-  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
-
-// Survives SPA navigation — cleared only on hard reload. Prevents navigation-back flash.
-const _loadedSrcs = new Set<string>();
-
+import {
+  isImageCached,
+  markImageCached,
+  markImageCachedFromElement,
+  normalizeImageCacheKey,
+} from '~/lib/zehn-image-cache';
 import {cn} from '~/lib/utils';
 import {
   ZEHN_MEDIA_SKELETON,
@@ -80,21 +77,22 @@ export function ZehnStaticImage({
   onLoad,
   ...props
 }: ZehnStaticImageProps) {
-  // Lazy init: already loaded in a previous render (navigation-back) → skip skeleton instantly.
-  const [loaded, setLoaded] = useState(() => _loadedSrcs.has(src));
+  const cacheKey = normalizeImageCacheKey(src);
+  const [loaded, setLoaded] = useState(
+    () => Boolean(cacheKey && isImageCached(cacheKey)),
+  );
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Check img.complete before browser paints — cached images skip skeleton with no flicker.
   useIsomorphicLayoutEffect(() => {
+    markImageCachedFromElement(imgRef.current);
     const img = imgRef.current;
     if (img?.complete && img.naturalWidth > 0) {
-      _loadedSrcs.add(src);
       setLoaded(true);
     }
-  }, [src]);
+  }, [cacheKey]);
 
   const handleLoad: React.ReactEventHandler<HTMLImageElement> = (e) => {
-    _loadedSrcs.add(src);
+    markImageCached(e.currentTarget.currentSrc || e.currentTarget.src || src);
     setLoaded(true);
     onLoad?.(e);
   };

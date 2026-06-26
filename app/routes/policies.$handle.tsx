@@ -1,9 +1,12 @@
 import {
   Link,
   useLoaderData,
+  data as routeData,
 } from 'react-router';
 import type {Route} from './+types/policies.$handle';
 import {getCachePolicy, CACHE_LONG} from '~/lib/storefront-cache-policy';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {staticShouldRevalidate} from '~/lib/route-revalidation';
 import {type Shop} from '@shopify/hydrogen/storefront-api-types';
 import {ChevronRight} from 'lucide-react';
 
@@ -23,6 +26,8 @@ export const meta: Route.MetaFunction = ({data}) => {
     },
   ];
 };
+
+export const shouldRevalidate = staticShouldRevalidate;
 
 export async function loader({params, context}: Route.LoaderArgs) {
   if (!params.handle) {
@@ -52,7 +57,10 @@ export async function loader({params, context}: Route.LoaderArgs) {
     throw new Response('Richtlinie konnte nicht gefunden werden', {status: 404});
   }
 
-  return {policy};
+  return routeData(
+    {policy},
+    {headers: getOxygenPageCacheHeaders('static')},
+  );
 }
 
 export default function Policy() {

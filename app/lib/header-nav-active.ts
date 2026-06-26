@@ -124,6 +124,7 @@ export function isNavCollectionRootActive(
 
 /**
  * Mobile top-level row (KOLLEKTION / NEUHEITEN) — chip root is sole active root when published.
+ * Homepage chip source ('homepage') must not affect mobile nav root active state.
  */
 export function isMobileCatalogRootActive(
   pathname: string,
@@ -131,7 +132,7 @@ export function isMobileCatalogRootActive(
   chip?: CatalogChipNavSnapshot | null,
 ): boolean {
   const menuRoot = getCollectionRootSlug(menuUrl);
-  if (chip && chip.source !== 'idle' && chip.rootSlug) {
+  if (chip && chip.source !== 'idle' && chip.source !== 'homepage' && chip.rootSlug) {
     return chip.rootSlug === menuRoot;
   }
   return isNavCollectionRootActive(pathname, menuUrl);
@@ -155,6 +156,7 @@ export function isMobileCatalogAccordionLabelActive(
 
 /**
  * Section title for a menu panel — chip filter wins over stale pathname deep segments.
+ * Homepage chip source ('homepage') must not drive dropdown open section in nav panel.
  */
 export function resolveChipMenuOpenSection(
   panelRootSlug: string,
@@ -163,6 +165,7 @@ export function resolveChipMenuOpenSection(
   if (
     !chip ||
     chip.source === 'idle' ||
+    chip.source === 'homepage' ||
     chip.rootSlug !== panelRootSlug ||
     !chip.activeMainCategory
   ) {
@@ -174,6 +177,7 @@ export function resolveChipMenuOpenSection(
 /**
  * Derives which mobile collection accordion + section to open for the current route.
  * Chip filter state wins over pathname when both share the same catalog root (BL-0017).
+ * Homepage chip source ('homepage') must not drive accordion open state in mobile nav.
  */
 export function resolveMobileNavOpenState(
   pathname: string,
@@ -181,14 +185,15 @@ export function resolveMobileNavOpenState(
   chip?: CatalogChipNavSnapshot | null,
 ): MobileNavOpenState {
   const parsed = parseCollectionNavPath(pathname);
-  if (!parsed.rootSlug && (!chip || chip.source === 'idle')) {
+  const isCollectionChip = chip && chip.source !== 'idle' && chip.source !== 'homepage';
+  if (!parsed.rootSlug && (!isCollectionChip || !chip?.rootSlug)) {
     return {collectionMenuUrl: null, sectionTitle: null};
   }
 
   const rootForMatch =
-    chip && chip.source !== 'idle' && chip.rootSlug
+    isCollectionChip && chip?.rootSlug
       ? chip.rootSlug
-      : (parsed.rootSlug ?? chip?.rootSlug ?? null);
+      : (parsed.rootSlug ?? null);
 
   let collectionMenuUrl: string | null = null;
   if (rootForMatch) {
@@ -227,6 +232,7 @@ export function shouldAutoExpandMobileAccordion(pathname: string): boolean {
 
 /**
  * Menu link active — chip filter is source of truth per catalog root (BL-0017).
+ * Homepage chip source ('homepage') must not make dropdown links appear active.
  */
 export function isCatalogMenuLinkActive(
   pathname: string,
@@ -242,6 +248,7 @@ export function isCatalogMenuLinkActive(
   const chipMatchesLinkRoot =
     chip &&
     chip.source !== 'idle' &&
+    chip.source !== 'homepage' &&
     chip.rootSlug === linkParsed.rootSlug;
 
   if (!chipMatchesLinkRoot) {

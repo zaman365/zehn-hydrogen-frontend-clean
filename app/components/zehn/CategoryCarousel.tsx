@@ -1,5 +1,6 @@
 import { useRef, useState } from "react"
 import { Link } from "react-router"
+import { resolveLinkPrefetch } from '~/lib/link-prefetch'
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import {ZehnStaticImage} from '~/components/zehn'
 
@@ -75,6 +76,7 @@ export function CategoryCarousel({ title, categories }: CategoryCarouselProps) {
               <Link
                 key={category.title}
                 to={category.link}
+                prefetch={resolveLinkPrefetch('collection')}
                 className="group flex-shrink-0 w-[320px] sm:w-[380px] snap-start"
               >
                 <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-card">

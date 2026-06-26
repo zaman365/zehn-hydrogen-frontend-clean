@@ -287,7 +287,11 @@ export default function SearchPage() {
                 className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"
               >
                 {sortedProducts.map((product: any, index: number) => {
-                  const imageLoad = resolveProductImageLoading('gridAboveFold', index, {
+                  const imageContext =
+                    index < ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT
+                      ? 'gridAboveFold'
+                      : 'gridBelowFold';
+                  const imageLoad = resolveProductImageLoading(imageContext, index, {
                     aboveFoldLimit: ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT,
                   });
 

@@ -1,5 +1,6 @@
 import {Suspense} from 'react';
 import {Await, NavLink} from 'react-router';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import type {FooterQuery, HeaderQuery} from 'storefrontapi.generated';
 
 interface FooterProps {
@@ -61,7 +62,7 @@ function FooterMenu({
           <NavLink
             end
             key={item.id}
-            prefetch="intent"
+            prefetch={resolveLinkPrefetch('cta')}
             style={activeLinkStyle}
             to={url}
           >

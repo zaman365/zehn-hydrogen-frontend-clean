@@ -13,6 +13,7 @@ import type {
 import {useVariantUrl} from '~/lib/variants';
 import {useWishlist} from '~/components/zehn/wishlist-context';
 import {QuickAddModal} from '~/components/QuickAddModal';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {
   getAllProductImages,
   getProductImagesForColor,
@@ -158,14 +159,15 @@ export function ProductItem({
     <div
       ref={entryRef}
       className={cn(
-        'transition-[opacity,transform] duration-500 ease-out',
-        entered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+        /* Below-fold: translate-only entry — avoids double opacity gate with ZehnShopifyImage. */
+        'transition-transform duration-500 ease-out',
+        entered ? 'translate-y-0' : 'translate-y-3',
       )}
       style={{transitionDelay: entered ? '0ms' : `${(index % 4) * 60}ms`}}
     >
     <Link
       to={variantUrl}
-      prefetch="intent"
+      prefetch={resolveLinkPrefetch('product')}
       className="group block"
       style={{textDecoration: 'none'}}
     >

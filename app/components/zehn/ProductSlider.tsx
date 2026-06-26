@@ -1,7 +1,8 @@
 import { useRef } from "react"
 import { Link } from "react-router"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import {ZehnMediaFrame, ZehnStaticImage} from '~/components/zehn';
+import {ZehnMediaFrame, ZehnShopifyImage} from '~/components/zehn';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 
 type Product = {
   id: string
@@ -140,14 +141,16 @@ export function ProductSlider({
                 <Link
                   key={product.id}
                   to={`/products/${product.handle}`}
+                  prefetch={resolveLinkPrefetch('product')}
                   className="group flex-shrink-0 w-[280px] snap-start"
                 >
-                  {/* Image frame — sliderCard 3:4 portrait; ZehnStaticImage handles skeleton + fade */}
                   <ZehnMediaFrame aspect="sliderCard" className="mb-3 bg-card">
                     {product.featuredImage ? (
-                      <ZehnStaticImage
-                        src={product.featuredImage.url}
+                      <ZehnShopifyImage
+                        data={product.featuredImage}
                         alt={product.featuredImage.altText || product.title}
+                        sizes="280px"
+                        priority
                       />
                     ) : (
                       <div className="absolute inset-0 bg-muted/20 flex items-center justify-center">

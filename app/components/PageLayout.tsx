@@ -20,6 +20,7 @@ import {CookieConsent} from '~/components/zehn/CookieConsent';
 import {AnnouncementBar} from '~/components/zehn/AnnouncementBar';
 import {WishlistProvider} from '~/components/zehn/wishlist-context';
 import {CatalogChipNavProvider} from '~/components/zehn/catalog-chip-nav-context';
+import {CatalogCacheProvider} from '~/components/zehn/CatalogCacheProvider';
 import {
   SEARCH_ENDPOINT,
   SearchFormPredictive,
@@ -73,6 +74,7 @@ export function PageLayout({
   return (
     <WishlistProvider isLoggedInPromise={isLoggedIn}>
       <CatalogChipNavProvider>
+      <CatalogCacheProvider>
       <Aside.Provider>
         <CartAside cart={cart} />
         <SearchAside />
@@ -92,6 +94,7 @@ export function PageLayout({
         <ContactChat />
         <CookieConsent />
       </Aside.Provider>
+      </CatalogCacheProvider>
       </CatalogChipNavProvider>
     </WishlistProvider>
   );

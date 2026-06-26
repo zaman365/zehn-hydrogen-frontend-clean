@@ -1,6 +1,7 @@
 import {Link, useFetcher, type Fetcher} from 'react-router';
 import {Image, Money} from '@shopify/hydrogen';
 import React, {useRef, useEffect} from 'react';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {
   getEmptyPredictiveSearchResult,
   urlWithTrackingParams,
@@ -100,7 +101,7 @@ function SearchResultsPredictiveArticles({
 
           return (
             <li className="predictive-search-result-item" key={article.id}>
-              <Link onClick={closeSearch} to={articleUrl}>
+              <Link prefetch={resolveLinkPrefetch('cta')} onClick={closeSearch} to={articleUrl}>
                 {article.image?.url && (
                   <Image
                     alt={article.image.altText ?? ''}
@@ -141,7 +142,7 @@ function SearchResultsPredictiveCollections({
 
           return (
             <li className="predictive-search-result-item" key={collection.id}>
-              <Link onClick={closeSearch} to={collectionUrl}>
+              <Link prefetch={resolveLinkPrefetch('collection')} onClick={closeSearch} to={collectionUrl}>
                 {collection.image?.url && (
                   <Image
                     alt={collection.image.altText ?? ''}
@@ -182,7 +183,7 @@ function SearchResultsPredictivePages({
 
           return (
             <li className="predictive-search-result-item" key={page.id}>
-              <Link onClick={closeSearch} to={pageUrl}>
+              <Link prefetch={resolveLinkPrefetch('cta')} onClick={closeSearch} to={pageUrl}>
                 <div>
                   <span>{page.title}</span>
                 </div>
@@ -217,7 +218,7 @@ function SearchResultsPredictiveProducts({
           const image = product?.selectedOrFirstAvailableVariant?.image;
           return (
             <li className="predictive-search-result-item" key={product.id}>
-              <Link to={productUrl} onClick={closeSearch}>
+              <Link prefetch={resolveLinkPrefetch('product')} to={productUrl} onClick={closeSearch}>
                 {image && (
                   <Image
                     alt={image.altText ?? ''}

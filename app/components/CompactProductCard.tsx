@@ -14,6 +14,7 @@ import type {
 import type {Maybe, ProductOptionValueSwatch} from '@shopify/hydrogen/storefront-api-types';
 import {useVariantUrl} from '~/lib/variants';
 import {useWishlist} from '~/components/zehn/wishlist-context';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {
   getProductImagesForColor,
   isColorOptionName,
@@ -119,10 +120,10 @@ export function CompactProductCard({
     <Link
       ref={entryRef}
       to={variantUrl}
-      prefetch="intent"
+      prefetch={resolveLinkPrefetch('product')}
       className={cn(
-        'group block transition-[opacity,transform] duration-500 ease-out',
-        entered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3',
+        'group block transition-transform duration-500 ease-out',
+        entered ? 'translate-y-0' : 'translate-y-3',
       )}
       style={{transitionDelay: entered ? '0ms' : `${(index % 4) * 60}ms`}}
     >

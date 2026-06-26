@@ -1,4 +1,5 @@
 import {Link, useNavigate} from 'react-router';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {type MappedProductOptions} from '@shopify/hydrogen';
 import type {
   Maybe,
@@ -48,7 +49,7 @@ export function ProductForm({
                     <Link
                       className="product-options-item"
                       key={option.name + name}
-                      prefetch="intent"
+                      prefetch={resolveLinkPrefetch('product')}
                       preventScrollReset
                       replace
                       to={`/products/${handle}?${variantUriQuery}`}

@@ -1,6 +1,13 @@
-import {useLoaderData} from 'react-router';
+import {useLoaderData, data as routeData} from 'react-router';
 import type {Route} from './+types/_index';
-import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
+import type {ClientLoaderFunctionArgs} from 'react-router';
+import {getCachePolicy, CACHE_CATALOG} from '~/lib/storefront-cache-policy';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {catalogShouldRevalidate} from '~/lib/route-revalidation';
+import {
+  catalogClientLoader,
+  catalogClientLoaderHydrate,
+} from '~/lib/catalog-client-loader';
 import {Hero} from '~/components/zehn/Hero';
 import {TrustBadges} from '~/components/zehn/TrustBadges';
 // import {CategoryTiles} from '~/components/zehn/CategoryTiles';
@@ -185,16 +192,22 @@ export const meta: Route.MetaFunction = () => {
   ];
 };
 
+export const shouldRevalidate = catalogShouldRevalidate;
+
+export async function clientLoader(args: ClientLoaderFunctionArgs) {
+  return catalogClientLoader<Awaited<ReturnType<typeof loader>>>(args);
+}
+clientLoader.hydrate = catalogClientLoaderHydrate;
+
 export async function loader({context}: Route.LoaderArgs) {
   const {storefront} = context;
 
-  // Single GraphQL call — all category arrays derived in JS from allProducts.
-  const data = await storefront.query(HOMEPAGE_QUERY, {
-    cache: getCachePolicy(storefront, CACHE_SHORT),
+  const homepageData = await storefront.query(HOMEPAGE_QUERY, {
+    cache: getCachePolicy(storefront, CACHE_CATALOG),
   });
 
-  const allProducts = data.products?.nodes || [];
-  const bestsellerProducts = data.bestsellerCollection?.products?.nodes || [];
+  const allProducts = homepageData.products?.nodes || [];
+  const bestsellerProducts = homepageData.bestsellerCollection?.products?.nodes || [];
 
   // Derive category arrays from the single allProducts list — no extra API calls.
   const shortsProducts = allProducts.filter(isShortsProduct);
@@ -203,7 +216,8 @@ export async function loader({context}: Route.LoaderArgs) {
   const jeansProducts = allProducts.filter(isJeansProduct);
   const jackenProducts = allProducts.filter(isJacketProduct);
 
-  return {
+  return routeData(
+    {
     allProducts,
     bestsellerProducts,
     shortsProducts,
@@ -275,12 +289,14 @@ export async function loader({context}: Route.LoaderArgs) {
       },
     ],
     collections: {
-      polo: data.poloCollection,
-      bestseller: data.bestsellerCollection,
-      neuheiten: data.neuheitenCollection,
-      sale: data.saleCollection,
+      polo: homepageData.poloCollection,
+      bestseller: homepageData.bestsellerCollection,
+      neuheiten: homepageData.neuheitenCollection,
+      sale: homepageData.saleCollection,
     },
-  };
+    },
+    {headers: getOxygenPageCacheHeaders('catalog')},
+  );
 }
 
 export default function Homepage() {

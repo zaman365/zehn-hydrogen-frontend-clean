@@ -120,8 +120,9 @@ describe('ZehnShopifyImage — behaviour contract', () => {
     expect(img).toContain('showImmediately = isLCP || priority');
   });
 
-  it('detects cached complete images on mount (useLayoutEffect)', () => {
-    expect(img).toContain('useLayoutEffect');
+  it('detects cached complete images on mount (useIsomorphicLayoutEffect)', () => {
+    // useIsomorphicLayoutEffect (shared hook) = useLayoutEffect on client, useEffect on server
+    expect(img).toContain('useIsomorphicLayoutEffect');
     expect(img).toContain('img?.complete');
     expect(img).toContain('naturalWidth > 0');
   });
@@ -231,8 +232,8 @@ describe('Phase 3 — ProductSlider migration', () => {
     expect(src).toContain("aspect=\"sliderCard\"");
   });
 
-  it('uses ZehnStaticImage', () => {
-    expect(src).toContain('ZehnStaticImage');
+  it('uses ZehnShopifyImage for Shopify CDN product images', () => {
+    expect(src).toContain('ZehnShopifyImage');
   });
 
   it('no longer uses raw <img> for product images', () => {

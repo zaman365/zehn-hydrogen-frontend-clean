@@ -214,8 +214,12 @@ export function SearchModal({isOpen, onClose}: SearchModalProps) {
                             {/* Mobile: 2 cols, Tablet: 3 cols, Desktop: 4 cols */}
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                               {items.products.map((product, index) => {
+                                const imageContext =
+                                  index < ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT
+                                    ? 'gridAboveFold'
+                                    : 'gridBelowFold';
                                 const imageLoad = resolveProductImageLoading(
-                                  'gridAboveFold',
+                                  imageContext,
                                   index,
                                   {aboveFoldLimit: ZEHN_SEARCH_GRID_ABOVE_FOLD_LIMIT},
                                 );

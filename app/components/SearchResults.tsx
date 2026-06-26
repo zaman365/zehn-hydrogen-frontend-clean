@@ -1,5 +1,6 @@
 import {Link} from 'react-router';
 import {Image, Money, Pagination} from '@shopify/hydrogen';
+import {resolveLinkPrefetch} from '~/lib/link-prefetch';
 import {urlWithTrackingParams, type RegularSearchReturn} from '~/lib/search';
 
 type SearchItems = RegularSearchReturn['result']['items'];
@@ -51,7 +52,7 @@ function SearchResultsArticles({
 
           return (
             <div className="search-results-item" key={article.id}>
-              <Link prefetch="intent" to={articleUrl}>
+              <Link prefetch={resolveLinkPrefetch('cta')} to={articleUrl}>
                 {article.title}
               </Link>
             </div>
@@ -81,7 +82,7 @@ function SearchResultsPages({term, pages}: PartialSearchResult<'pages'>) {
 
           return (
             <div className="search-results-item" key={page.id}>
-              <Link prefetch="intent" to={pageUrl}>
+              <Link prefetch={resolveLinkPrefetch('cta')} to={pageUrl}>
                 {page.title}
               </Link>
             </div>
@@ -118,7 +119,7 @@ function SearchResultsProducts({
 
             return (
               <div className="search-results-item" key={product.id}>
-                <Link prefetch="intent" to={productUrl}>
+                <Link prefetch={resolveLinkPrefetch('product')} to={productUrl}>
                   {image && (
                     <Image data={image} alt={product.title} width={50} />
                   )}

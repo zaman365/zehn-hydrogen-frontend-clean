@@ -2,8 +2,12 @@ import {
   redirect,
   useLoaderData,
   Link,
+  Await,
+  data as routeData,
 } from 'react-router';
 import type {Route} from './+types/products.$handle';
+import type {ClientLoaderFunctionArgs} from 'react-router';
+import {catalogClientLoader, catalogClientLoaderHydrate} from '~/lib/catalog-client-loader';
 import {
   getSelectedProductOptions,
   Analytics,
@@ -15,9 +19,12 @@ import {
 } from '@shopify/hydrogen';
 import {ZehnShopifyImage} from '~/components/zehn';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {getCachePolicy, CACHE_SHORT} from '~/lib/storefront-cache-policy';
+import {getCachePolicy, CACHE_CATALOG} from '~/lib/storefront-cache-policy';
+import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
+import {catalogShouldRevalidate} from '~/lib/route-revalidation';
+import {resolveProductImageLoading} from '~/lib/zehn-product-image-loading';
 import {AddToCartButton} from '~/components/AddToCartButton';
-import {useState, useEffect, useMemo, useRef} from 'react';
+import {useState, useEffect, useMemo, useRef, Suspense} from 'react';
 import {
   ChevronDown,
   ChevronUp,
@@ -76,6 +83,13 @@ export const meta: Route.MetaFunction = ({data}) => {
     {property: 'og:locale', content: 'de_DE'},
     ...(image
       ? [
+          {
+            tagName: 'link',
+            rel: 'preload',
+            href: image.url,
+            as: 'image',
+            fetchPriority: 'high',
+          },
           {property: 'og:image', content: image.url},
           {property: 'og:image:width', content: String(image.width || '')},
           {property: 'og:image:height', content: String(image.height || '')},
@@ -149,15 +163,27 @@ const getSortedOptionValues = (option: any) => {
   });
 };
 
-export async function loader(args: Route.LoaderArgs) {
-  // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
-  
-  // Also await deferred data for now (we can optimize later)
-  const deferredData = await loadDeferredData(args);
+export const shouldRevalidate = catalogShouldRevalidate;
 
-  return {...criticalData, ...deferredData};
+export async function loader(args: Route.LoaderArgs) {
+  const criticalData = await loadCriticalData(args);
+  const recommendedProducts = loadDeferredData(args).then(
+    (deferred) => deferred.recommendedProducts,
+  );
+
+  return routeData(
+    {
+      ...criticalData,
+      recommendedProducts,
+    },
+    {headers: getOxygenPageCacheHeaders('catalog')},
+  );
 }
+
+export async function clientLoader(args: ClientLoaderFunctionArgs) {
+  return catalogClientLoader<Awaited<ReturnType<typeof loader>>>(args);
+}
+clientLoader.hydrate = catalogClientLoaderHydrate;
 
 /**
  * Load data necessary for rendering content above the fold. This is the critical data
@@ -178,7 +204,7 @@ async function loadCriticalData({
   const [{product}] = await Promise.all([
     storefront.query(PRODUCT_QUERY, {
       variables: {handle, selectedOptions: getSelectedProductOptions(request)},
-      cache: getCachePolicy(storefront, CACHE_SHORT),
+      cache: getCachePolicy(storefront, CACHE_CATALOG),
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
@@ -209,7 +235,7 @@ async function loadDeferredData({context}: Route.LoaderArgs) {
   // Get recommended products (random products for now)
   const {products} = await storefront.query(RECOMMENDED_PRODUCTS_QUERY, {
     variables: {first: 8},
-    cache: getCachePolicy(storefront, CACHE_SHORT),
+    cache: getCachePolicy(storefront, CACHE_CATALOG),
   });
 
   return {
@@ -325,6 +351,19 @@ export default function Product() {
         : productImages,
     [colorOption?.value, product, productImages, selectedVariant],
   );
+
+  /** Desktop gallery: mount only active slide ±1 to avoid redundant CDN fetches. */
+  const mountedGalleryIndices = useMemo(() => {
+    const indices = new Set<number>();
+    indices.add(currentImageIndex);
+    if (currentImageIndex > 0) indices.add(currentImageIndex - 1);
+    if (currentImageIndex < displayImages.length - 1) {
+      indices.add(currentImageIndex + 1);
+    }
+    return indices;
+  }, [currentImageIndex, displayImages.length]);
+
+  const activeMobileImage = displayImages[currentImageIndex];
 
   useEffect(() => {
     setCurrentImageIndex(0);
@@ -505,20 +544,17 @@ export default function Product() {
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
                 >
-                  {displayImages.map((image, index) => (
-                    image ? (
-                      <img
-                        key={image.url || index}
-                        src={image.url}
-                        alt={image.altText || product.title}
-                        /* First image: LCP candidate — eager + high priority for fastest paint.
-                           Images 1-2: eager so swipe is instant. Rest: lazy (off-screen). */
-                        loading={index < 3 ? 'eager' : 'lazy'}
-                        {...(index === 0 ? {fetchpriority: 'high' as const} : {})}
-                        className={`w-full aspect-[2/3] object-cover ${index === currentImageIndex ? 'block' : 'hidden'}`}
-                      />
-                    ) : null
-                  ))}
+                  {activeMobileImage ? (
+                    <ZehnShopifyImage
+                      key={activeMobileImage.url || activeMobileImage.id}
+                      data={activeMobileImage}
+                      alt={activeMobileImage.altText || product.title}
+                      sizes="100vw"
+                      isLCP={currentImageIndex === 0}
+                      priority={currentImageIndex > 0}
+                      className="w-full aspect-[2/3] object-cover"
+                    />
+                  ) : null}
 
                   {/* Wishlist Icon - Top Right */}
                   <WishlistIconOverlay product={product} selectedVariant={selectedVariant} />
@@ -581,15 +617,15 @@ export default function Product() {
                           }`}
                         >
                           {image && (
-                            <img
-                              /* 160px = 2× retina of 80px rail width; Shopify CDN resizes via &width= */
-                              src={`${image.url}${image.url.includes('?') ? '&' : '?'}width=160`}
+                            /* 160px CDN width = 2× retina of 80px rail; zehn-image-cache skips skeleton on revisit */
+                            <ZehnShopifyImage
+                              data={image}
                               alt={image.altText || product.title}
-                              /* First 4 thumbnails visible in rail — eager load for instant switching. */
-                              loading={index < 4 ? 'eager' : 'lazy'}
-                              className="w-full h-full object-cover"
+                              sizes="80px"
                               width={160}
                               height={213}
+                              priority={index < 4}
+                              className="w-full h-full object-cover"
                             />
                           )}
                         </button>
@@ -611,7 +647,9 @@ export default function Product() {
 
                 {/* Main Image - Right Side */}
                 <div ref={mainImageRef} className="relative rounded-3xl overflow-hidden bg-card boty-shadow flex-1 aspect-[2/3]">
-                  {displayImages.map((image, index) => (
+                  {displayImages.map((image, index) => {
+                    if (!mountedGalleryIndices.has(index)) return null;
+                    return (
                     <div
                       key={image?.id || index}
                       className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${
@@ -628,7 +666,8 @@ export default function Product() {
                         />
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                   
                   {/* Wishlist Icon - Top Right */}
                   <WishlistIconOverlay product={product} selectedVariant={selectedVariant} />
@@ -880,10 +919,11 @@ export default function Product() {
               Das könnte Ihnen auch gefallen
             </h2>
             
-            {/* Products Slider */}
+            <Suspense fallback={null}>
+              <Await resolve={recommendedProducts}>
+                {(resolvedRecommended) => (
             <div className="relative">
-              {/* Navigation Arrows */}
-              {recommendedProducts?.nodes?.length > 3 && (
+              {resolvedRecommended?.nodes?.length > 3 && (
                 <>
                   <button
                     type="button"
@@ -906,17 +946,22 @@ export default function Product() {
               
               <div ref={sliderRef} className="overflow-x-auto scrollbar-hide -mx-6 px-6">
                 <div className="flex gap-2 sm:gap-3 pb-4">
-                  {recommendedProducts?.nodes?.length > 0 ? recommendedProducts.nodes
+                  {resolvedRecommended?.nodes?.length > 0 ? resolvedRecommended.nodes
                     .filter((recommendedProduct: any) => recommendedProduct.id !== product.id)
-                    .map((recommendedProduct: any, index: number) => (
+                    .map((recommendedProduct: any, index: number) => {
+                      const imageLoad = resolveProductImageLoading('horizontalSlider', index);
+                      return (
                     <div key={recommendedProduct.id} className="flex-shrink-0 w-64 sm:w-72">
                       <ProductItem
                         product={recommendedProduct}
-                        loading="lazy"
+                        loading={imageLoad.loading}
+                        priority={imageLoad.priority}
+                        isLCP={imageLoad.isLCP}
                         index={index}
                       />
                     </div>
-                  )) : (
+                      );
+                    }) : (
                     <div className="text-center py-8 w-full">
                       <p className="text-muted">Keine empfohlenen Produkte verfügbar</p>
                     </div>
@@ -924,11 +969,13 @@ export default function Product() {
                 </div>
               </div>
               
-              {/* Scroll Hint */}
               <div className="text-center mt-6">
                 <p className="text-sm text-muted">← Scrollen für mehr →</p>
               </div>
             </div>
+                )}
+              </Await>
+            </Suspense>
           </div>
         </div>
       </main>
@@ -1399,11 +1446,17 @@ function ProductDescriptionModal({
     const content = isColor ? (
       <span className="relative flex h-14 w-14 items-center justify-center rounded-full">
         {swatchImage || variantImage ? (
-          <img
-            src={swatchImage || variantImage}
+          <ZehnShopifyImage
+            data={{
+              url: swatchImage || variantImage,
+              altText: value.name,
+            }}
             alt={value.name}
+            sizes="44px"
+            width={44}
+            height={44}
+            priority
             className="h-11 w-11 rounded-full object-cover"
-            loading="lazy"
           />
         ) : swatchColor ? (
           <span
@@ -1536,11 +1589,12 @@ function ProductDescriptionModal({
                     key={image.url || index}
                     className="snap-start flex-[0_0_82%] sm:flex-[0_0_48%] lg:flex-[0_0_32%] overflow-hidden rounded-2xl bg-card aspect-[4/5]"
                   >
-                    <img
-                      src={image.url}
+                    <ZehnShopifyImage
+                      data={image}
                       alt={image.altText || product.title}
+                      sizes="(min-width: 1024px) 32vw, 82vw"
+                      priority={index === 0}
                       className="h-full w-full object-contain"
-                      loading="lazy"
                     />
                   </div>
                 ))}
