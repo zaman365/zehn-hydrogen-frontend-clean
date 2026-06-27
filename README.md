@@ -107,7 +107,7 @@ Hydrogen is Shopify’s React framework for headless storefronts. Unlike a tradi
 
 ## Architecture overview
 
-```
+```bash
 Browser
    │
    ▼
@@ -541,7 +541,7 @@ Good pattern when Shopify collection size is bounded and you want instant chip t
 
 ### Provider stack (PageLayout)
 
-```
+```bash
 WishlistProvider
   └── CatalogChipNavProvider
         └── CatalogCacheProvider
