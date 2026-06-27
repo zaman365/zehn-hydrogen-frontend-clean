@@ -156,6 +156,17 @@ describe('products.$handle.tsx — CACHE_CATALOG applied', () => {
     expect(src).toContain('recommendedProducts');
     expect(src).toContain('<Await resolve={recommendedProducts}');
   });
+
+  it('meta() emits image preload with lowercase fetchpriority (BL-0020 fix)', () => {
+    const metaBlock = src.slice(src.indexOf('export const meta'), src.indexOf('export async function loader'));
+    // SSR preload restored — fires from <head> before <body> parse on cold visits
+    expect(metaBlock).toContain("rel: 'preload'");
+    // Must use lowercase HTML attribute — camelCase fetchPriority causes React 18 warning
+    expect(metaBlock).toContain('fetchpriority');
+    expect(metaBlock).not.toContain('fetchPriority');
+    // useScopedImagePreload still used for SPA navigation + color-variant switches
+    expect(src).toContain('useScopedImagePreload');
+  });
 });
 
 // ============================================================================

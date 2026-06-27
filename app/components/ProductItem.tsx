@@ -25,6 +25,8 @@ export function ProductItem({
   loading,
   priority,
   isLCP,
+  skipSkeleton,
+  imageSizes,
   index = 0,
 }: {
   product:
@@ -36,6 +38,10 @@ export function ProductItem({
   priority?: boolean;
   /** First visible card only — fetchpriority high, no skeleton. */
   isLCP?: boolean;
+  /** Skip pulse skeleton when aspect frame holds layout (homepage sliders). */
+  skipSkeleton?: boolean;
+  /** Override responsive sizes — sliders use 280px not 33vw grid default. */
+  imageSizes?: string;
   index?: number;
 }) {
   const variantUrl = useVariantUrl(product.handle);
@@ -189,9 +195,13 @@ export function ProductItem({
           {currentDisplayImage && (
             <ZehnShopifyImage
               data={currentDisplayImage}
-              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              sizes={
+                imageSizes ??
+                '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw'
+              }
               priority={imagePriority}
               isLCP={imageIsLCP}
+              skipSkeleton={skipSkeleton}
             />
           )}
 

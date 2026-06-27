@@ -17,14 +17,18 @@ import {
   useSelectedOptionInUrlParam,
   Image,
 } from '@shopify/hydrogen';
-import {ZehnShopifyImage} from '~/components/zehn';
+import {ZehnMediaFrame, ZehnShopifyImage} from '~/components/zehn';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {ZEHN_MEDIA_ASPECT} from '~/lib/zehn-media-styles';
+import {cn} from '~/lib/utils';
 import {getCachePolicy, CACHE_CATALOG} from '~/lib/storefront-cache-policy';
 import {getOxygenPageCacheHeaders} from '~/lib/oxygen-page-cache';
 import {catalogShouldRevalidate} from '~/lib/route-revalidation';
-import {resolveProductImageLoading} from '~/lib/zehn-product-image-loading';
+import {resolveProductImageLoading, ZEHN_HOMEPAGE_SLIDER_SIZES} from '~/lib/zehn-product-image-loading';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {useState, useEffect, useMemo, useRef, Suspense} from 'react';
+import {useScopedImagePreload} from '~/hooks/useScopedImagePreload';
+import {warmImageUrls} from '~/lib/zehn-image-warm';
 import {
   ChevronDown,
   ChevronUp,
@@ -83,17 +87,14 @@ export const meta: Route.MetaFunction = ({data}) => {
     {property: 'og:locale', content: 'de_DE'},
     ...(image
       ? [
-          {
-            tagName: 'link',
-            rel: 'preload',
-            href: image.url,
-            as: 'image',
-            fetchPriority: 'high',
-          },
           {property: 'og:image', content: image.url},
           {property: 'og:image:width', content: String(image.width || '')},
           {property: 'og:image:height', content: String(image.height || '')},
           {property: 'og:image:alt', content: image.altText || product.title},
+          /* SSR hero preload — starts CDN fetch from <head> before <body> is parsed.
+             Uses lowercase fetchpriority (plain object key, not JSX prop — no React 18 warning).
+             useScopedImagePreload keeps responsibility for SPA navigation + color switches. */
+          {tagName: 'link', rel: 'preload', as: 'image', href: image.url, fetchpriority: 'high'},
         ]
       : []),
     ...(selectedVariant?.price
@@ -365,6 +366,20 @@ export default function Product() {
 
   const activeMobileImage = displayImages[currentImageIndex];
 
+  /* Scoped preload — cleans up on SPA leave; deduplicates against SSR meta preload (BL-0020).
+     Also fires on color switch to pre-fetch the new hero image. */
+  useScopedImagePreload(displayImages[0]?.url ?? null, {fetchPriority: 'high'});
+
+  /* Warm thumbnail images 1–6 in parallel with React's own paint.
+     Re-fires on color switch so new color's full image set is pre-fetched. */
+  useEffect(() => {
+    const thumbUrls = displayImages
+      .slice(1, 7)
+      .map((img) => img?.url)
+      .filter((url): url is string => Boolean(url));
+    warmImageUrls(thumbUrls);
+  }, [displayImages]);
+
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [colorOption?.value]);
@@ -538,26 +553,30 @@ export default function Product() {
             <div className="lg:sticky lg:top-28">
               {/* Mobile: Image Slider with Dots */}
               <div className="lg:hidden">
+                {/* Touch wrapper — ZehnMediaFrame holds aspect ratio; ZehnShopifyImage img is absolute
+                    inset-0 so without a frame the parent collapses to 0 height on mobile. */}
                 <div
-                  className="relative rounded-3xl overflow-hidden bg-card boty-shadow mb-4"
+                  className="mb-4"
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
                 >
-                  {activeMobileImage ? (
-                    <ZehnShopifyImage
-                      key={activeMobileImage.url || activeMobileImage.id}
-                      data={activeMobileImage}
-                      alt={activeMobileImage.altText || product.title}
-                      sizes="100vw"
-                      isLCP={currentImageIndex === 0}
-                      priority={currentImageIndex > 0}
-                      className="w-full aspect-[2/3] object-cover"
-                    />
-                  ) : null}
-
-                  {/* Wishlist Icon - Top Right */}
-                  <WishlistIconOverlay product={product} selectedVariant={selectedVariant} />
+                  <ZehnMediaFrame
+                    aspect="pdp"
+                    className="rounded-3xl boty-shadow bg-card"
+                  >
+                    {activeMobileImage ? (
+                      <ZehnShopifyImage
+                        key={activeMobileImage.url || activeMobileImage.id}
+                        data={activeMobileImage}
+                        alt={activeMobileImage.altText || product.title}
+                        sizes="100vw"
+                        isLCP={currentImageIndex === 0}
+                        priority={currentImageIndex > 0}
+                      />
+                    ) : null}
+                    <WishlistIconOverlay product={product} selectedVariant={selectedVariant} />
+                  </ZehnMediaFrame>
                 </div>
                 
                 {/* Dot Indicators */}
@@ -625,6 +644,7 @@ export default function Product() {
                               width={160}
                               height={213}
                               priority={index < 4}
+                              skipSkeleton
                               className="w-full h-full object-cover"
                             />
                           )}
@@ -646,7 +666,13 @@ export default function Product() {
                 )}
 
                 {/* Main Image - Right Side */}
-                <div ref={mainImageRef} className="relative rounded-3xl overflow-hidden bg-card boty-shadow flex-1 aspect-[2/3]">
+                <div
+                  ref={mainImageRef}
+                  className={cn(
+                    'relative rounded-3xl overflow-hidden bg-card boty-shadow flex-1',
+                    ZEHN_MEDIA_ASPECT.pdp,
+                  )}
+                >
                   {displayImages.map((image, index) => {
                     if (!mountedGalleryIndices.has(index)) return null;
                     return (
@@ -957,6 +983,8 @@ export default function Product() {
                         loading={imageLoad.loading}
                         priority={imageLoad.priority}
                         isLCP={imageLoad.isLCP}
+                        skipSkeleton={imageLoad.skipSkeleton}
+                        imageSizes={ZEHN_HOMEPAGE_SLIDER_SIZES}
                         index={index}
                       />
                     </div>

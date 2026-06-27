@@ -31,6 +31,7 @@ export const ZEHN_MEDIA_FADE_IN =
 /**
  * Aspect-ratio tokens derived from brand asset dimensions:
  *  product    7:10  — portrait product cards (ProductItem, CompactProductCard, CollectionPage)
+ *  pdp        2:3   — PDP gallery hero (mobile + desktop main image)
  *  hero       5:2   — desktop hero banner (3000×1200)
  *  heroMobile 4:5   — mobile hero banner (1080×1350)
  *  square     1:1   — category tiles, swatches
@@ -39,6 +40,7 @@ export const ZEHN_MEDIA_FADE_IN =
  */
 export const ZEHN_MEDIA_ASPECT = {
   product: 'aspect-[7/10]',
+  pdp: 'aspect-[2/3]',
   hero: 'aspect-[5/2]',
   heroMobile: 'aspect-[4/5]',
   square: 'aspect-square',

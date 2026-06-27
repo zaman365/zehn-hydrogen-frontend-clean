@@ -4,6 +4,7 @@
  * Loading tiers:
  *  - default (lazy): pulse skeleton + opacity-0 until onLoad, then 200ms fade-in.
  *  - priority: eager load, pulse skeleton until onLoad, opacity-100 immediately
+ *  - skipSkeleton: eager, no pulse (horizontal sliders, PDP thumbnails)
  *  - isLCP: eager + fetchpriority high, no skeleton, opacity-100 (one per page)
  *
  * Phase 7: zehn-image-cache module Set keyed by img.currentSrc — skips skeleton on SPA revisit.
@@ -34,6 +35,8 @@ export type ZehnShopifyImageProps = Omit<HydrogenImageBaseProps, 'sizes'> & {
   isLCP?: boolean;
   /** Above-fold product card — eager load, skeleton until paint, no opacity gate. */
   priority?: boolean;
+  /** Skip pulse skeleton — fixed aspect frame holds layout (sliders, thumbnails). */
+  skipSkeleton?: boolean;
   /** Extra classes for the <img> element (position, object-fit, etc.). */
   className?: string;
 };
@@ -42,6 +45,7 @@ export function ZehnShopifyImage({
   sizes,
   isLCP = false,
   priority = false,
+  skipSkeleton = false,
   className,
   onLoad,
   data,
@@ -61,6 +65,7 @@ export function ZehnShopifyImage({
 
   const eagerLoad = isLCP || priority;
   const showImmediately = isLCP || priority;
+  const hideSkeleton = isLCP || skipSkeleton;
 
   useIsomorphicLayoutEffect(() => {
     const img = frameRef.current?.querySelector('img') ?? null;
@@ -79,7 +84,7 @@ export function ZehnShopifyImage({
 
   return (
     <span ref={frameRef} className="contents">
-      {!isLCP && (
+      {!hideSkeleton && (
         <div
           aria-hidden="true"
           className={cn(

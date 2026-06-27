@@ -21,6 +21,7 @@ import {
 } from '~/lib/zehn-product-image-loading';
 import type {ProductItemFragment} from 'storefrontapi.generated';
 import {useMemo} from 'react';
+import {useAboveFoldImageWarm} from '~/hooks/useAboveFoldImageWarm';
 import {ShoppingBag} from 'lucide-react';
 import {ProductCatalogBand} from '~/components/zehn/ProductCatalogBand';
 import {ZEHN_HOMEPAGE_GRID_TOP} from '~/lib/homepage-section-styles';
@@ -381,6 +382,8 @@ export default function Collection() {
   const {selectedCategory, displayProducts, mainCategories, activeMainCategory, showFacetToolbar} =
     filterState;
 
+  useAboveFoldImageWarm(collection.products.nodes);
+
   const navActiveMain = useMemo(() => {
     if (isMainCategoryPage) return effectiveHandle;
     if (isSubCategoryPage) {
@@ -679,7 +682,6 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
     handle
     title
     tags
-    productType
     featuredImage {
       id
       altText
@@ -687,7 +689,7 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       width
       height
     }
-    media(first: 50) {
+    media(first: 20) {
       nodes {
         ... on MediaImage {
           id
@@ -705,9 +707,6 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       minVariantPrice {
         ...MoneyProductItem
       }
-      maxVariantPrice {
-        ...MoneyProductItem
-      }
     }
     compareAtPriceRange {
       minVariantPrice {
@@ -719,23 +718,11 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       optionValues {
         name
         firstSelectableVariant {
-          id
-          availableForSale
           image {
             url
             altText
             width
             height
-          }
-          price {
-            ...MoneyProductItem
-          }
-          compareAtPrice {
-            ...MoneyProductItem
-          }
-          selectedOptions {
-            name
-            value
           }
         }
         swatch {
@@ -748,7 +735,7 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
         }
       }
     }
-    variants(first: 50) {
+    variants(first: 25) {
       nodes {
         id
         availableForSale

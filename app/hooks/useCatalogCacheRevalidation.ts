@@ -1,9 +1,13 @@
 /**
- * Catalog cache revalidation hook — Phase 7D / 7.1F.
+ * Catalog cache revalidation hook — Phase 7D / 7.1F + catalog perf debounce.
  *
  * On visibility/focus/pageshow + 60s poll while tab visible, fetches /api/cache-version
  * and triggers useRevalidator() when the server version is newer than the client version.
  * Closes merchant-edit lag for users who stay on a catalog tab without switching away.
+ *
+ * Nav-change trigger (pathname useEffect) is debounced to NAV_CHECK_DEBOUNCE_MS to prevent
+ * a /api/cache-version request on every rapid chip/navbar navigation (network log showed one
+ * per page change). visibilitychange + pageshow remain immediate — those are user-intent signals.
  */
 import {useCallback, useEffect, useRef} from 'react';
 import {useLocation, useRevalidator} from 'react-router';
@@ -13,6 +17,8 @@ import {clearClientLoaderCache} from '~/lib/client-loader-cache';
 const VERSION_STORAGE_KEY = 'zehn-catalog-cache-version';
 /** Poll interval while tab is visible on catalog routes — SSE alternative (Hydrogen-native). */
 const CATALOG_VERSION_POLL_MS = 60_000;
+/** Minimum ms between nav-triggered cache-version checks — prevents per-chip waterfall noise. */
+const NAV_CHECK_DEBOUNCE_MS = 3_000;
 const CATALOG_PATH_PREFIXES = ['/', '/products/', '/collections/'];
 
 function isCatalogRoute(pathname: string): boolean {
@@ -60,6 +66,8 @@ export function useCatalogCacheRevalidation(): void {
   const revalidator = useRevalidator();
   const clientVersionRef = useRef(readStoredVersion());
   const checkingRef = useRef(false);
+  /** Timestamp of the last nav-triggered check — debounce guard (not applied to visibility/pageshow). */
+  const lastNavCheckRef = useRef(0);
 
   const checkAndRevalidate = useCallback(async () => {
     if (!isCatalogRoute(pathname)) return;
@@ -92,7 +100,13 @@ export function useCatalogCacheRevalidation(): void {
   useEffect(() => {
     if (!isCatalogRoute(pathname)) return;
 
-    void checkAndRevalidate();
+    // Nav-triggered check: debounced to avoid a /api/cache-version call on every rapid
+    // chip click or navbar navigation. Visibility/pageshow events below are NOT debounced.
+    const now = Date.now();
+    if (now - lastNavCheckRef.current >= NAV_CHECK_DEBOUNCE_MS) {
+      lastNavCheckRef.current = now;
+      void checkAndRevalidate();
+    }
 
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {

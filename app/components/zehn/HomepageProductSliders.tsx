@@ -1,7 +1,12 @@
-import {useRef} from 'react';
+import {useMemo, useRef} from 'react';
+import {useWarmImageUrls} from '~/hooks/useAboveFoldImageWarm';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {ProductItem} from '~/components/ProductItem';
-import {resolveProductImageLoading} from '~/lib/zehn-product-image-loading';
+import {
+  resolveProductImageLoading,
+  ZEHN_HOMEPAGE_SLIDER_SIZES,
+} from '~/lib/zehn-product-image-loading';
+import {collectFeaturedImageUrls} from '~/lib/zehn-image-warm';
 
 export type HomepageProductSliderSection = {
   id: string;
@@ -87,6 +92,8 @@ function HomepageProductSlider({
               loading={imageLoad.loading}
               priority={imageLoad.priority}
               isLCP={imageLoad.isLCP}
+              skipSkeleton={imageLoad.skipSkeleton}
+              imageSizes={ZEHN_HOMEPAGE_SLIDER_SIZES}
               index={index}
             />
           </div>
@@ -103,6 +110,16 @@ export function HomepageProductSliders({
   const visibleSections = sections.filter(
     (section) => uniqueProducts(section.products).length > 0,
   );
+
+  const warmUrls = useMemo(() => {
+    const allProducts = visibleSections.flatMap((section) =>
+      uniqueProducts(section.products),
+    );
+    return collectFeaturedImageUrls(allProducts);
+  }, [visibleSections]);
+
+  /* Parallel warm — all slider rows start CDN fetch before paint (shared hook). */
+  useWarmImageUrls(warmUrls);
 
   if (visibleSections.length === 0) return null;
 

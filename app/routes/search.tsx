@@ -360,7 +360,7 @@ const SEARCH_PRODUCT_FRAGMENT = `#graphql
       width
       height
     }
-    media(first: 50) {
+    media(first: 10) {
       nodes {
         ... on MediaImage {
           id
@@ -426,7 +426,7 @@ const SEARCH_PRODUCT_FRAGMENT = `#graphql
         }
       }
     }
-    variants(first: 50) {
+    variants(first: 15) {
       nodes {
         id
         availableForSale

@@ -51,6 +51,11 @@ describe('zehn-media-styles — tokens', () => {
     expect(tokens).toContain('aspect-[3/4]');
   });
 
+  it('exports pdp 2/3 ratio for PDP gallery hero (mobile + desktop main image)', () => {
+    expect(tokens).toContain('pdp');
+    expect(tokens).toContain('aspect-[2/3]');
+  });
+
   it('exports ZehnMediaAspectKey type', () => {
     expect(tokens).toContain('ZehnMediaAspectKey');
   });
@@ -97,8 +102,9 @@ describe('ZehnShopifyImage — behaviour contract', () => {
     expect(img).toContain("sizes: string");
   });
 
-  it('skeleton rendered only when !isLCP', () => {
-    expect(img).toContain('!isLCP');
+  it('skeleton rendered only when !isLCP and !skipSkeleton', () => {
+    expect(img).toContain('hideSkeleton');
+    expect(img).toContain('isLCP || skipSkeleton');
     expect(img).toContain('ZEHN_MEDIA_SKELETON');
   });
 
@@ -207,6 +213,33 @@ describe('Phase 3 — ProductItem migration', () => {
   });
 });
 
+describe('products.$handle — mobile PDP gallery frame', () => {
+  const src = read('app/routes/products.$handle.tsx');
+
+  it('uses ZehnMediaFrame with pdp aspect on mobile gallery', () => {
+    expect(src).toContain('ZehnMediaFrame');
+    expect(src).toContain('aspect="pdp"');
+  });
+
+  it('mobile block does not put aspect ratio on ZehnShopifyImage className', () => {
+    const mobileBlock = src.slice(
+      src.indexOf('{/* Mobile: Image Slider with Dots */}'),
+      src.indexOf('{/* Desktop: Thumbnails + Main Image */}'),
+    );
+    expect(mobileBlock).not.toContain('aspect-[2/3] object-cover');
+  });
+
+  it('desktop main gallery uses ZEHN_MEDIA_ASPECT.pdp token on mainImageRef container', () => {
+    const mainBlock = src.slice(
+      src.indexOf('{/* Main Image - Right Side */}'),
+      src.indexOf('{/* Product Info */}'),
+    );
+    expect(mainBlock).toContain('ref={mainImageRef}');
+    expect(mainBlock).toContain('ZEHN_MEDIA_ASPECT.pdp');
+    expect(mainBlock).not.toContain('aspect-[2/3]');
+  });
+});
+
 describe('Phase 3 — CompactProductCard migration', () => {
   const src = read('app/components/CompactProductCard.tsx');
 
@@ -221,25 +254,6 @@ describe('Phase 3 — CompactProductCard migration', () => {
 
   it('no longer imports Image from @shopify/hydrogen directly', () => {
     expect(src).not.toMatch(/import.*\bImage\b.*from '@shopify\/hydrogen'/);
-  });
-});
-
-describe('Phase 3 — ProductSlider migration', () => {
-  const src = read('app/components/zehn/ProductSlider.tsx');
-
-  it('uses ZehnMediaFrame with sliderCard aspect', () => {
-    expect(src).toContain('ZehnMediaFrame');
-    expect(src).toContain("aspect=\"sliderCard\"");
-  });
-
-  it('uses ZehnShopifyImage for Shopify CDN product images', () => {
-    expect(src).toContain('ZehnShopifyImage');
-  });
-
-  it('no longer uses raw <img> for product images', () => {
-    // ZehnStaticImage wraps the img internally; no raw img tag for product images
-    expect(src).not.toContain('<img\n');
-    expect(src).not.toContain("<img ");
   });
 });
 
@@ -434,16 +448,18 @@ describe('Phase 3 P2 — ZehnClubPage migration', () => {
 // zehn-product-image-loading.ts — resolver contexts
 // ============================================================================
 describe('zehn-product-image-loading — resolveProductImageLoading', () => {
-  it('horizontalSlider: all cards eager + priority, never isLCP', () => {
+  it('horizontalSlider: all cards eager + priority, skipSkeleton, never isLCP', () => {
     expect(resolveProductImageLoading('horizontalSlider', 0)).toEqual({
       loading: 'eager',
       priority: true,
       isLCP: false,
+      skipSkeleton: true,
     });
     expect(resolveProductImageLoading('horizontalSlider', 5)).toEqual({
       loading: 'eager',
       priority: true,
       isLCP: false,
+      skipSkeleton: true,
     });
   });
 

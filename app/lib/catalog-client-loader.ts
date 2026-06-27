@@ -3,6 +3,9 @@
  *
  * Caches loader payload by request.url so back-nav reuses warm data when
  * shouldRevalidate skips GET navigation. Cleared on catalog cache version bump.
+ *
+ * On cache miss, warms above-fold product images before React mounts so cards 2–8
+ * start CDN fetch earlier than useAboveFoldImageWarm alone (deduped via zehn-image-cache).
  */
 import type {ClientLoaderFunctionArgs} from 'react-router';
 import {
@@ -10,6 +13,7 @@ import {
   readClientLoaderCache,
   writeClientLoaderCache,
 } from '~/lib/client-loader-cache';
+import {warmCatalogLoaderProducts} from '~/lib/zehn-image-warm';
 
 export async function catalogClientLoader<T = unknown>({
   request,
@@ -20,6 +24,7 @@ export async function catalogClientLoader<T = unknown>({
   if (cached) return cached;
   const serverData = (await serverLoader()) as T;
   writeClientLoaderCache(cacheKey, serverData);
+  warmCatalogLoaderProducts(serverData);
   return serverData;
 }
 

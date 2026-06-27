@@ -18,6 +18,7 @@ import {
 } from '~/lib/zehn-product-image-loading';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
 import {useCallback} from 'react';
+import {useAboveFoldImageWarm} from '~/hooks/useAboveFoldImageWarm';
 import {ShoppingBag} from 'lucide-react';
 import {ProductCatalogBand} from '~/components/zehn/ProductCatalogBand';
 import {ZEHN_HOMEPAGE_GRID_TOP} from '~/lib/homepage-section-styles';
@@ -130,6 +131,7 @@ export default function Collection() {
 
   const {selectedCategory, displayProducts, showFacetToolbar} = filterState;
 
+  useAboveFoldImageWarm(products.nodes);
 
   return (
     <div className="pt-3 sm:pt-6 lg:pt-12 pb-20">
@@ -202,7 +204,6 @@ export const COLLECTION_ITEM_FRAGMENT = `#graphql
     handle
     title
     tags
-    productType
     featuredImage {
       id
       altText
@@ -210,7 +211,7 @@ export const COLLECTION_ITEM_FRAGMENT = `#graphql
       width
       height
     }
-    media(first: 50) {
+    media(first: 20) {
       nodes {
         ... on MediaImage {
           id
@@ -228,9 +229,6 @@ export const COLLECTION_ITEM_FRAGMENT = `#graphql
       minVariantPrice {
         ...MoneyCollectionItem
       }
-      maxVariantPrice {
-        ...MoneyCollectionItem
-      }
     }
     compareAtPriceRange {
       minVariantPrice {
@@ -242,23 +240,11 @@ export const COLLECTION_ITEM_FRAGMENT = `#graphql
       optionValues {
         name
         firstSelectableVariant {
-          id
-          availableForSale
           image {
             url
             altText
             width
             height
-          }
-          price {
-            ...MoneyCollectionItem
-          }
-          compareAtPrice {
-            ...MoneyCollectionItem
-          }
-          selectedOptions {
-            name
-            value
           }
         }
         swatch {
@@ -271,7 +257,7 @@ export const COLLECTION_ITEM_FRAGMENT = `#graphql
         }
       }
     }
-    variants(first: 50) {
+    variants(first: 25) {
       nodes {
         id
         availableForSale
